@@ -9,19 +9,28 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@harmoniclabs/bytestring": "^1.0.0",
+    "@harmoniclabs/cbor": "^1.6.6",
+    "@harmoniclabs/plutus-data": "^1.2.6",
+    "@harmoniclabs/uplc": "^1.4.1",
+    "@lucid-evolution/lucid": "^0.4.29",
+    "@midnight-ntwrk/dapp-connector-api": "^3.0.0",
+    "@midnight-ntwrk/wallet": "^5.0.0",
+    "@midnight-ntwrk/wallet-api": "^5.0.0",
+    "next": "15.4.6",
     "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "next": "15.4.6"
+    "react-dom": "19.1.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
-    "@eslint/eslintrc": "^3"
-  }
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
