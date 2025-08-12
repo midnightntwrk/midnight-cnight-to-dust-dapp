@@ -1,9 +1,9 @@
 'use client'
 
 import React, { useState } from 'react';
-import { useCardanoWallet, SupportedWallet } from '@/hooks/useCardanoWallet';
+import { useMidnightWallet, SupportedMidnightWallet } from '@/hooks/useMidnightWallet';
 
-const WalletConnect: React.FC = () => {
+const MidnightWalletConnect: React.FC = () => {
   const { 
     isConnected, 
     address, 
@@ -14,23 +14,16 @@ const WalletConnect: React.FC = () => {
     connectWallet, 
     disconnectWallet, 
     availableWallets 
-  } = useCardanoWallet();
+  } = useMidnightWallet();
   
   const [showWalletList, setShowWalletList] = useState(false);
 
   // Wallet display names and icons
   const walletInfo = {
-    nami: { name: 'Nami', icon: '🦎' },
-    eternl: { name: 'Eternl', icon: '♾️' },
-    lace: { name: 'Lace', icon: '🎭' },
-    flint: { name: 'Flint', icon: '🔥' },
-    typhoncip30: { name: 'Typhon', icon: '🌪️' },
-    nufi: { name: 'NuFi', icon: '💎' },
-    gero: { name: 'GeroWallet', icon: '⚡' },
-    ccvault: { name: 'CCVault', icon: '🛡️' },
+    mnLace: { name: 'Lace (Midnight)', icon: '🌙' },
   };
 
-  const handleWalletSelect = async (wallet: SupportedWallet) => {
+  const handleWalletSelect = async (wallet: SupportedMidnightWallet) => {
     setShowWalletList(false);
     await connectWallet(wallet);
   };
@@ -39,16 +32,18 @@ const WalletConnect: React.FC = () => {
     return (
       <div className="wallet-connected">
         <div className="wallet-info">
-          <h3>✅ Wallet Connected</h3>
-          <p><strong>Wallet:</strong> {walletInfo[walletName as SupportedWallet]?.name}</p>
-          <p><strong>Balance:</strong> {balance} ADA</p>
-          <p><strong>Address:</strong> {address?.slice(0, 20)}...{address?.slice(-10)}</p>
+          <h3>✅ Midnight Wallet Connected</h3>
+          <p><strong>Wallet:</strong> {walletInfo[walletName as SupportedMidnightWallet]?.name}</p>
+          <p><strong>Balance:</strong> {balance}</p>
+          <p><strong>Shield Address:</strong></p>
+          <p className="address-text">{address?.slice(0, 40)}...{address?.slice(-20)}</p>
+          <p className="note-text">🛡️ Private shielded address for enhanced privacy</p>
         </div>
         <button 
           onClick={disconnectWallet}
           className="disconnect-btn"
         >
-          Disconnect Wallet
+          Disconnect Midnight Wallet
         </button>
       </div>
     );
@@ -66,41 +61,35 @@ const WalletConnect: React.FC = () => {
         <button 
           onClick={() => setShowWalletList(true)}
           disabled={isLoading}
-          className="connect-wallet-btn"
+          className="connect-wallet-btn midnight-btn"
         >
-          {isLoading ? '⏳ Connecting...' : '🔗 Connect Cardano Wallet'}
+          {isLoading ? '⏳ Connecting...' : '🌙 Connect Midnight Wallet'}
         </button>
       ) : (
         <div className="wallet-selection">
-          <h3>Choose your wallet:</h3>
+          <h3>Choose your Midnight wallet:</h3>
           <div className="wallet-list">
             {availableWallets.length > 0 ? (
               availableWallets.map((wallet) => (
                 <button
                   key={wallet}
                   onClick={() => handleWalletSelect(wallet)}
-                  className="wallet-option"
+                  className="wallet-option midnight-option"
                   disabled={isLoading}
                 >
                   <span className="wallet-icon">
                     {walletInfo[wallet]?.icon}
                   </span>
-                  <span className="wallet-name text-black">
+                  <span className="wallet-name">
                     {walletInfo[wallet]?.name}
                   </span>
                 </button>
               ))
             ) : (
               <div className="no-wallets">
-                <p>No Cardano wallets detected.</p>
-                <p>Please install a wallet like Nami, Eternl, or Lace first.</p>
+                <p>No Midnight wallets detected.</p>
+                <p>Please install Lace wallet with Midnight support first.</p>
                 <div className="wallet-links">
-                  <a href="https://namiwallet.io/" target="_blank" rel="noopener noreferrer">
-                    Install Nami
-                  </a>
-                  <a href="https://eternl.io/" target="_blank" rel="noopener noreferrer">
-                    Install Eternl
-                  </a>
                   <a href="https://www.lace.io/" target="_blank" rel="noopener noreferrer">
                     Install Lace
                   </a>
@@ -138,8 +127,17 @@ const WalletConnect: React.FC = () => {
           width: 100%;
         }
         
+        .midnight-btn {
+          background: #4a1d96;
+          background: linear-gradient(135deg, #4a1d96 0%, #2d1b69 100%);
+        }
+        
         .connect-wallet-btn:hover {
           background: #0052a3;
+        }
+        
+        .midnight-btn:hover {
+          background: linear-gradient(135deg, #3d1a7a 0%, #261654 100%);
         }
         
         .connect-wallet-btn:disabled {
@@ -149,6 +147,7 @@ const WalletConnect: React.FC = () => {
         
         .wallet-selection h3 {
           margin: 0 0 15px 0;
+          color: #4a1d96;
         }
         
         .wallet-list {
@@ -170,8 +169,12 @@ const WalletConnect: React.FC = () => {
           transition: background-color 0.2s;
         }
         
-        .wallet-option:hover {
-          background: #f5f5f5;
+        .midnight-option {
+          border-color: #4a1d96;
+        }
+        
+        .wallet-option:hover, .midnight-option:hover {
+          background: #f8f6ff;
         }
         
         .wallet-icon {
@@ -180,6 +183,7 @@ const WalletConnect: React.FC = () => {
         
         .wallet-name {
           font-weight: 500;
+          color: #4a1d96;
         }
         
         .cancel-btn {
@@ -197,15 +201,38 @@ const WalletConnect: React.FC = () => {
         }
         
         .wallet-info {
-          background: #f0f8ff;
+          background: #f8f6ff;
+          border: 1px solid #4a1d96;
           padding: 15px;
           border-radius: 6px;
           margin-bottom: 15px;
         }
         
+        .wallet-info h3 {
+          color: #4a1d96;
+        }
+        
         .wallet-info p {
           margin: 5px 0;
           font-size: 14px;
+          color: #333;
+        }
+        
+        .address-text {
+          font-family: monospace;
+          font-size: 11px;
+          background: #f0f0f0;
+          padding: 4px 6px;
+          border-radius: 3px;
+          word-break: break-all;
+          margin: 2px 0 !important;
+        }
+        
+        .note-text {
+          font-size: 12px !important;
+          color: #666 !important;
+          font-style: italic;
+          margin-top: 8px !important;
         }
         
         .disconnect-btn {
@@ -239,7 +266,7 @@ const WalletConnect: React.FC = () => {
         }
         
         .wallet-links a {
-          color: #0066cc;
+          color: #4a1d96;
           text-decoration: none;
           font-size: 14px;
         }
@@ -248,4 +275,4 @@ const WalletConnect: React.FC = () => {
   );
 };
 
-export default WalletConnect;
+export default MidnightWalletConnect;

@@ -1,6 +1,7 @@
 // hooks/useWallet.ts
 import { useState, useEffect } from 'react';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LucidEvolution = any; // We'll import this dynamically
 
 export type SupportedWallet = 'nami' | 'eternl' | 'lace' | 'flint' | 'typhoncip30' | 'nufi' | 'gero' | 'ccvault';

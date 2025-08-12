@@ -8,22 +8,24 @@ export interface MidnightWallet {
 }
 
 export interface MidnightAPI {
-    getNetworkId(): Promise<number>;
-    getUtxos(): Promise<string[]>;
-    getBalance(): Promise<string>;
-    getUsedAddresses(): Promise<string[]>;
-    getUnusedAddresses(): Promise<string[]>;
-    getChangeAddress(): Promise<string>;
-    getRewardAddresses(): Promise<string[]>;
-    signTx(tx: string, partialSign?: boolean): Promise<string>;
-    signData(address: string, payload: string): Promise<object>;
-    submitTx(tx: string): Promise<string>;
+    state(): any;
+    // balanceAndProveTransaction
+    // getNetworkId(): Promise<number>;
+    // getUtxos(): Promise<string[]>;
+    // getBalance(): Promise<string>;
+    // getUsedAddresses(): Promise<string[]>;
+    // getUnusedAddresses(): Promise<string[]>;
+    // getChangeAddress(): Promise<string>;
+    // getRewardAddresses(): Promise<string[]>;
+    // signTx(tx: string, partialSign?: boolean): Promise<string>;
+    // signData(address: string, payload: string): Promise<object>;
+    // submitTx(tx: string): Promise<string>;
 }
 
 declare global {
     interface Window {
         midnight?: {
-            lace?: MidnightWallet;
+            mnLace?: MidnightWallet;
         };
     }
 }

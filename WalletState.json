@@ -1,0 +1,8 @@
+{
+    "address": "mn_shield-addr_test1fnf0lctnly8rmxafuha4ac2vvwpk0kv4ggv8e6nv3ges2vfjxqhsxqrfzy0qszgw6xjvk8rwh3wrzugh27fv4a2n0e20yqrxmw76rnt09gplvk8c",
+    "addressLegacy": "4cd2ffe173f90e3d9ba9e5fb5ee14c638367d99542187cea6c8a33053132302f|030069111e08090ed1a4cb1c6ebc5c3171175792caf5537e54f20066dbbda1cd6f2a",
+    "coinPublicKey": "mn_shield-cpk_test1fnf0lctnly8rmxafuha4ac2vvwpk0kv4ggv8e6nv3ges2vfjxqhsu5ef8k",
+    "coinPublicKeyLegacy": "4cd2ffe173f90e3d9ba9e5fb5ee14c638367d99542187cea6c8a33053132302f",
+    "encryptionPublicKey": "mn_shield-epk_test1qvqxjyg7pqysa5dyevwxa0zux9c3w4ujet64xlj57gqxdkaa58xk72sz4ftg8",
+    "encryptionPublicKeyLegacy": "030069111e08090ed1a4cb1c6ebc5c3171175792caf5537e54f20066dbbda1cd6f2a"
+}
