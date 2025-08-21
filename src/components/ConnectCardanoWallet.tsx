@@ -1,12 +1,14 @@
 'use client'
 
 import React, { useState } from 'react';
-import { useCardanoWallet, SupportedWallet } from '@/hooks/useCardanoWallet';
+import { SupportedWallet } from '@/hooks/useCardanoWallet';
 import { Button } from '@heroui/react';
 import WalletsModal from './wallet-connect/WalletsModal';
 import { SupportedMidnightWallet } from '@/hooks/useMidnightWallet';
+import { useWalletContext } from '@/contexts/WalletContext';
 
 const ConnectCardanoWallet: React.FC = () => {
+  const { cardano, connectCardanoWallet, disconnectCardanoWallet, getAvailableCardanoWallets } = useWalletContext();
 
   const {
     isConnected,
@@ -14,11 +16,10 @@ const ConnectCardanoWallet: React.FC = () => {
     balance,
     walletName,
     isLoading,
-    error,
-    connectWallet,
-    disconnectWallet,
-    availableWallets
-  } = useCardanoWallet();
+    error
+  } = cardano;
+
+  const availableWallets = getAvailableCardanoWallets();
 
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
@@ -35,7 +36,7 @@ const ConnectCardanoWallet: React.FC = () => {
   };
 
   const handleWalletSelect = async (wallet: SupportedWallet | SupportedMidnightWallet) => {
-    await connectWallet(wallet as SupportedWallet);
+    await connectCardanoWallet(wallet as SupportedWallet);
   };
 
   if (isConnected) {
@@ -48,7 +49,7 @@ const ConnectCardanoWallet: React.FC = () => {
           <p><strong>Address:</strong> {address?.slice(0, 20)}...{address?.slice(-10)}</p>
         </div>
         <Button
-          onPress={disconnectWallet}
+          onPress={disconnectCardanoWallet}
         >
           Disconnect Wallet
         </Button>

@@ -25,8 +25,6 @@ export const useMidnightWallet = () => {
         error: null,
     });
 
-    console.log('>>> ', window.midnight);
-
     // Get available wallets
     const getAvailableWallets = (): SupportedMidnightWallet[] => {
         if (typeof window === 'undefined') return [];

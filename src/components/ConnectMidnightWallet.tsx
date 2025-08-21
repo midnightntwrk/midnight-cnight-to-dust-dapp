@@ -1,23 +1,25 @@
 'use client'
 
 import React, { useState } from 'react';
-import { useMidnightWallet, SupportedMidnightWallet } from '@/hooks/useMidnightWallet';
+import { SupportedMidnightWallet } from '@/hooks/useMidnightWallet';
 import WalletsModal from './wallet-connect/WalletsModal';
 import { Button } from '@heroui/react';
 import { SupportedWallet } from '@/hooks/useCardanoWallet';
+import { useWalletContext } from '@/contexts/WalletContext';
 
 const ConnectMidnightWallet: React.FC = () => {
+  const { midnight, connectMidnightWallet, disconnectMidnightWallet, getAvailableMidnightWallets } = useWalletContext();
+
   const {
     isConnected,
     address,
     balance,
     walletName,
     isLoading,
-    error,
-    connectWallet,
-    disconnectWallet,
-    availableWallets
-  } = useMidnightWallet();
+    error
+  } = midnight;
+
+  const availableWallets = getAvailableMidnightWallets();
 
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
@@ -27,13 +29,13 @@ const ConnectMidnightWallet: React.FC = () => {
   };
 
   const handleWalletSelect = async (wallet: SupportedWallet | SupportedMidnightWallet) => {
-    await connectWallet(wallet as SupportedMidnightWallet);
+    await connectMidnightWallet(wallet as SupportedMidnightWallet);
   };
 
   if (isConnected) {
     return (
-      <div className="wallet-connected">
-        <div className="wallet-info">
+      <div className="flex flex-col gap-2">
+        <div>
           <h3>✅ Midnight Wallet Connected</h3>
           <p><strong>Wallet:</strong> {walletInfo[walletName as SupportedMidnightWallet]?.name}</p>
           <p><strong>Balance:</strong> {balance}</p>
@@ -41,12 +43,11 @@ const ConnectMidnightWallet: React.FC = () => {
           <p className="address-text">{address?.slice(0, 40)}...{address?.slice(-20)}</p>
           <p className="note-text">🛡️ Private shielded address for enhanced privacy</p>
         </div>
-        <button
-          onClick={disconnectWallet}
-          className="disconnect-btn"
+        <Button
+          onPress={disconnectMidnightWallet}
         >
           Disconnect Midnight Wallet
-        </button>
+        </Button>
       </div>
     );
   }
