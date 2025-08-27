@@ -195,8 +195,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             // Extract address from the state
             const address = walletState?.address || null;
             
-            // Midnight doesn't seem to provide balance in the same way as Cardano
-            // We'll show the wallet as connected but indicate balance is not available
             const balance = 'N/A (Shield address)';
 
             setMidnightState({

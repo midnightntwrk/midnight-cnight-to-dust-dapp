@@ -83,9 +83,9 @@ export default function MidnightNavbar() {
         </NavbarItem>
       </NavbarContent>
       <NavbarContent justify="end">
-        <NavbarItem className="flex items-center gap-2">
+        {/* <NavbarItem className="flex items-center gap-2">
           <ThemeSwitcher />
-        </NavbarItem>
+        </NavbarItem> */}
         <NavbarItem>
           {walletStatus.count > 0 ? (
             <Badge 
@@ -118,9 +118,9 @@ export default function MidnightNavbar() {
           </NavbarMenuItem>
         ))}
         <NavbarMenuItem>
-          <div className="flex justify-center mt-4">
+          {/* <div className="flex justify-center mt-4">
             <ThemeSwitcher />
-          </div>
+          </div> */}
         </NavbarMenuItem>
       </NavbarMenu>
     </Navbar>

@@ -1,4 +1,5 @@
 // types/midnight.d.ts
+import { DAppConnectorAPI, DappConnectorWalletState } from '@midnight-ntwrk/dapp-connector-api';
 export interface MidnightWallet {
     name: string;
     icon: string;
@@ -8,24 +9,13 @@ export interface MidnightWallet {
 }
 
 export interface MidnightAPI {
-    state(): any;
-    // balanceAndProveTransaction
-    // getNetworkId(): Promise<number>;
-    // getUtxos(): Promise<string[]>;
-    // getBalance(): Promise<string>;
-    // getUsedAddresses(): Promise<string[]>;
-    // getUnusedAddresses(): Promise<string[]>;
-    // getChangeAddress(): Promise<string>;
-    // getRewardAddresses(): Promise<string[]>;
-    // signTx(tx: string, partialSign?: boolean): Promise<string>;
-    // signData(address: string, payload: string): Promise<object>;
-    // submitTx(tx: string): Promise<string>;
+    state(): DappConnectorWalletState;
 }
 
 declare global {
     interface Window {
         midnight?: {
-            mnLace?: MidnightWallet;
+            mnLace?: DAppConnectorAPI;
         };
     }
 }
