@@ -7,7 +7,7 @@ import Image from 'next/image';
 
 const GenerationRateCard = () => {
     return (
-        <Card className='bg-[#70707035] p-[24px] w-[20%] gap-4'>
+        <Card className='bg-[#70707035] p-[24px] w-full lg:w-[20%] gap-4'>
             <div className='flex flex-col gap-1'>
                 <div className='flex flex-row gap-2 z-10'>
                     <span className='text-[18px] font-normal'>Generation Rate</span>

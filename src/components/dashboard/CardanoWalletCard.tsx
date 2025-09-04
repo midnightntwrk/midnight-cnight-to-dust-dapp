@@ -22,7 +22,7 @@ const CardanoWalletCard = () => {
     }
 
     return (
-        <Card className='bg-[#70707035] p-[24px] w-[40%] flex flex-col gap-4 relative pb-8'>
+        <Card className='bg-[#70707035] p-[24px] w-full lg:w-[40%] flex flex-col gap-4 relative pb-8'>
             <div className='absolute top-1/2 right-[16px] transform -translate-y-1/2'>
                 <Image src={CardanoBg} alt='cardano bg' width={100} height={100} />
             </div>

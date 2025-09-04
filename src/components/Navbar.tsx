@@ -23,16 +23,14 @@ export default function MidnightNavbar() {
 
   const menuItems = [
     { name: "Home", href: "/" },
-    { name: "Onboard", href: "/onboard" },
     { name: "Dashboard", href: "/dashboard" },
-    { name: "Connect", href: "/connect" },
   ];
 
   // Calculate wallet status
   const getWalletStatus = () => {
     const cardanoConnected = cardano.isConnected;
     const midnightConnected = midnight.isConnected;
-    
+
     if (cardanoConnected && midnightConnected) return { count: 2, color: 'success' };
     if (cardanoConnected || midnightConnected) return { count: 1, color: 'warning' };
     return { count: 0, color: 'danger' };
@@ -54,20 +52,15 @@ export default function MidnightNavbar() {
       </NavbarContent>
 
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
-        <NavbarItem>
+        {/* <NavbarItem>
           <Link color="foreground" href="/">
             Home
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link color="foreground" href="/onboard">
-            Onboard
-          </Link>
-        </NavbarItem>
-        <NavbarItem>
-          <Badge 
-            content={walletStatus.count > 0 ? walletStatus.count : ""} 
-            color={walletStatus.color as any} 
+          <Badge
+            content={walletStatus.count > 0 ? walletStatus.count : ""}
+            color={walletStatus.color as any}
             size="sm"
             isInvisible={walletStatus.count === 0}
           >
@@ -75,22 +68,17 @@ export default function MidnightNavbar() {
               Dashboard
             </Link>
           </Badge>
-        </NavbarItem>
-        <NavbarItem>
-          <Link color="foreground" href="/connect">
-            Connect
-          </Link>
-        </NavbarItem>
+        </NavbarItem> */}
       </NavbarContent>
-      <NavbarContent justify="end">
+      <NavbarContent justify="end" className="hidden sm:flex gap-4">
         {/* <NavbarItem className="flex items-center gap-2">
           <ThemeSwitcher />
         </NavbarItem> */}
         <NavbarItem>
-          {walletStatus.count > 0 ? (
-            <Badge 
-              content={walletStatus.count} 
-              color={walletStatus.color as any} 
+          {walletStatus.count === 2 ? (
+            <Badge
+              content={walletStatus.count}
+              color={walletStatus.color as any}
               size="sm"
             >
               <Button as={Link} color="primary" href="/dashboard" variant="flat">

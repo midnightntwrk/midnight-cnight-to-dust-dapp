@@ -79,18 +79,14 @@ export default function Dashboard() {
                     <p className="text-gray-500">Manage your Cardano and Midnight wallet connections</p>
                 </div>
             </div>
-            <div className='flex flex-row gap-4'>
-
+            <div className='flex flex-col lg:flex-row gap-4 lg:gap-6'>
                 <CardanoWalletCard />
-
                 <GenerationRateCard />
-
                 <MidnightWalletCard />
-
             </div>
 
-            <div className='flex flex-col gap-4'>
-                Available Info:
+            <div className='flex flex-col gap-4 mt-12 mb-12'>
+                Available RAW Info:
                 <div>
                     <p className='text-lg font-bold'>Cardano Wallet</p>
                     <p>Address: {cardano.address}</p>
