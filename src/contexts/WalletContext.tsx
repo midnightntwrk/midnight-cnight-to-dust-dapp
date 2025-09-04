@@ -109,13 +109,23 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
             // Connect to wallet
             const api = await window.cardano[walletName].enable();
-            
+
             // Select the wallet in Lucid directly with the API
             lucid.selectWallet.fromAPI(api);
 
             // Get wallet info
             const address = await lucid.wallet().address();
             const utxos = await lucid.wallet().getUtxos();
+
+            console.log('UTXOs ', utxos)
+
+            const tokenPolicy = '';
+
+            // utxos.assets i have the different balances[]
+            // first 56 characters is policy id
+            // rest is toikenName in hex > fromHex(....) = tokenName
+            // value is balance with 6 decimals
+            // integrate with lucid built in function
 
             // Calculate balance (sum of all UTxOs)
             const balance = utxos.reduce((acc, utxo) => acc + (utxo.assets?.lovelace || BigInt(0)), BigInt(0));
@@ -126,7 +136,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                 address,
                 balance: balanceInAda,
                 walletName,
-                lucid,
+                lucid, // from this variable we will execute all tx
                 isLoading: false,
                 error: null,
             });
@@ -194,7 +204,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
             // Extract address from the state
             const address = walletState?.address || null;
-            
+
             const balance = 'N/A (Shield address)';
 
             setMidnightState({

@@ -36,7 +36,7 @@ export default function Onboard() {
     const [currentStep, setCurrentStep] = useState(1);
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
     const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);
-    
+
     const { isOpen: isMatchModalOpen, onOpen: onMatchModalOpen, onOpenChange: onMatchModalChange } = useDisclosure();
 
     // Wallet display names and icons
@@ -54,6 +54,21 @@ export default function Onboard() {
     const midnightWalletInfo = {
         mnLace: { name: 'Lace (Midnight)', icon: '🌙' },
     };
+
+    // To be implemented
+    // const handleRegister = async () => {
+    //     // Build, sign and submit transaction
+    //     const tx = await cardano.lucid
+    //         .newTx()
+    //         .payToContract(
+    //             contractAddress: '',
+    //             { inline: datum },
+    //             { lovelace: 2000000n } // amount in lovelace
+    //         )
+    //         .complete(); // Balance the transaction and initiate UTxO selection
+    //     const signedTx = await tx.sign.withWallet().complete();
+    //     const txHash = await signedTx.submit();
+    // }
 
     const handleCardanoWalletSelect = async (wallet: SupportedWallet | SupportedMidnightWallet) => {
         await connectCardanoWallet(wallet as SupportedWallet);
@@ -98,9 +113,9 @@ export default function Onboard() {
                     <span className="text-sm font-medium">Progress</span>
                     <span className="text-sm font-medium">{Math.round(getProgress())}%</span>
                 </div>
-                <Progress 
-                    value={getProgress()} 
-                    color="primary" 
+                <Progress
+                    value={getProgress()}
+                    color="primary"
                     className="mb-4"
                 />
                 <div className="flex justify-between text-xs text-gray-500">
@@ -269,7 +284,7 @@ export default function Onboard() {
                                     <p className="text-sm font-semibold text-primary mb-2">🏦 Cardano Address:</p>
                                     <p className="font-mono text-sm break-all">{cardano.address}</p>
                                 </div>
-                                
+
                                 <div className="p-4 bg-secondary-50 rounded-lg border">
                                     <p className="text-sm font-semibold text-secondary mb-2">🌙 Midnight Address:</p>
                                     <p className="font-mono text-sm break-all">{midnight.address}</p>
