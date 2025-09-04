@@ -10,7 +10,7 @@ interface CardanoWalletState {
     address: string | null;
     balance: string | null;
     walletName: string | null;
-    lucid: any | null;
+    lucid: unknown | null;
     isLoading: boolean;
     error: string | null;
 }
@@ -20,7 +20,7 @@ interface MidnightWalletState {
     address: string | null;
     balance: string | null;
     walletName: string | null;
-    api: any | null;
+    api: unknown | null;
     isLoading: boolean;
     error: string | null;
 }

@@ -4,26 +4,8 @@ import React, { useState } from 'react';
 import { useWalletContext } from '@/contexts/WalletContext';
 import { SupportedWallet } from '@/hooks/useCardanoWallet';
 import { SupportedMidnightWallet } from '@/hooks/useMidnightWallet';
-import {
-    Card,
-    CardBody,
-    CardHeader,
-    Button,
-    Chip,
-    Divider,
-    Badge,
-    Avatar,
-    Link,
-    Spacer,
-    Progress
-} from '@heroui/react';
+import { Button } from '@heroui/react';
 import WalletsModal from './wallet-connect/WalletsModal';
-import ConnectionStatus from './dashboard/ConnectionStatus';
-import Image from 'next/image';
-
-import InfoIcon from '@/assets/icons/info.svg';
-import NightBalanceIcon from '@/assets/icons/NIGHT.svg';
-import DustBalanceIcon from '@/assets/icons/DUST.svg';
 import CardanoWalletCard from './dashboard/CardanoWalletCard';
 import MidnightWalletCard from './dashboard/MidnightWalletCard';
 import GenerationRateCard from './dashboard/GenerationRateCard';
@@ -45,20 +27,6 @@ export default function Dashboard() {
     const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);
 
     // Wallet display names and icons
-    const cardanoWalletInfo = {
-        nami: { name: 'Nami', icon: '🦎', color: 'success' },
-        eternl: { name: 'Eternl', icon: '♾️', color: 'primary' },
-        lace: { name: 'Lace', icon: '🎭', color: 'secondary' },
-        flint: { name: 'Flint', icon: '🔥', color: 'warning' },
-        typhoncip30: { name: 'Typhon', icon: '🌪️', color: 'primary' },
-        nufi: { name: 'NuFi', icon: '💎', color: 'secondary' },
-        gero: { name: 'GeroWallet', icon: '⚡', color: 'warning' },
-        ccvault: { name: 'CCVault', icon: '🛡️', color: 'default' },
-    };
-
-    const midnightWalletInfo = {
-        mnLace: { name: 'Lace (Midnight)', icon: '🌙', color: 'secondary' },
-    };
 
     const handleCardanoWalletSelect = async (wallet: SupportedWallet | SupportedMidnightWallet) => {
         await connectCardanoWallet(wallet as SupportedWallet);

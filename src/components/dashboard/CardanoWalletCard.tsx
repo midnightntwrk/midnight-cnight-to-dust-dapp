@@ -7,7 +7,6 @@ import CopyIcon from '@/assets/icons/copy.svg';
 import CheckIcon from '@/assets/icons/check.svg';
 import CardanoBg from '@/assets/cardano.svg';
 import NightBalanceIcon from '@/assets/icons/NIGHT.svg';
-import DustBalanceIcon from '@/assets/icons/DUST.svg';
 import { useWalletContext } from '@/contexts/WalletContext';
 
 

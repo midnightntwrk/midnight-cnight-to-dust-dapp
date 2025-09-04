@@ -35,7 +35,7 @@ const ConnectionStatus = () => {
             </div>
             <Progress
                 value={connectionStatus.percentage}
-                color={connectionStatus.color as any}
+                color={connectionStatus.color as "default" | "primary" | "secondary" | "success" | "warning" | "danger"}
                 className="mb-4"
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

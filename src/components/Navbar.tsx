@@ -13,7 +13,6 @@ import {
   Button,
   Badge,
 } from "@heroui/react";
-import { ThemeSwitcher } from "./ThemeSwitcher";
 import { useWalletContext } from '@/contexts/WalletContext';
 import Image from "next/image";
 
@@ -78,7 +77,7 @@ export default function MidnightNavbar() {
           {walletStatus.count === 2 ? (
             <Badge
               content={walletStatus.count}
-              color={walletStatus.color as any}
+              color={walletStatus.color as "success" | "warning" | "danger"}
               size="sm"
             >
               <Button as={Link} color="primary" href="/dashboard" variant="flat">
