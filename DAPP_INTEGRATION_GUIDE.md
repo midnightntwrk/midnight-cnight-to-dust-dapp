@@ -81,7 +81,7 @@ Each Genesis UTxO creates a completely isolated DUST system deployment. This pre
 
 ---
 
-## STEP 1: Generate Smart Contracts
+## STEP 0: Generate Smart Contracts
 
 ### Action
 ```bash
@@ -105,7 +105,7 @@ Generates 8 `.plutus` files:
 
 ---
 
-## STEP 2A: Initialize Versioning System
+## STEP 1: Initialize Versioning System
 
 ### Transaction Structure
 ```
@@ -116,31 +116,48 @@ MINT:
 ├── Policy: Version Oracle Policy
 ├── Asset Name: "" (empty)
 ├── Amount: 1
-├── Redeemer: <no redeemer for version oracle policy>
+├── Redeemer: InitializeVersionOracle VersionOracle ScriptHash TokenName
 
 OUTPUT:
 ├── Address: Version Oracle Validator Address
 ├── Value: MinADA + Version Oracle Token (1x)
-├── Datum: VersionOracleConfig
-    └── genesisUtxo: TxOutRef
+├── Datum: VersionOracleDatum (INLINE)
+│   ├── versionOracle: VersionOracle { scriptId = 0 }
+│   └── currencySymbol: CurrencySymbol (Version Oracle Policy ID)
+└── Reference Script: **GOVERNANCE MULTISIG POLICY SCRIPT** (govMultiSigPolicy)
 
 SCRIPT WITNESS:
 └── Version Oracle Policy (for minting)
 ```
 
-### Datum Structure: VersionOracleConfig
+### Redeemer Exacto
 ```haskell
-data VersionOracleConfig = VersionOracleConfig
-  { genesisUtxo :: TxOutRef  -- The genesis UTxO reference
+InitializeVersionOracle
+  (VersionOracle { scriptId = 0 })                           -- VALOR FIJO: 0
+  (toPlutusScriptHash (cardanoScriptHash govScript))         -- Hash del Governance MultiSig Script
+  "Governance Policy"                                        -- VALOR FIJO: "Governance Policy"
+```
+
+**Campos del Redeemer:**
+- **VersionOracle**: `scriptId = 0` (siempre 0 para governance)
+- **ScriptHash**: Hash del Governance MultiSig Policy Script compilado
+- **TokenName**: `"Governance Policy"` (nombre fijo del token)
+
+### Datum Exacto
+```haskell
+VersionOracleDatum
+  { versionOracle = VersionOracle { scriptId = 0 }           -- MISMO que en redeemer
+  , currencySymbol = versionOraclePolicyId                   -- Currency symbol del Version Oracle Policy
   }
 ```
 
-### Redeemers
-- **Version Oracle Policy**: No redeemer required (always validates)
+**Campos del Datum:**
+- **versionOracle**: Debe ser exactamente igual al del redeemer
+- **currencySymbol**: El policy ID del Version Oracle Policy (se calcula automáticamente)
 
 ---
 
-## STEP 2B: Initialize DUST Production System
+## STEP 2: Initialize DUST Production System
 
 ### Transaction Structure
 ```
