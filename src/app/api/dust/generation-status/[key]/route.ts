@@ -49,9 +49,7 @@ export async function GET(
     // Return complete block data
     return NextResponse.json({
       success: true,
-      data: {
-        ...generationStatus,
-      }
+      data: generationStatus
     });
 
   } catch (error) {

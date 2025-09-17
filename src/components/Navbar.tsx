@@ -74,19 +74,13 @@ export default function MidnightNavbar() {
           <ThemeSwitcher />
         </NavbarItem> */}
         <NavbarItem>
-          {walletStatus.count === 2 ? (
-            <Badge
-              content={walletStatus.count}
-              color={walletStatus.color as "success" | "warning" | "danger"}
-              size="sm"
-            >
-              <Button as={Link} color="primary" href="/dashboard" variant="flat">
-                🔗 Wallets Connected
-              </Button>
-            </Badge>
+          {walletStatus.count >= 1 ? (
+            <Button as={Link} color="primary" href="/dashboard" variant="flat">
+              Dashboard
+            </Button>
           ) : (
             <Button as={Link} color="primary" href="/onboard" variant="flat">
-              Connect Wallets
+              Connect Wallet
             </Button>
           )}
         </NavbarItem>
