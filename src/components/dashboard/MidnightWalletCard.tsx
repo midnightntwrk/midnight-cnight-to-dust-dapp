@@ -77,7 +77,7 @@ const MidnightWalletCard = () => {
 
             <div className='flex z-10 mt-4 gap-4'>
                 <Button
-                    className="bg-[#0000FE] text-white w-full py-2 text-sm"
+                    className="bg-brand-primary hover:bg-brand-primary-hover text-white w-full py-2 text-sm"
                     radius="md"
                     size="sm"
                 >

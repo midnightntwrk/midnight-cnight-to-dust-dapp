@@ -26,7 +26,9 @@ export function useGenerationStatus(cardanoAddress: string | null): UseGeneratio
     try {
       // For now, use hardcoded key since indexer is not ready
       // TODO: Replace with actual address when indexer is complete
-      const keyToUse = "1234567890abcdef1234567890abcdef";
+
+      // const keyToUse = "1234567890abcdef1234567890abcdef"; // VALID
+      const keyToUse = "1234567890abcdef1234567890abcdef"; // INVALID
 
       const response = await fetch(`/api/dust/generation-status/${keyToUse}`);
 

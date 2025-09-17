@@ -75,11 +75,13 @@ export default function MidnightNavbar() {
         </NavbarItem> */}
         <NavbarItem>
           {walletStatus.count >= 1 ? (
-            <Button as={Link} color="primary" href="/dashboard" variant="flat">
+            <Button as={Link} className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 w-full py-2 text-sm"
+              href="/dashboard" variant="flat">
               Dashboard
             </Button>
           ) : (
-            <Button as={Link} color="primary" href="/onboard" variant="flat">
+            <Button as={Link} className="bg-brand-primary hover:bg-brand-primary-hover text-white w-full py-2 text-sm"
+              href="/onboard" variant="flat">
               Connect Wallet
             </Button>
           )}

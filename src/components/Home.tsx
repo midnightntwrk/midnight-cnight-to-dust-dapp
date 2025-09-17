@@ -54,19 +54,6 @@ export default function Home() {
             <div className="w-full flex flex-col items-center justify-center gap-[20px]">
                 <Onboard />
             </div>
-            {/* <div className="flex flex-row items-center justify-center gap-[20px]">
-                <Button
-                    as={Link}
-                    href="/onboard"
-                    // color="primary"
-                    className="bg-[#0000FE] hover:bg-blue-600 text-white font-medium py-3 text-sm md:text-base"
-                >
-                    Register with Cardano
-                </Button>
-                <Button as={Link} href="/onboard" className="bg-black border-1 border-white text-white font-medium py-3 text-sm md:text-base">
-                    Login with Midnight
-                </Button>
-            </div> */}
             <RequirementsCard />
             <Faqs />
         </div>

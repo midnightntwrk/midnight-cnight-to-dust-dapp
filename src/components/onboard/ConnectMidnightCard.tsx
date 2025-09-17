@@ -80,16 +80,11 @@ export default function ConnectMidnightCard({
                                     Connect your Midnight Wallet
                                 </h2>
 
-                                {/* Subtitle */}
-                                <p className="text-[#FFFFFF50] text-sm md:text-base">
-                                    Connect your Midnight wallet.
-                                </p>
-
                                 {/* Connect Button */}
                                 <Button
                                     onClick={onConnect}
                                     isLoading={isLoading}
-                                    className="bg-[#0000FE] hover:bg-blue-600 text-white font-medium w-full py-3 text-sm md:text-base"
+                                    className="bg-brand-primary hover:bg-brand-primary-hover text-white font-medium w-full py-3 text-sm md:text-base"
                                     size="lg"
                                     radius="md"
                                 >
