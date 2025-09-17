@@ -22,6 +22,8 @@ interface MatchAddressesCardProps {
     // Match action
     onMatch: () => void;
     isMatching?: boolean;
+    disabled?: boolean;
+    transactionState?: 'idle' | 'preparing' | 'signing' | 'submitting' | 'confirming' | 'success' | 'error';
 }
 
 export default function MatchAddressesCard({
@@ -33,7 +35,9 @@ export default function MatchAddressesCard({
     midnightAddress,
     onDisconnectMidnight,
     onMatch,
-    isMatching = false
+    isMatching = false,
+    disabled = false,
+    transactionState = 'idle'
 }: MatchAddressesCardProps) {
 
     const handleCopyCardanoAddress = () => {
@@ -138,11 +142,14 @@ export default function MatchAddressesCard({
                     <Button
                         onClick={onMatch}
                         isLoading={isMatching}
-                        className="bg-[#0000FE] hover:bg-blue-600 text-white font-medium w-full py-3 text-sm md:text-base"
+                        isDisabled={disabled || isMatching}
+                        className="bg-[#0000FE] hover:bg-blue-600 text-white font-medium w-full py-3 text-sm md:text-base disabled:bg-gray-600 disabled:text-gray-400"
                         size="lg"
                         radius="md"
                     >
-                        {isMatching ? 'MATCHING...' : 'MATCH ADDRESSES'}
+                        {isMatching ? 'MATCHING...' : 
+                         transactionState === 'success' ? 'REGISTRATION COMPLETED ✅' :
+                         disabled ? 'DUST PROTOCOL NOT READY' : 'MATCH ADDRESSES'}
                     </Button>
                 </CardBody>
             </Card>

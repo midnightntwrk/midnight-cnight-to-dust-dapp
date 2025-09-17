@@ -1,15 +1,12 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react';
-import { useWalletContext } from '@/contexts/WalletContext';
-import { SupportedWallet } from '@/hooks/useCardanoWallet';
-import { SupportedMidnightWallet } from '@/hooks/useMidnightWallet';
+import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/contexts/WalletContext';
 import { Button } from '@heroui/react';
-import WalletsModal from './wallet-connect/WalletsModal';
+import { useState } from 'react';
 import CardanoWalletCard from './dashboard/CardanoWalletCard';
-import MidnightWalletCard from './dashboard/MidnightWalletCard';
 import GenerationRateCard from './dashboard/GenerationRateCard';
-
+import MidnightWalletCard from './dashboard/MidnightWalletCard';
+import WalletsModal from './wallet-connect/WalletsModal';
 
 export default function Dashboard() {
     const {
@@ -20,7 +17,7 @@ export default function Dashboard() {
         disconnectCardanoWallet,
         disconnectMidnightWallet,
         getAvailableCardanoWallets,
-        getAvailableMidnightWallets
+        getAvailableMidnightWallets,
     } = useWalletContext();
 
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
@@ -47,22 +44,22 @@ export default function Dashboard() {
                     <p className="text-gray-500">Manage your Cardano and Midnight wallet connections</p>
                 </div>
             </div>
-            <div className='flex flex-col lg:flex-row gap-4 lg:gap-6'>
+            <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
                 <CardanoWalletCard />
                 <GenerationRateCard />
                 <MidnightWalletCard />
             </div>
 
-            <div className='flex flex-col gap-4 mt-12 mb-12'>
+            <div className="flex flex-col gap-4 mt-12 mb-12">
                 Available RAW Info:
                 <div>
-                    <p className='text-lg font-bold'>Cardano Wallet</p>
+                    <p className="text-lg font-bold">Cardano Wallet</p>
                     <p>Address: {cardano.address}</p>
                     <p>Balance: {cardano.balance}</p>
                     <p>Wallet Name: {cardano.walletName}</p>
                 </div>
                 <div>
-                    <p className='text-lg font-bold'>Midnight Wallet</p>
+                    <p className="text-lg font-bold">Midnight Wallet</p>
                     <p>Address: {midnight.address}</p>
                     <p>Balance: {midnight.balance}</p>
                     <p>Wallet Name: {midnight.walletName}</p>
@@ -73,22 +70,17 @@ export default function Dashboard() {
                 <ConnectionStatus />
             </div> */}
 
-            <div className='flex flex-col gap-4'>
-                <Button color='danger' onPress={() => disconnectCardanoWallet()}>
+            <div className="flex flex-col gap-4">
+                <Button color="danger" onPress={() => disconnectCardanoWallet()}>
                     Disconnect Cardano Wallet
                 </Button>
-                <Button color='danger' onPress={() => disconnectMidnightWallet()}>
+                <Button color="danger" onPress={() => disconnectMidnightWallet()}>
                     Disconnect Midnight Wallet
                 </Button>
             </div>
 
             {/* Wallet Selection Modals */}
-            <WalletsModal
-                isOpen={isCardanoModalOpen}
-                onOpenChange={setIsCardanoModalOpen}
-                wallets={getAvailableCardanoWallets()}
-                handleWalletSelect={handleCardanoWalletSelect}
-            />
+            <WalletsModal isOpen={isCardanoModalOpen} onOpenChange={setIsCardanoModalOpen} wallets={getAvailableCardanoWallets()} handleWalletSelect={handleCardanoWalletSelect} />
 
             <WalletsModal
                 isOpen={isMidnightModalOpen}
