@@ -77,7 +77,7 @@ export default function ConnectCardanoCard({
                                 <Button
                                     onClick={onConnect}
                                     isLoading={isLoading}
-                                    className="bg-[#0000FE] hover:bg-blue-600 text-white font-medium w-full py-3 text-sm md:text-base"
+                                    className="bg-brand-primary hover:bg-brand-primary-hover text-white font-medium w-full py-3 text-sm md:text-base"
                                     size="lg"
                                     radius="md"
                                 >

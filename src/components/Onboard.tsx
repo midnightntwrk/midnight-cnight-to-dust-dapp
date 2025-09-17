@@ -26,6 +26,7 @@ export default function Onboard() {
         disconnectMidnightWallet,
         getAvailableCardanoWallets,
         getAvailableMidnightWallets,
+        setManualMidnightAddress,
     } = useWalletContext();
 
     const [currentStep, setCurrentStep] = useState(1);
@@ -63,6 +64,11 @@ export default function Onboard() {
         if (!midnight.error) {
             setCurrentStep(3);
         }
+    };
+
+    const handleManualMidnightAddress = (address: string) => {
+        setManualMidnightAddress(address);
+        setCurrentStep(3);
     };
 
     // Auto-check protocol status when Cardano wallet connects
@@ -122,14 +128,29 @@ export default function Onboard() {
     };
 
     return (
-        <div className="max-w-2xl mx-auto p-6">
-            {/* Header */}
-            <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold mb-2">Wallet onboarding</h1>
-            </div>
+        <div className="w-full max-w-4xl lg:max-w-6xl mx-auto p-6">
 
             {/* Stepper Progress */}
-            <Stepper currentStep={currentStep} cardanoConnected={cardano.isConnected} midnightConnected={midnight.isConnected} />
+            {/* <Stepper currentStep={currentStep} cardanoConnected={cardano.isConnected} midnightConnected={midnight.isConnected} /> */}
+
+
+            {/* Step 2: Midnight Wallet Connection - Hide when both wallets connected */}
+            {cardano.isConnected && !(cardano.isConnected && midnight.isConnected) && (
+                <ConnectMidnightCard
+                    isConnected={midnight.isConnected}
+                    onConnect={() => setIsMidnightModalOpen(true)}
+                    onDisconnect={() => {
+                        disconnectMidnightWallet();
+                        setCurrentStep(2);
+                    }}
+                    isLoading={midnight.isLoading}
+                    error={midnight.error}
+                    walletName={midnight.walletName || ''}
+                    balance={midnight.balance || ''}
+                    address={midnight.address || ''}
+                    onManualAddressSubmit={handleManualMidnightAddress}
+                />
+            )}
 
             {/* Step 1: Cardano Wallet Connection - Hide when both wallets connected */}
             {!(cardano.isConnected && midnight.isConnected) && (
@@ -148,35 +169,20 @@ export default function Onboard() {
                 />
             )}
 
-            {/* Step 2: Midnight Wallet Connection - Hide when both wallets connected */}
-            {cardano.isConnected && !(cardano.isConnected && midnight.isConnected) && (
-                <ConnectMidnightCard
-                    isConnected={midnight.isConnected}
-                    onConnect={() => setIsMidnightModalOpen(true)}
-                    onDisconnect={() => {
-                        disconnectMidnightWallet();
-                        setCurrentStep(2);
-                    }}
-                    isLoading={midnight.isLoading}
-                    error={midnight.error}
-                    walletName={midnight.walletName || ''}
-                    balance={midnight.balance || ''}
-                    address={midnight.address || ''}
-                />
-            )}
+
 
             {/* Step 3: Address Matching - Only show when both wallets connected */}
             {cardano.isConnected && midnight.isConnected && (
                 <div className="space-y-4">
                     {/* Dust Protocol Status */}
-                    <DustProtocolStatus />
+                    {/* <DustProtocolStatus /> */}
 
                     {/* Transaction Progress */}
-                    <TransactionProgress labels={registrationLabels} />
+                    {/* <TransactionProgress labels={registrationLabels} /> */}
 
                     {/* DUST PKH Info - show the coinPublicKey from midnight wallet 
                     NOTE | TODO: This is for testing purposes only. Dont show this in production */}
-                    {protocolStatus?.isReady && transaction.transactionState === 'idle' && midnight.coinPublicKey && (
+                    {/* {protocolStatus?.isReady && transaction.transactionState === 'idle' && midnight.coinPublicKey && (
                         <div className="bg-white/5 rounded-lg p-4 mb-4">
                             <h4 className="text-white font-semibold mb-2">Midnight DUST Public Key</h4>
                             <div className="p-3 bg-white/10 rounded-lg border border-white/20">
@@ -184,7 +190,7 @@ export default function Onboard() {
                             </div>
                             <p className="text-xs text-white/60 mt-1">💡 This key will be used for DUST protocol registration</p>
                         </div>
-                    )}
+                    )} */}
 
                     <MatchAddressesCard
                         cardanoWalletName={cardano.walletName || ''}
@@ -207,7 +213,7 @@ export default function Onboard() {
                         transactionState={transaction.transactionState}
                         disabled={
                             // Disable if protocol not ready and transaction is idle
-                            (!protocolStatus?.isReady && transaction.transactionState === 'idle') || 
+                            (!protocolStatus?.isReady && transaction.transactionState === 'idle') ||
                             // Disable during transaction execution (but not during error state)
                             (transaction.transactionState !== 'idle' && transaction.transactionState !== 'error' && transaction.transactionState !== 'success') ||
                             // Disable if already successfully completed

@@ -143,7 +143,7 @@ export default function MatchAddressesCard({
                         onClick={onMatch}
                         isLoading={isMatching}
                         isDisabled={disabled || isMatching}
-                        className="bg-[#0000FE] hover:bg-blue-600 text-white font-medium w-full py-3 text-sm md:text-base disabled:bg-gray-600 disabled:text-gray-400"
+                        className="bg-brand-primary hover:bg-brand-primary-hover text-white font-medium w-full py-3 text-sm md:text-base disabled:bg-gray-600 disabled:text-gray-400"
                         size="lg"
                         radius="md"
                     >

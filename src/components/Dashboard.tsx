@@ -50,34 +50,14 @@ export default function Dashboard() {
                 <MidnightWalletCard />
             </div>
 
-            <div className="flex flex-col gap-4 mt-12 mb-12">
-                Available RAW Info:
-                <div>
-                    <p className="text-lg font-bold">Cardano Wallet</p>
-                    <p>Address: {cardano.address}</p>
-                    <p>Balance: {cardano.balance}</p>
-                    <p>Wallet Name: {cardano.walletName}</p>
-                </div>
-                <div>
-                    <p className="text-lg font-bold">Midnight Wallet</p>
-                    <p>Address: {midnight.address}</p>
-                    <p>Balance: {midnight.balance}</p>
-                    <p>Wallet Name: {midnight.walletName}</p>
-                </div>
-            </div>
-
-            {/* <div>
-                <ConnectionStatus />
-            </div> */}
-
-            <div className="flex flex-col gap-4">
+            {/* <div className="flex flex-col gap-4">
                 <Button color="danger" onPress={() => disconnectCardanoWallet()}>
                     Disconnect Cardano Wallet
                 </Button>
                 <Button color="danger" onPress={() => disconnectMidnightWallet()}>
                     Disconnect Midnight Wallet
                 </Button>
-            </div>
+            </div> */}
 
             {/* Wallet Selection Modals */}
             <WalletsModal isOpen={isCardanoModalOpen} onOpenChange={setIsCardanoModalOpen} wallets={getAvailableCardanoWallets()} handleWalletSelect={handleCardanoWalletSelect} />
