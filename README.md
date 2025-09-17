@@ -2,24 +2,7 @@
 
 A sophisticated cross-chain decentralized application that enables seamless generation of DUST tokens on the Midnight network based on cNIGHT token holdings on Cardano.
 
-## 🚀 Features
-
-### Core Functionality
-- **🔗 Dual-Wallet Integration**: Connect both Cardano and Midnight wallets simultaneously
-- **🎯 Smart Registration**: Automatic registration status detection with redirect to dashboard
-- **🔄 Address Mapping**: Register and manage address mappings between Cardano and Midnight networks
-- **💰 DUST Generation**: Real-time tracking of DUST token generation rates
-- **📊 Dashboard**: Comprehensive view of generation status, balances, and connected wallets
-- **🔒 Privacy-First**: Midnight network integration for privacy-preserving DUST operations
-
-### User Experience
-- **✨ Streamlined Onboarding**: Step-by-step wallet connection with progress tracking
-- **🌐 Manual Address Input**: Option to input DUST addresses manually without wallet connection
-- **📋 Copy to Clipboard**: One-click address copying with toast notifications
-- **🔄 Loading States**: Smooth loading experiences with backdrop and progress indicators
-- **📱 Responsive Design**: Optimized for both desktop and mobile devices
-
-## 🏗️ Architecture
+## Architecture
 
 ### Technology Stack
 - **Frontend**: Next.js 15 with App Router and Turbopack
@@ -49,13 +32,13 @@ The application manages two distinct wallet ecosystems:
 ### Smart Registration Flow
 ```mermaid
 graph TD
-    A[User Connects Cardano] → B[Check Registration Status]
-    B → C{Is Registered?}
-    C →|Yes| D[Redirect to Dashboard]
-    C →|No| E[Continue Onboarding]
-    E → F[Connect Midnight Wallet]
-    F → G[Register Address Mapping]
-    G → H[Redirect to Dashboard]
+    A[User Connects Cardano] --> B[Check Registration Status]
+    B --> C{Is Registered?}
+    C -->|Yes| D[Redirect to Dashboard]
+    C -->|No| E[Continue Onboarding]
+    E --> F[Connect Midnight Wallet]
+    F --> G[Register Address Mapping]
+    G --> H[Redirect to Dashboard]
 ```
 
 ## 🛠️ Development
