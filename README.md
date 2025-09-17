@@ -41,7 +41,7 @@ graph TD
     G --> H[Redirect to Dashboard]
 ```
 
-## 🛠️ Development
+## Development
 
 ### Prerequisites
 - Node.js 18+
@@ -77,7 +77,7 @@ BLOCKFROST_API_KEY=your_blockfrost_key
 INDEXER_ENDPOINT=http://localhost:8088/api/v1/graphql
 ```
 
-## 📡 API Integration
+## API Integration
 
 ### GraphQL Subgraph
 The application integrates with a GraphQL subgraph for registration status queries:
@@ -94,10 +94,9 @@ query GetDustGenerationStatus($cardanoStakeKeys: [String!]!) {
 ```
 
 ### REST Endpoints
-- `GET /api/dust/generation-status` - Query all generation statuses
 - `GET /api/dust/generation-status/[key]` - Query specific stake key status
 
-## 🎨 Design System
+## Design System
 
 ### Custom Theme
 The application uses a custom theme built on Tailwind CSS 4.x:
@@ -121,7 +120,7 @@ Usage:
 - **Context Providers**: Centralized wallet state and registration status management
 - **Custom Hooks**: `useGenerationStatus`, `useToast` for business logic encapsulation
 
-## 🔒 Security & Privacy
+## Security & Privacy
 
 ### Privacy Considerations
 - **Shielded Addresses**: Midnight integration uses privacy-preserving shielded addresses
@@ -150,28 +149,7 @@ Usage:
 - **Address Management**: Update or disconnect wallet connections
 - **Action Buttons**: Change addresses, stop generation, manage settings
 
-## 🧪 Testing
-
-The application includes comprehensive testing approaches:
-- **Unit Tests**: Component and hook testing
-- **Integration Tests**: Wallet connection and API integration
-- **E2E Testing**: Complete user flows from connection to dashboard
-
-## 🚀 Deployment
-
-### Production Considerations
-- **Environment Variables**: Configure production API endpoints
-- **Performance**: Optimized builds with Next.js 15 and Turbopack
-- **Monitoring**: Error tracking and user analytics integration
-- **Security**: HTTPS enforcement and CSP headers
-
-### Build Optimization
-- **Code Splitting**: Automatic splitting for optimal loading
-- **Tree Shaking**: Remove unused dependencies
-- **Asset Optimization**: Image and font optimization
-- **Bundle Analysis**: Monitor bundle sizes and performance
-
-## 🤝 Contributing
+## Contributing
 
 ### Development Guidelines
 - **Code Style**: ESLint with Next.js configuration
@@ -187,19 +165,8 @@ The application includes comprehensive testing approaches:
 - `refactor:` Code refactoring
 - `test:` Test additions or updates
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🔗 Links
-
-- **Cardano**: [cardano.org](https://cardano.org)
-- **Midnight**: [midnight.network](https://midnight.network)
-- **Lucid Evolution**: [lucid.spacebudz.io](https://lucid.spacebudz.io)
-- **HeroUI**: [heroui.com](https://heroui.com)
-
 ---
 
 **Status**: 🚧 Active Development
 
-This application is under continuous development with regular updates and improvements. Check the [CHANGELOG](CHANGELOG.md) for recent updates and the [roadmap](docs/ROADMAP.md) for upcoming features.
+This application is under continuous development with regular updates and improvements.
