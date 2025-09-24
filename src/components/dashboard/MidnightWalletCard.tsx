@@ -1,6 +1,6 @@
 import { Button, Card } from '@heroui/react'
 import Image from 'next/image'
-import React from 'react'
+import React, { useState } from 'react'
 
 import InfoIcon from '@/assets/icons/info.svg';
 import CopyIcon from '@/assets/icons/copy.svg';
@@ -10,10 +10,14 @@ import DustBalanceIcon from '@/assets/icons/DUST.svg';
 import { useWalletContext } from '@/contexts/WalletContext';
 import ToastContainer from '../ui/ToastContainer';
 import { useToast } from '@/hooks/useToast';
+import UpdateAddressModal from '../modals/UpdateAddressModal';
+import StopGenerationModal from '../modals/StopGenerationModal';
 
 
 const MidnightWalletCard = () => {
     const { toasts, showToast, removeToast } = useToast();
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [isStopModalOpen, setIsStopModalOpen] = useState(false);
 
     const {
         midnight,
@@ -42,6 +46,22 @@ const MidnightWalletCard = () => {
         }
     };
 
+    const handleAddressUpdate = (newAddress: string) => {
+        console.log('Address updated to:', newAddress);
+        showToast({
+            message: 'DUST address updated successfully!',
+            type: 'success'
+        });
+    };
+
+    const handleStopGeneration = () => {
+        console.log('Generation stopped');
+        showToast({
+            message: 'DUST generation stopped!',
+            type: 'success'
+        });
+    };
+
     return (
         <Card className='bg-[#70707035] p-[24px] w-full lg:w-[40%] flex flex-col gap-4 relative pb-8'>
             <div className='absolute top-1/2 right-[16px] transform -translate-y-1/2'>
@@ -53,7 +73,7 @@ const MidnightWalletCard = () => {
             </div>
             <div className='flex flex-row gap-2 items-center z-10'>
                 <Image src={DustBalanceIcon} alt='night balance' width={42} height={42} />
-                <span className='text-[24px] font-bold'>1000</span>
+                <span className='text-[24px] font-bold'>***</span>
                 <span className='text-[24px]'>DUST</span>
             </div>
             <div className='flex flex-col gap-2'>
@@ -80,6 +100,7 @@ const MidnightWalletCard = () => {
                     className="bg-brand-primary hover:bg-brand-primary-hover text-white w-full py-2 text-sm"
                     radius="md"
                     size="sm"
+                    onPress={() => setIsUpdateModalOpen(true)}
                 >
                     CHANGE ADDRESS
                 </Button>
@@ -87,6 +108,7 @@ const MidnightWalletCard = () => {
                     className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 w-full py-2 text-sm"
                     radius="md"
                     size="sm"
+                    onPress={() => setIsStopModalOpen(true)}
                 >
                     STOP GENERATION
                 </Button>
@@ -94,6 +116,21 @@ const MidnightWalletCard = () => {
 
             {/* Toast Notifications */}
             <ToastContainer toasts={toasts} onRemove={removeToast} />
+
+            {/* Modals */}
+            <UpdateAddressModal
+                isOpen={isUpdateModalOpen}
+                onOpenChange={setIsUpdateModalOpen}
+                currentAddress={generationStatus?.dustAddress || midnight.address}
+                onAddressUpdate={handleAddressUpdate}
+            />
+
+            <StopGenerationModal
+                isOpen={isStopModalOpen}
+                onOpenChange={setIsStopModalOpen}
+                dustAddress={generationStatus?.dustAddress || midnight.address}
+                onStopGeneration={handleStopGeneration}
+            />
         </Card>
     )
 }
