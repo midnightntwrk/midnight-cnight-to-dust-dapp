@@ -16,6 +16,9 @@ import { useRegistrationUtxo } from '@/hooks/useRegistrationUtxo';
 import { getTotalOfUnitInUTxOList } from '@/lib/utils';
 import { UTxO } from '@lucid-evolution/lucid';
 
+import { LucidEvolution, getAddressDetails, mintingPolicyToId, toHex, TxSignBuilder } from '@lucid-evolution/lucid';
+
+
 export type SupportedWallet = 'nami' | 'eternl' | 'lace' | 'flint' | 'typhoncip30' | 'nufi' | 'gero' | 'ccvault';
 export type SupportedMidnightWallet = 'mnLace';
 
@@ -31,6 +34,7 @@ export interface GenerationStatusData {
 interface CardanoWalletState {
     isConnected: boolean;
     address: string | null;
+    stakeKey: string | null;
     balanceADA: string | null;
     balanceNight: string | null;
     walletName: string | null;
@@ -87,6 +91,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const [cardanoState, setCardanoState] = useState<CardanoWalletState>({
         isConnected: false,
         address: null,
+        stakeKey: null,
         balanceADA: null,
         balanceNight: null,
         walletName: null,
@@ -166,6 +171,14 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
             // Get wallet info
             const address = await lucid.wallet().address();
+            const cardanoAddressDetails = getAddressDetails(address);
+
+            console.log('Cardano Address Details:', cardanoAddressDetails);
+
+            const cardanoStakeKey = cardanoAddressDetails?.stakeCredential?.hash;
+
+            console.log('Cardano Stake Key:', cardanoStakeKey);
+
             const utxos = await lucid.wallet().getUtxos();
 
             console.log('[Wallet]', 'UTXOs ', utxos);
@@ -182,9 +195,11 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             const balanceInAdaStr = (Number(balanceLovelace) / 1_000_000).toFixed(6);
             console.log('[Wallet]', 'Balance ADA ', balanceInAdaStr);
 
+
             setCardanoState({
                 isConnected: true,
                 address,
+                stakeKey: cardanoStakeKey || null,
                 balanceADA: balanceInAdaStr,
                 balanceNight: balanceNightStr,
                 walletName,
@@ -209,6 +224,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         setCardanoState({
             isConnected: false,
             address: null,
+            stakeKey: null,
             balanceADA: null,
             balanceNight: null,
             walletName: null,

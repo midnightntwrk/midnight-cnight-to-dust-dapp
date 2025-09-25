@@ -15,9 +15,13 @@ import { useDustProtocol } from '@/contexts/DustProtocolContext';
 import { LucidEvolution } from '@lucid-evolution/lucid';
 import DustTransactionsUtils from '@/lib/dustTransactionsUtils';
 import TransactionProgress from '@/components/ui/TransactionProgress';
+import UpdateAddressModal from '../modals/UpdateAddressModal';
+import StopGenerationModal from '../modals/StopGenerationModal';
 
 const MidnightWalletCard = () => {
     const { toasts, showToast, removeToast } = useToast();
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [isStopModalOpen, setIsStopModalOpen] = useState(false);
 
     const { cardano, midnight, generationStatus, refetchGenerationStatus, findRegistrationUtxo, isLoadingRegistrationUtxo, registrationUtxo } = useWalletContext();
 
@@ -147,6 +151,22 @@ const MidnightWalletCard = () => {
         }
     };
 
+    const handleAddressUpdate = (newAddress: string) => {
+        console.log('Address updated to:', newAddress);
+        showToast({
+            message: 'DUST address updated successfully!',
+            type: 'success'
+        });
+    };
+
+    const handleStopGeneration = () => {
+        console.log('Generation stopped');
+        showToast({
+            message: 'DUST generation stopped!',
+            type: 'success'
+        });
+    };
+
     return (
         <Card className="bg-[#70707035] p-[24px] w-full lg:w-[40%] flex flex-col gap-4 relative pb-8">
             <div className="absolute top-1/2 right-[16px] transform -translate-y-1/2">
@@ -223,6 +243,21 @@ const MidnightWalletCard = () => {
 
             {/* Toast Notifications */}
             <ToastContainer toasts={toasts} onRemove={removeToast} />
+
+            {/* Modals */}
+            <UpdateAddressModal
+                isOpen={isUpdateModalOpen}
+                onOpenChange={setIsUpdateModalOpen}
+                currentAddress={generationStatus?.dustAddress || midnight.address}
+                onAddressUpdate={handleAddressUpdate}
+            />
+
+            <StopGenerationModal
+                isOpen={isStopModalOpen}
+                onOpenChange={setIsStopModalOpen}
+                dustAddress={generationStatus?.dustAddress || midnight.address}
+                onStopGeneration={handleStopGeneration}
+            />
         </Card>
     );
 };
