@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 import { LucidEvolution } from '@lucid-evolution/lucid';
 
 // Transaction states
@@ -20,14 +20,18 @@ interface TransactionContextType {
     txHash: string | null;
     transactionError: string | null;
     isExecuting: boolean;
+    currentTransactionId: string | null;
     
     // Methods
-    executeTransaction: <T>(executor: TransactionExecutor<T>, params: T, lucid?: LucidEvolution) => Promise<void>;
+    executeTransaction: <T>(transactionId: string, executor: TransactionExecutor<T>, params: T, lucid?: LucidEvolution) => Promise<TransactionState>;
     pollTransactionConfirmation: (lucid: LucidEvolution, txHash: string) => Promise<void>;
     setError: (error: string) => void;
     resetTransaction: () => void;
     setProgress: (progress: number) => void;
     setState: (state: TransactionState) => void;
+    // Helper methods for transaction ID management
+    isCurrentTransaction: (transactionId: string) => boolean;
+    isAnyTransactionRunning: () => boolean;
 }
 
 // Create context
@@ -39,22 +43,78 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
     const [transactionProgress, setTransactionProgress] = useState(0);
     const [txHash, setTxHash] = useState<string | null>(null);
     const [transactionError, setTransactionError] = useState<string | null>(null);
+    const [currentTransactionId, setCurrentTransactionId] = useState<string | null>(null);
 
     const isExecuting = transactionState !== 'idle' && transactionState !== 'success' && transactionState !== 'error';
 
-    const executeTransaction = async <T,>(executor: TransactionExecutor<T>, params: T, lucid?: LucidEvolution) => {
+     // Poll for transaction confirmation using dual strategy from SetupActions
+     const pollTransactionConfirmation = useCallback(async (lucid: LucidEvolution, txHash: string): Promise<void> => {
+        console.log('[Transaction]','🔍 PollTransactionConfirmation STARTED for txHash:', txHash);
+        const maxAttempts = 60; // 15 minutes max (15s intervals)
+        let attempts = 0;
+
+        setTransactionState('confirming');
+
+        return new Promise((resolve, reject) => {
+            const pollInterval = setInterval(async () => {
+                try {
+                    attempts++;
+                    const progress = 60 + ((attempts / maxAttempts) * 40); // 60% to 100%
+                    setTransactionProgress(progress);
+
+                    console.log('[Transaction]',`⏳ Checking transaction confirmation and UTxOs... [${attempts}/${maxAttempts}]`);
+
+                    // Strategy 1: Try awaitTx but don't rely on it alone
+                    try {
+                        const txInfo = await lucid.awaitTx(txHash, 3000);
+                        if (txInfo) {
+                            console.log('[Transaction]','📋 lucid.awaitTx() reports transaction confirmed');
+
+                            clearInterval(pollInterval);
+                            setTransactionProgress(100);
+                            setTransactionState('success');
+                            resolve();
+                            return;
+                        }
+                    } catch {
+                        console.log('[Transaction]','⏳ lucid.awaitTx() still waiting...');
+                    }
+
+                    // Continue polling if neither confirmation method succeeded
+                    if (attempts >= maxAttempts) {
+                        console.log('[Transaction]','⚠️ Transaction confirmation timeout reached');
+                        clearInterval(pollInterval);
+                        setTransactionError('Transaction confirmation timeout. UTxOs not detected after 15 minutes.');
+                        setTransactionState('error');
+                        reject(new Error('Transaction confirmation timeout. UTxOs not detected after 15 minutes.'));
+                    }
+                } catch (err) {
+                    console.log('[Transaction]','⚠️ Error during polling:', err);
+                    if (attempts >= maxAttempts) {
+                        clearInterval(pollInterval);
+                        setTransactionError('Polling error occurred during confirmation.');
+                        setTransactionState('error');
+                        reject(new Error('Polling error occurred during confirmation.'));
+                    }
+                }
+            }, 15000); // Check every 15 seconds
+        });
+    }, []);
+
+    const executeTransaction = useCallback(async <T,>(transactionId: string, executor: TransactionExecutor<T>, params: T, lucid?: LucidEvolution): Promise<TransactionState> => {
         try {
-            // Reset state
+            // Reset state and set current transaction ID
             setTransactionState('preparing');
             setTransactionProgress(0);
             setTxHash(null);
             setTransactionError(null);
+            setCurrentTransactionId(transactionId);
 
-            console.log('🔄 Starting transaction execution...');
+            console.log('[Transaction]',`🔄 Starting transaction execution for ID: ${transactionId}...`);
 
             // Execute the transaction with progress callback
             const resultTxHash = await executor(params, (step: string, progress: number) => {
-                console.log(`📋 Transaction step: ${step} (${progress}%)`);
+                console.log('[Transaction]',`📋 Transaction step: ${step} (${progress}%)`);
                 setTransactionProgress(progress);
                 
                 // Update state based on step
@@ -69,7 +129,7 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
 
             // Set transaction hash and start confirmation polling
             setTxHash(resultTxHash);
-            console.log('🎯 Transaction submitted, starting confirmation polling:', resultTxHash);
+            console.log('[Transaction]','🎯 Transaction submitted, starting confirmation polling:', resultTxHash);
             
             // Use the existing pollTransactionConfirmation method if lucid is provided
             if (lucid) {
@@ -80,96 +140,60 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
                 setTransactionProgress(100);
             }
 
-            console.log('✅ Transaction completed successfully:', resultTxHash);
+            console.log('[Transaction]','✅ Transaction completed successfully:', resultTxHash);
+            return 'success';
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
-            console.error('❌ Transaction failed:', errorMessage);
+            console.error('[Transaction]','❌ Transaction failed:', errorMessage);
             setTransactionError(errorMessage);
             setTransactionState('error');
+            // Propagate error so callers (e.g., Onboard) can handle it
+            throw error;
         }
-    };
+    }, [pollTransactionConfirmation]);
 
-    const setError = (error: string) => {
+    const setError = useCallback((error: string) => {
         setTransactionError(error);
         setTransactionState('error');
-    };
+    }, []);
 
-    const resetTransaction = () => {
+    const resetTransaction = useCallback(() => {
+        console.log('[Transaction]','🔄 Resetting transaction state...');
         setTransactionState('idle');
         setTransactionProgress(0);
         setTxHash(null);
         setTransactionError(null);
-    };
+        setCurrentTransactionId(null);
+    }, []);
 
-    const setProgress = (progress: number) => {
+    const setProgress = useCallback((progress: number) => {
         setTransactionProgress(progress);
-    };
+    }, []);
 
-    const setState = (state: TransactionState) => {
+    const setState = useCallback((state: TransactionState) => {
         setTransactionState(state);
-    };
+    }, []);
 
-    // Poll for transaction confirmation using dual strategy from SetupActions
-    const pollTransactionConfirmation = async (lucid: LucidEvolution, txHash: string): Promise<void> => {
-        const maxAttempts = 60; // 15 minutes max (15s intervals)
-        let attempts = 0;
+    // Helper methods for transaction ID management
+    const isCurrentTransaction = useCallback((transactionId: string) => {
+        return currentTransactionId === transactionId;
+    }, [currentTransactionId]);
 
-        setTransactionState('confirming');
+    const isAnyTransactionRunning = useCallback(() => {
+        return isExecuting;
+    }, [isExecuting]);
 
-        return new Promise((resolve, reject) => {
-            const pollInterval = setInterval(async () => {
-                try {
-                    attempts++;
-                    const progress = 60 + ((attempts / maxAttempts) * 40); // 60% to 100%
-                    setTransactionProgress(progress);
+   
 
-                    console.log(`⏳ Checking transaction confirmation and UTxOs... [${attempts}/${maxAttempts}]`);
-
-                    // Strategy 1: Try awaitTx but don't rely on it alone
-                    try {
-                        const txInfo = await lucid.awaitTx(txHash, 3000);
-                        if (txInfo) {
-                            console.log('📋 lucid.awaitTx() reports transaction confirmed');
-
-                            clearInterval(pollInterval);
-                            setTransactionProgress(100);
-                            setTransactionState('success');
-                            resolve();
-                            return;
-                        }
-                    } catch {
-                        console.log('⏳ lucid.awaitTx() still waiting...');
-                    }
-
-                    // Continue polling if neither confirmation method succeeded
-                    if (attempts >= maxAttempts) {
-                        console.log('⚠️ Transaction confirmation timeout reached');
-                        clearInterval(pollInterval);
-                        setTransactionError('Transaction confirmation timeout. UTxOs not detected after 15 minutes.');
-                        setTransactionState('error');
-                        reject(new Error('Transaction confirmation timeout. UTxOs not detected after 15 minutes.'));
-                    }
-                } catch (err) {
-                    console.log('⚠️ Error during polling:', err);
-                    if (attempts >= maxAttempts) {
-                        clearInterval(pollInterval);
-                        setTransactionError('Polling error occurred during confirmation.');
-                        setTransactionState('error');
-                        reject(new Error('Polling error occurred during confirmation.'));
-                    }
-                }
-            }, 15000); // Check every 15 seconds
-        });
-    };
-
-    const contextValue: TransactionContextType = {
+    const contextValue: TransactionContextType = useMemo(() => ({
         // State
         transactionState,
         transactionProgress,
         txHash,
         transactionError,
         isExecuting,
+        currentTransactionId,
         
         // Methods
         executeTransaction,
@@ -178,7 +202,24 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
         resetTransaction,
         setProgress,
         setState,
-    };
+        isCurrentTransaction,
+        isAnyTransactionRunning,
+    }), [
+        transactionState,
+        transactionProgress,
+        txHash,
+        transactionError,
+        isExecuting,
+        currentTransactionId,
+        executeTransaction,
+        pollTransactionConfirmation,
+        setError,
+        resetTransaction,
+        setProgress,
+        setState,
+        isCurrentTransaction,
+        isAnyTransactionRunning,
+    ]);
 
     return (
         <TransactionContext.Provider value={contextValue}>
