@@ -1,6 +1,5 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import {
     CNIGHT_CURRENCY_ENCODEDNAME,
     CNIGHT_CURRENCY_POLICY_ID,
@@ -14,10 +13,9 @@ import {
 import { useGenerationStatus } from '@/hooks/useGenerationStatus';
 import { useRegistrationUtxo } from '@/hooks/useRegistrationUtxo';
 import { getTotalOfUnitInUTxOList } from '@/lib/utils';
-import { UTxO } from '@lucid-evolution/lucid';
-
-import { LucidEvolution, getAddressDetails, mintingPolicyToId, toHex, TxSignBuilder } from '@lucid-evolution/lucid';
-
+import { getAddressDetails, UTxO } from '@lucid-evolution/lucid';
+import { usePathname, useRouter } from 'next/navigation';
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 export type SupportedWallet = 'nami' | 'eternl' | 'lace' | 'flint' | 'typhoncip30' | 'nufi' | 'gero' | 'ccvault';
 export type SupportedMidnightWallet = 'mnLace';
@@ -87,6 +85,9 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 // Provider component
 export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const router = useRouter();
+    const pathname = usePathname();
+
     // Cardano wallet state
     const [cardanoState, setCardanoState] = useState<CardanoWalletState>({
         isConnected: false,
@@ -194,7 +195,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             const balanceLovelace = utxos.reduce((acc, utxo) => acc + (utxo.assets?.lovelace || BigInt(0)), BigInt(0));
             const balanceInAdaStr = (Number(balanceLovelace) / 1_000_000).toFixed(6);
             console.log('[Wallet]', 'Balance ADA ', balanceInAdaStr);
-
 
             setCardanoState({
                 isConnected: true,
@@ -339,6 +339,33 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             connectMidnightWallet(savedMidnightWallet);
         }
     }, []);
+
+    // Auto-redirect to dashboard if user is already registered
+    useEffect(() => {
+        console.log('🔍 Redirect check:', {
+            cardanoConnected: cardanoState.isConnected,
+            isCheckingRegistration,
+            generationStatus,
+            isRegistered: generationStatus?.isRegistered,
+            registrationUtxo,
+            isLoadingRegistrationUtxo,
+            pathname,
+        });
+
+        // TODO: cuando funcione indexer, volver a agregar  && !isCheckingRegistration && generationStatus?.isRegistered
+        if (cardanoState.isConnected && !isLoadingRegistrationUtxo && registrationUtxo) {
+            if (pathname !== '/dashboard') {
+                console.log('🎯 User is already registered, redirecting to dashboard...');
+                router.push('/dashboard');
+            }
+        }
+        if (cardanoState.isConnected && !isLoadingRegistrationUtxo && !registrationUtxo) {
+            if (pathname !== '/onboard') {
+                console.log('🎯 User is not registered, redirecting to onboard...');
+                router.push('/onboard');
+            }
+        }
+    }, [cardanoState.isConnected, isCheckingRegistration, generationStatus, registrationUtxo, isLoadingRegistrationUtxo, router, pathname]);
 
     const contextValue: WalletContextType = {
         cardano: cardanoState,
