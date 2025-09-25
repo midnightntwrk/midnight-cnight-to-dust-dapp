@@ -1,12 +1,10 @@
-"use client";
+'use client';
 
-import React from 'react';
-import { Card, CardBody, Button } from "@heroui/react";
-import Image from 'next/image';
 import CardanoLogo from '@/assets/cardano.svg';
-import CopyIcon from '@/assets/icons/copy.svg';
 import CheckIcon from '@/assets/icons/check.svg';
 import InfoIcon from '@/assets/icons/info.svg';
+import { Button, Card, CardBody } from '@heroui/react';
+import Image from 'next/image';
 
 interface ConnectCardanoCardProps {
     // Connection state
@@ -22,23 +20,7 @@ interface ConnectCardanoCardProps {
     address?: string;
 }
 
-export default function ConnectCardanoCard({
-    isConnected,
-    onConnect,
-    onDisconnect,
-    isLoading = false,
-    error,
-    walletName,
-    balance,
-    address
-}: ConnectCardanoCardProps) {
-
-    const handleCopyAddress = () => {
-        if (address) {
-            navigator.clipboard.writeText(address);
-        }
-    };
-
+export default function ConnectCardanoCard({ isConnected, onConnect, onDisconnect, isLoading = false, error, walletName, balance, address }: ConnectCardanoCardProps) {
     const formatAddress = (addr: string) => {
         if (!addr) return '';
         return `${addr.slice(0, 9)}...${addr.slice(-9)}`;
@@ -50,12 +32,7 @@ export default function ConnectCardanoCard({
                 <CardBody className="p-6 md:p-8">
                     {/* Cardano Logo - Background */}
                     <div className="absolute top-8 right-8">
-                        <Image
-                            src={CardanoLogo}
-                            alt="Cardano"
-                            width={90}
-                            height={90}
-                        />
+                        <Image src={CardanoLogo} alt="Cardano" width={90} height={90} />
                     </div>
 
                     {/* Content */}
@@ -64,14 +41,10 @@ export default function ConnectCardanoCard({
                             /* Disconnected State */
                             <div className="space-y-6">
                                 {/* Title */}
-                                <h2 className="text-xl md:text-2xl font-bold text-white">
-                                    Connect your Cardano Wallet
-                                </h2>
+                                <h2 className="text-xl md:text-2xl font-bold text-white">Connect your Cardano Wallet</h2>
 
                                 {/* Subtitle */}
-                                <p className="text-[#FFFFFF50] text-sm md:text-base">
-                                    Connect your CIP-30 compatible Cardano wallet.
-                                </p>
+                                <p className="text-[#FFFFFF50] text-sm md:text-base">Connect your CIP-30 compatible Cardano wallet.</p>
 
                                 {/* Connect Button */}
                                 <Button
@@ -87,9 +60,7 @@ export default function ConnectCardanoCard({
                                 {/* Error Message */}
                                 {error && (
                                     <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                                        <p className="text-red-400 text-sm">
-                                            ❌ {error}
-                                        </p>
+                                        <p className="text-red-400 text-sm">❌ {error}</p>
                                     </div>
                                 )}
                             </div>
@@ -99,9 +70,7 @@ export default function ConnectCardanoCard({
                                 {/* Header with Info Icon and Disconnect Button */}
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <h2 className="text-xl md:text-2xl font-bold text-white">
-                                            Origin Address Cardano
-                                        </h2>
+                                        <h2 className="text-xl md:text-2xl font-bold text-white">Origin Address Cardano</h2>
                                         <Image src={InfoIcon} alt="info" width={16} height={16} />
                                     </div>
                                 </div>
@@ -119,9 +88,7 @@ export default function ConnectCardanoCard({
                                 {/* Address with Check and Copy Icons */}
                                 <div className="flex items-center gap-2 mt-3">
                                     <Image src={CheckIcon} alt="check" width={16} height={16} />
-                                    <span className="text-white text-sm font-mono flex-1">
-                                        {formatAddress(address || '')}
-                                    </span>
+                                    <span className="text-white text-sm font-mono flex-1">{formatAddress(address || '')}</span>
                                     <Button
                                         onClick={onDisconnect}
                                         size="sm"

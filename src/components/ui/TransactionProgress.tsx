@@ -33,7 +33,7 @@ const defaultLabels: Required<TransactionLabels> = {
 };
 
 interface TransactionProgressProps {
-    labels: TransactionLabels;
+    labels?: TransactionLabels;
 }
 
 export default function TransactionProgress({ 

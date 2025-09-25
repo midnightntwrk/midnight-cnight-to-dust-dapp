@@ -8,7 +8,7 @@ import WalletsModal from './WalletsModal';
 const ConnectCardanoWallet: React.FC = () => {
     const { cardano, connectCardanoWallet, disconnectCardanoWallet, getAvailableCardanoWallets } = useWalletContext();
 
-    const { isConnected, address, balance, walletName, isLoading, error } = cardano;
+    const { isConnected, address, balanceADA: balance, walletName, isLoading } = cardano;
 
     const availableWallets = getAvailableCardanoWallets();
 

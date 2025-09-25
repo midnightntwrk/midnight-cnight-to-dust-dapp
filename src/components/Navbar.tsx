@@ -11,7 +11,6 @@ import {
   NavbarMenuItem,
   Link,
   Button,
-  Badge,
 } from "@heroui/react";
 import { useWalletContext } from '@/contexts/WalletContext';
 import Image from "next/image";

@@ -2,7 +2,6 @@ import { Card, Button } from '@heroui/react'
 import Image from 'next/image'
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-
 import InfoIcon from '@/assets/icons/info.svg';
 import CopyIcon from '@/assets/icons/copy.svg';
 import CheckIcon from '@/assets/icons/check.svg';
@@ -36,7 +35,7 @@ const CardanoWalletCard = () => {
                     message: 'Cardano address copied to clipboard!',
                     type: 'success'
                 });
-            } catch (error) {
+            } catch {
                 showToast({
                     message: 'Failed to copy address',
                     type: 'error'
@@ -69,7 +68,7 @@ const CardanoWalletCard = () => {
             </div>
             <div className='flex flex-row gap-2 items-center z-10'>
                 <Image src={NightBalanceIcon} alt='night balance' width={42} height={42} />
-                <span className='text-[24px] font-bold'>{cardano.balance}</span>
+                <span className='text-[24px] font-bold'>{cardano.balanceADA}</span>
                 <span className='text-[24px]'>NIGHT</span>
             </div>
             <div className='flex flex-col gap-2'>

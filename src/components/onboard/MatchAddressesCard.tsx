@@ -1,11 +1,13 @@
-"use client";
+'use client';
 
 import React from 'react';
-import { Card, CardBody, Button } from "@heroui/react";
+import { Card, CardBody, Button } from '@heroui/react';
 import Image from 'next/image';
 import CopyIcon from '@/assets/icons/copy.svg';
 import CheckIcon from '@/assets/icons/check.svg';
 import InfoIcon from '@/assets/icons/info.svg';
+import { useTransaction } from '@/contexts/TransactionContext';
+import { useDustProtocol } from '@/contexts/DustProtocolContext';
 
 interface MatchAddressesCardProps {
     // Cardano wallet info
@@ -13,17 +15,14 @@ interface MatchAddressesCardProps {
     cardanoBalance: string;
     cardanoAddress: string;
     onDisconnectCardano: () => void;
-    
+
     // Midnight wallet info
     midnightWalletName: string;
     midnightAddress: string;
     onDisconnectMidnight: () => void;
-    
+
     // Match action
     onMatch: () => void;
-    isMatching?: boolean;
-    disabled?: boolean;
-    transactionState?: 'idle' | 'preparing' | 'signing' | 'submitting' | 'confirming' | 'success' | 'error';
 }
 
 export default function MatchAddressesCard({
@@ -35,10 +34,20 @@ export default function MatchAddressesCard({
     midnightAddress,
     onDisconnectMidnight,
     onMatch,
-    isMatching = false,
-    disabled = false,
-    transactionState = 'idle'
 }: MatchAddressesCardProps) {
+    // Transaction management
+    const transaction = useTransaction();
+
+    // Use DUST protocol context
+    const { protocolStatus } = useDustProtocol();
+
+    const isMatching = transaction.isCurrentTransaction('register') && transaction.isAnyTransactionRunning();
+    const disabled = // Disable if protocol not ready
+        !protocolStatus?.isReady ||
+        // Disable during any transaction execution
+        transaction.isAnyTransactionRunning() ||
+        // Disable if registration already successfully completed
+        (transaction.isCurrentTransaction('register') && transaction.transactionState === 'success');
 
     const handleCopyCardanoAddress = () => {
         navigator.clipboard.writeText(cardanoAddress);
@@ -59,9 +68,7 @@ export default function MatchAddressesCard({
                 <CardBody className="p-6 md:p-8">
                     {/* Header */}
                     <div className="mb-8">
-                        <h2 className="text-xl md:text-2xl font-bold text-white">
-                            Match addresses
-                        </h2>
+                        <h2 className="text-xl md:text-2xl font-bold text-white">Match addresses</h2>
                     </div>
 
                     {/* Origin Address Cardano Section */}
@@ -91,13 +98,8 @@ export default function MatchAddressesCard({
 
                         <div className="flex items-center gap-2">
                             <Image src={CheckIcon} alt="check" width={16} height={16} />
-                            <span className="text-white text-sm font-mono flex-1">
-                                {formatAddress(cardanoAddress)}
-                            </span>
-                            <button 
-                                onClick={handleCopyCardanoAddress}
-                                className="hover:opacity-70 transition-opacity"
-                            >
+                            <span className="text-white text-sm font-mono flex-1">{formatAddress(cardanoAddress)}</span>
+                            <button onClick={handleCopyCardanoAddress} className="hover:opacity-70 transition-opacity">
                                 <Image src={CopyIcon} alt="copy" width={16} height={16} />
                             </button>
                         </div>
@@ -126,13 +128,8 @@ export default function MatchAddressesCard({
 
                         <div className="flex items-center gap-2">
                             <Image src={CheckIcon} alt="check" width={16} height={16} />
-                            <span className="text-white text-sm font-mono flex-1">
-                                {formatAddress(midnightAddress)}
-                            </span>
-                            <button 
-                                onClick={handleCopyMidnightAddress}
-                                className="hover:opacity-70 transition-opacity"
-                            >
+                            <span className="text-white text-sm font-mono flex-1">{formatAddress(midnightAddress)}</span>
+                            <button onClick={handleCopyMidnightAddress} className="hover:opacity-70 transition-opacity">
                                 <Image src={CopyIcon} alt="copy" width={16} height={16} />
                             </button>
                         </div>
@@ -147,9 +144,13 @@ export default function MatchAddressesCard({
                         size="lg"
                         radius="md"
                     >
-                        {isMatching ? 'MATCHING...' : 
-                         transactionState === 'success' ? 'REGISTRATION COMPLETED ✅' :
-                         disabled ? 'DUST PROTOCOL NOT READY' : 'MATCH ADDRESSES'}
+                        {isMatching
+                            ? 'MATCHING...'
+                            : transaction.isCurrentTransaction('register') && transaction.transactionState === 'success'
+                            ? 'REGISTRATION COMPLETED ✅'
+                            : protocolStatus?.isReady
+                            ? 'MATCH ADDRESSES'
+                            : 'DUST PROTOCOL NOT READY'}
                     </Button>
                 </CardBody>
             </Card>
