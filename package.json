@@ -19,6 +19,7 @@
     "@midnight-ntwrk/dapp-connector-api": "^3.0.0",
     "@midnight-ntwrk/wallet": "^5.0.0",
     "@midnight-ntwrk/wallet-api": "^5.0.0",
+    "@types/http-proxy": "^1.17.16",
     "framer-motion": "^12.23.12",
     "graphql": "^16.11.0",
     "graphql-request": "^7.2.0",
