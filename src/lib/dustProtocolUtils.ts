@@ -1,5 +1,5 @@
-import { LucidEvolution } from '@lucid-evolution/lucid';
-import { contractService } from './contractService';
+import { ContractUtils, ContractsRegistry } from './contractUtils';
+import { initializeLucidWithBlockfrostClientSide } from '@/config/network';
 
 export interface DustProtocolStatus {
     isReady: boolean;
@@ -9,16 +9,13 @@ export interface DustProtocolStatus {
     error?: string;
 }
 
-class DustProtocolService {
-    
+// Stateless utility class - no singleton, no internal state
+export class DustProtocolUtils {
     /**
-     * Get the Version Oracle validator address
+     * Get the Version Oracle validator address - Pure function
      */
-    private async getVersionOracleAddress(): Promise<string> {
-        // First ensure contracts are loaded
-        await contractService.loadAllContracts();
-        
-        const versionOracleValidatorContract = contractService.getContract('version-oracle-validator.plutus');
+    private static getVersionOracleAddress(contracts: ContractsRegistry): string {
+        const versionOracleValidatorContract = ContractUtils.getContract(contracts, 'version-oracle-validator.plutus');
         if (!versionOracleValidatorContract?.address) {
             throw new Error('Version Oracle validator contract not found or address not computed');
         }
@@ -26,24 +23,24 @@ class DustProtocolService {
     }
 
     /**
-     * Check the current dust protocol setup status
+     * Check the current dust protocol setup status - Pure function
      * Returns setup step needed: 1 = Step 01 needed, 2 = Step 02 needed, 3 = Ready for registration
      */
-    async checkSetupStatus(lucidInstance: LucidEvolution): Promise<DustProtocolStatus> {
+    static async checkSetupStatus(contracts: ContractsRegistry): Promise<DustProtocolStatus> {
         try {
-            console.log('🔍 Starting dust protocol setup status check...');
-
-            // Load contracts first
-            await contractService.loadAllContracts();
+            console.log('[DustProtocol]','🔍 Starting dust protocol setup status check...');
 
             // Check for Version Oracle UTxO (Step 01 completion)
-            console.log('📍 Getting Version Oracle address...');
-            const versionOracleAddress = await this.getVersionOracleAddress();
+            console.log('[DustProtocol]','📍 Getting Version Oracle address...');
+            const versionOracleAddress = DustProtocolUtils.getVersionOracleAddress(contracts);
 
-            console.log('🔎 Fetching UTxOs at Version Oracle address:', versionOracleAddress);
-            const versionOracleUtxos = await lucidInstance.utxosAt(versionOracleAddress);
+            // Initialize Lucid with Blockfrost using centralized configuration
+            const lucid = await initializeLucidWithBlockfrostClientSide();
 
-            console.log('💰 Found UTxOs:', {
+            console.log('[DustProtocol]','🔎 Fetching UTxOs at Version Oracle address:', versionOracleAddress);
+            const versionOracleUtxos = await lucid.utxosAt(versionOracleAddress);
+
+            console.log('[DustProtocol]','💰 Found UTxOs:', {
                 count: versionOracleUtxos.length,
                 utxos: versionOracleUtxos.map((utxo) => ({
                     txHash: utxo.txHash,
@@ -54,16 +51,16 @@ class DustProtocolService {
                 })),
             });
 
-            // Get the actual Version Oracle Policy ID from contract service
-            const versionOraclePolicyContract = contractService.getContract('version-oracle-policy.plutus');
+            // Get the actual Version Oracle Policy ID from contracts
+            const versionOraclePolicyContract = ContractUtils.getContract(contracts, 'version-oracle-policy.plutus');
             const versionOraclePolicyId = versionOraclePolicyContract?.policyId;
 
-            console.log('🔍 Looking for Version Oracle Policy ID:', versionOraclePolicyId);
+            console.log('[DustProtocol]','🔍 Looking for Version Oracle Policy ID:', versionOraclePolicyId);
 
             const hasVersionOracle = versionOracleUtxos.some((utxo) => {
                 // Check if UTxO has Version Oracle Token with the correct policy ID
                 const hasOracleAsset = Object.keys(utxo.assets).some((asset) => versionOraclePolicyId && asset.startsWith(versionOraclePolicyId));
-                console.log('🔍 Checking UTxO for Version Oracle token:', {
+                console.log('[DustProtocol]','🔍 Checking UTxO for Version Oracle token:', {
                     txHash: utxo.txHash,
                     assets: Object.keys(utxo.assets),
                     lookingForPolicyId: versionOraclePolicyId,
@@ -72,73 +69,70 @@ class DustProtocolService {
                 return hasOracleAsset;
             });
 
-            console.log('🎯 Version Oracle check result:', { InitVersioningCommand: hasVersionOracle });
+            console.log('[DustProtocol]','🎯 Version Oracle check result:', { InitVersioningCommand: hasVersionOracle });
 
             if (!hasVersionOracle) {
-                console.log('⏭️ Setup step 1 needed (InitVersioningCommand not completed)');
+                console.log('[DustProtocol]','⏭️ Setup step 1 needed (InitVersioningCommand not completed)');
                 return {
                     isReady: false,
                     currentStep: 1,
                     InitVersioningCommand: false,
-                    InitDustProductionCommand: false
+                    InitDustProductionCommand: false,
                 };
             }
 
             // Check for multiple Version Oracle tokens (Step 02 completion)
-            console.log('🔢 Checking for multiple Version Oracle tokens (Step 02 completion)...');
+            console.log('[DustProtocol]','🔢 Checking for multiple Version Oracle tokens (Step 02 completion)...');
 
             const versionOracleTokens = versionOracleUtxos.filter((utxo) => {
                 return Object.keys(utxo.assets).some((asset) => versionOraclePolicyId && asset.startsWith(versionOraclePolicyId));
             });
 
-            console.log('🔍 Version Oracle tokens found:', {
+            console.log('[DustProtocol]','🔍 Version Oracle tokens found:', {
                 totalUtxos: versionOracleUtxos.length,
                 tokenUtxos: versionOracleTokens.length,
             });
 
             // Step 02 creates 3 additional Version Oracle tokens, so we should have 4 total (1 from Step 01 + 3 from Step 02)
             const hasMultipleVersionOracleTokens = versionOracleTokens.length >= 4;
-            
+
             if (!hasMultipleVersionOracleTokens) {
-                console.log('⏭️ Setup step 2 needed (InitDustProductionCommand not completed)');
+                console.log('[DustProtocol]','⏭️ Setup step 2 needed (InitDustProductionCommand not completed)');
                 return {
                     isReady: false,
                     currentStep: 2,
                     InitVersioningCommand: true,
-                    InitDustProductionCommand: false
+                    InitDustProductionCommand: false,
                 };
             }
 
             // Both steps completed - ready for registration
-            console.log('✅ Dust protocol is ready for user registration (InitVersioningCommand & InitDustProductionCommand completed)');
+            console.log('[DustProtocol]','✅ Dust protocol is ready for user registration (InitVersioningCommand & InitDustProductionCommand completed)');
             return {
                 isReady: true,
                 currentStep: 3,
                 InitVersioningCommand: true,
-                InitDustProductionCommand: true
+                InitDustProductionCommand: true,
             };
-
         } catch (error) {
-            console.error('❌ Error checking dust protocol setup status:', error);
+            console.error('[DustProtocol]','❌ Error checking dust protocol setup status:', error);
             return {
                 isReady: false,
                 currentStep: 1,
                 InitVersioningCommand: false,
                 InitDustProductionCommand: false,
-                error: error instanceof Error ? error.message : 'Unknown error occurred'
+                error: error instanceof Error ? error.message : 'Unknown error occurred',
             };
         }
     }
 
     /**
-     * Check if the dust protocol is ready for user registration
+     * Check if the dust protocol is ready for user registration - Pure function
      */
-    async isDustProtocolReady(lucidInstance: LucidEvolution): Promise<boolean> {
-        const status = await this.checkSetupStatus(lucidInstance);
+    static async isDustProtocolReady(contracts: ContractsRegistry): Promise<boolean> {
+        const status = await DustProtocolUtils.checkSetupStatus(contracts);
         return status.isReady;
     }
 }
 
-// Export singleton instance
-export const dustProtocolService = new DustProtocolService();
-export default dustProtocolService;
+export default DustProtocolUtils;

@@ -1,9 +1,10 @@
-'use client'
+'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { LucidEvolution } from '@lucid-evolution/lucid';
-import { contractService, ContractsRegistry } from '@/services/contractService';
-import { dustProtocolService, DustProtocolStatus } from '@/services/dustProtocolService';
+import { ContractUtils, ContractsRegistry } from '@/lib/contractUtils';
+import { DustProtocolUtils, DustProtocolStatus } from '@/lib/dustProtocolUtils';
+import { DUST_PROTOCOL_CONTRACTS } from '@/config/dustProtocol';
 
 // Types
 interface DustProtocolContextType {
@@ -12,12 +13,12 @@ interface DustProtocolContextType {
     isContractsLoaded: boolean;
     isContractsLoading: boolean;
     contractsError: string | null;
-    
+
     // Protocol status state
     protocolStatus: DustProtocolStatus | null;
     isProtocolStatusLoaded: boolean;
     isProtocolStatusLoading: boolean;
-    
+
     // Methods
     loadContracts: () => Promise<void>;
     checkProtocolStatus: (lucid: LucidEvolution) => Promise<void>;
@@ -34,7 +35,7 @@ export const DustProtocolProvider: React.FC<{ children: ReactNode }> = ({ childr
     const [isContractsLoaded, setIsContractsLoaded] = useState(false);
     const [isContractsLoading, setIsContractsLoading] = useState(false);
     const [contractsError, setContractsError] = useState<string | null>(null);
-    
+
     // Protocol status state
     const [protocolStatus, setProtocolStatus] = useState<DustProtocolStatus | null>(null);
     const [isProtocolStatusLoaded, setIsProtocolStatusLoaded] = useState(false);
@@ -43,21 +44,20 @@ export const DustProtocolProvider: React.FC<{ children: ReactNode }> = ({ childr
     // Load contracts method
     const loadContracts = useCallback(async () => {
         if (isContractsLoading || isContractsLoaded) return;
-        
+
         try {
             setIsContractsLoading(true);
             setContractsError(null);
-            
-            console.log('🔄 Loading DUST protocol contracts...');
-            const loadedContracts = await contractService.loadAllContracts();
-            
+
+            console.log('[DustProtocol]','🔄 Loading DUST protocol contracts...');
+            const loadedContracts = await ContractUtils.loadContracts(DUST_PROTOCOL_CONTRACTS);
+
             setContracts(loadedContracts);
             setIsContractsLoaded(true);
-            console.log('✅ DUST protocol contracts loaded successfully');
-            
+            console.log('[DustProtocol]','✅ DUST protocol contracts loaded successfully');
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to load contracts';
-            console.error('❌ Failed to load contracts:', errorMessage);
+            console.error('[DustProtocol]','❌ Failed to load contracts:', errorMessage);
             setContractsError(errorMessage);
         } finally {
             setIsContractsLoading(false);
@@ -65,45 +65,44 @@ export const DustProtocolProvider: React.FC<{ children: ReactNode }> = ({ childr
     }, [isContractsLoading, isContractsLoaded]);
 
     // Check protocol status method
-    const checkProtocolStatus = async (lucid: LucidEvolution) => {
+    const checkProtocolStatus = useCallback(async () => {
         if (!isContractsLoaded) {
-            console.warn('⚠️ Contracts not loaded yet, cannot check protocol status');
+            console.warn('[DustProtocol]','⚠️ Contracts not loaded yet, cannot check protocol status');
             return;
         }
-        
+
         try {
             setIsProtocolStatusLoading(true);
-            
-            console.log('🔄 Checking DUST protocol status...');
-            const status = await dustProtocolService.checkSetupStatus(lucid);
-            
+
+            console.log('[DustProtocol]','🔄 Checking DUST protocol status...');
+            const status = await DustProtocolUtils.checkSetupStatus(contracts);
+
             setProtocolStatus(status);
             setIsProtocolStatusLoaded(true);
-            console.log('✅ DUST protocol status checked:', status);
-            
+            console.log('[DustProtocol]','✅ DUST protocol status checked:', status);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to check protocol status';
-            console.error('❌ Failed to check protocol status:', errorMessage);
-            
+            console.error('[DustProtocol]','❌ Failed to check protocol status:', errorMessage);
+
             // Set protocol status with error
             setProtocolStatus({
                 isReady: false,
                 currentStep: 1,
                 InitVersioningCommand: false,
                 InitDustProductionCommand: false,
-                error: errorMessage
+                error: errorMessage,
             });
             setIsProtocolStatusLoaded(true);
         } finally {
             setIsProtocolStatusLoading(false);
         }
-    };
+    }, [isContractsLoaded, contracts]);
 
     // Refresh protocol status (force reload)
-    const refreshProtocolStatus = async (lucid: LucidEvolution) => {
+    const refreshProtocolStatus = async () => {
         setIsProtocolStatusLoaded(false);
         setProtocolStatus(null);
-        await checkProtocolStatus(lucid);
+        await checkProtocolStatus();
     };
 
     // Auto-load contracts on mount
@@ -111,29 +110,35 @@ export const DustProtocolProvider: React.FC<{ children: ReactNode }> = ({ childr
         loadContracts();
     }, [loadContracts]);
 
+    // Auto-check protocol status when Cardano wallet connects and contracts are loaded
+    // This logic was moved from Onboard.tsx to DustProtocolContext to follow separation of concerns
+    // The context is now responsible for automatically managing protocol status checks
+    useEffect(() => {
+        if (isContractsLoaded && !isProtocolStatusLoaded) {
+            console.log('[DustProtocol]','🔄 Auto-checking protocol status after contracts are loaded...');
+            checkProtocolStatus();
+        }
+    }, [isContractsLoaded, isProtocolStatusLoaded, checkProtocolStatus]);
+
     const contextValue: DustProtocolContextType = {
         // Contract state
         contracts,
         isContractsLoaded,
         isContractsLoading,
         contractsError,
-        
+
         // Protocol status state
         protocolStatus,
         isProtocolStatusLoaded,
         isProtocolStatusLoading,
-        
+
         // Methods
         loadContracts,
         checkProtocolStatus,
         refreshProtocolStatus,
     };
 
-    return (
-        <DustProtocolContext.Provider value={contextValue}>
-            {children}
-        </DustProtocolContext.Provider>
-    );
+    return <DustProtocolContext.Provider value={contextValue}>{children}</DustProtocolContext.Provider>;
 };
 
 // Custom hook to use the context
