@@ -7,12 +7,6 @@ const ConnectionStatus = () => {
     const {
         cardano,
         midnight,
-        connectCardanoWallet,
-        connectMidnightWallet,
-        disconnectCardanoWallet,
-        disconnectMidnightWallet,
-        getAvailableCardanoWallets,
-        getAvailableMidnightWallets
     } = useWalletContext();
 
         // Calculate wallet connection status

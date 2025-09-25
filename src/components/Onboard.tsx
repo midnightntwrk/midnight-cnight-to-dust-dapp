@@ -1,20 +1,20 @@
 'use client';
 
-import TransactionProgress, { TransactionLabels } from '@/components/ui/TransactionProgress';
+// TODO: delete if dont need transaction progress component
+// import { TransactionLabels } from '@/components/ui/TransactionProgress';
 import { useDustProtocol } from '@/contexts/DustProtocolContext';
 import { useTransaction } from '@/contexts/TransactionContext';
 import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/contexts/WalletContext';
-import { dustRegistrationService } from '@/services/dustRegistrationService';
+import { DustTransactionsUtils } from '@/lib/dustTransactionsUtils';
 import { useDisclosure } from '@heroui/react';
 import type { LucidEvolution } from '@lucid-evolution/lucid';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import AddressMatchingModal from './onboard/AddressMatchingModal';
 import ConnectCardanoCard from './onboard/ConnectCardanoCard';
 import ConnectMidnightCard from './onboard/ConnectMidnightCard';
-import DustProtocolStatus from './onboard/DustProtocolStatus';
 import MatchAddressesCard from './onboard/MatchAddressesCard';
-import Stepper from './onboard/Stepper';
 import WalletsModal from './wallet-connect/WalletsModal';
+import TransactionProgress from './ui/TransactionProgress';
 
 export default function Onboard() {
     const {
@@ -27,34 +27,38 @@ export default function Onboard() {
         getAvailableCardanoWallets,
         getAvailableMidnightWallets,
         setManualMidnightAddress,
+        refetchGenerationStatus,
+        findRegistrationUtxo,
     } = useWalletContext();
 
-    const [currentStep, setCurrentStep] = useState(1);
+    // TODO: delete if dont need transaction progress component
+    // const [currentStep, setCurrentStep] = useState(1);
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
     const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);
 
     // Use DUST protocol context
-    const { isContractsLoaded, protocolStatus, isProtocolStatusLoaded, checkProtocolStatus } = useDustProtocol();
+    const { contracts, protocolStatus } = useDustProtocol();
 
     // Transaction management
     const transaction = useTransaction();
 
     const { isOpen: isMatchModalOpen, onOpen: onMatchModalOpen, onOpenChange: onMatchModalChange } = useDisclosure();
 
+    // TODO: delete if dont need transaction progress component
     // Labels for registration transaction - only override specific ones
-    const registrationLabels: TransactionLabels = {
-        title: 'DUST Registration Transaction',
-        success: 'Registration completed successfully!',
-        error: 'Registration transaction failed',
-        signHelper: '💡 Please check your wallet and approve the registration transaction to continue.',
-        successDescription: 'Your Cardano and Midnight addresses have been successfully registered in the DUST protocol.',
-    };
+    // const registrationLabels: TransactionLabels = {
+    //     title: 'DUST Registration Transaction',
+    //     success: 'Registration completed successfully!',
+    //     error: 'Registration transaction failed',
+    //     signHelper: '💡 Please check your wallet and approve the registration transaction to continue.',
+    //     successDescription: 'Your Cardano and Midnight addresses have been successfully registered in the DUST protocol.',
+    // };
 
     const handleCardanoWalletSelect = async (wallet: SupportedWallet | SupportedMidnightWallet) => {
         await connectCardanoWallet(wallet as SupportedWallet);
         setIsCardanoModalOpen(false);
         if (!cardano.error) {
-            setCurrentStep(2);
+            // setCurrentStep(2);
         }
     };
 
@@ -62,21 +66,14 @@ export default function Onboard() {
         await connectMidnightWallet(wallet as SupportedMidnightWallet);
         setIsMidnightModalOpen(false);
         if (!midnight.error) {
-            setCurrentStep(3);
+            // setCurrentStep(3);
         }
     };
 
     const handleManualMidnightAddress = (address: string) => {
         setManualMidnightAddress(address);
-        setCurrentStep(3);
+        // setCurrentStep(3);
     };
-
-    // Auto-check protocol status when Cardano wallet connects
-    useEffect(() => {
-        if (cardano.isConnected && cardano.lucid && isContractsLoaded && !isProtocolStatusLoaded) {
-            checkProtocolStatus(cardano.lucid as LucidEvolution);
-        }
-    }, [cardano.isConnected, cardano.lucid, isContractsLoaded, isProtocolStatusLoaded, checkProtocolStatus]);
 
     const handleMatchAddresses = async () => {
         if (!cardano.lucid) {
@@ -103,15 +100,18 @@ export default function Onboard() {
             console.log('🚀 Starting DUST registration...');
 
             // Create the registration executor and execute it
-            const registrationExecutor = dustRegistrationService.createRegistrationExecutor(cardano.lucid as LucidEvolution, dustPKHValue);
+            const registrationExecutor = DustTransactionsUtils.createRegistrationExecutor(cardano.lucid as LucidEvolution, contracts, dustPKHValue);
 
-            await transaction.executeTransaction(registrationExecutor, {}, cardano.lucid as LucidEvolution);
-
-            console.log('✅ DUST registration completed successfully!');
+            const transactionState = await transaction.executeTransaction('register', registrationExecutor, {}, cardano.lucid as LucidEvolution);
 
             // Only open success modal if transaction actually succeeded
-            if (transaction.transactionState === 'success') {
+            if (transactionState === 'success') {
+                refetchGenerationStatus();
+                findRegistrationUtxo();
                 onMatchModalOpen();
+            } else {
+                console.error('transactionState:', transactionState);
+                throw new Error('transactionState:' + transactionState);
             }
         } catch (error) {
             console.error('❌ DUST registration failed:', error);
@@ -119,20 +119,19 @@ export default function Onboard() {
         }
     };
 
-    // Calculate progress percentage
-    const getProgress = () => {
-        if (currentStep === 1 && !cardano.isConnected) return 0;
-        if (currentStep === 2 && cardano.isConnected && !midnight.isConnected) return 33;
-        if (currentStep === 3 && cardano.isConnected && midnight.isConnected) return 100;
-        return (currentStep - 1) * 33;
-    };
+    // TODO: delete if dont need transaction progress component
+    // // Calculate progress percentage
+    // const getProgress = () => {
+    //     if (currentStep === 1 && !cardano.isConnected) return 0;
+    //     if (currentStep === 2 && cardano.isConnected && !midnight.isConnected) return 33;
+    //     if (currentStep === 3 && cardano.isConnected && midnight.isConnected) return 100;
+    //     return (currentStep - 1) * 33;
+    // };
 
     return (
         <div className="w-full max-w-4xl lg:max-w-6xl mx-auto p-6">
-
             {/* Stepper Progress */}
             {/* <Stepper currentStep={currentStep} cardanoConnected={cardano.isConnected} midnightConnected={midnight.isConnected} /> */}
-
 
             {/* Step 2: Midnight Wallet Connection - Hide when both wallets connected */}
             {cardano.isConnected && !(cardano.isConnected && midnight.isConnected) && (
@@ -141,7 +140,7 @@ export default function Onboard() {
                     onConnect={() => setIsMidnightModalOpen(true)}
                     onDisconnect={() => {
                         disconnectMidnightWallet();
-                        setCurrentStep(2);
+                        // setCurrentStep(2);
                     }}
                     isLoading={midnight.isLoading}
                     error={midnight.error}
@@ -159,17 +158,15 @@ export default function Onboard() {
                     onConnect={() => setIsCardanoModalOpen(true)}
                     onDisconnect={() => {
                         disconnectCardanoWallet();
-                        setCurrentStep(1);
+                        // setCurrentStep(1);
                     }}
                     isLoading={cardano.isLoading}
                     error={cardano.error}
                     walletName={cardano.walletName || ''}
-                    balance={cardano.balance || ''}
+                    balance={cardano.balanceADA || ''}
                     address={cardano.address || ''}
                 />
             )}
-
-
 
             {/* Step 3: Address Matching - Only show when both wallets connected */}
             {cardano.isConnected && midnight.isConnected && (
@@ -178,7 +175,7 @@ export default function Onboard() {
                     {/* <DustProtocolStatus /> */}
 
                     {/* Transaction Progress */}
-                    {/* <TransactionProgress labels={registrationLabels} /> */}
+                    <TransactionProgress />
 
                     {/* DUST PKH Info - show the coinPublicKey from midnight wallet 
                     NOTE | TODO: This is for testing purposes only. Dont show this in production */}
@@ -194,31 +191,21 @@ export default function Onboard() {
 
                     <MatchAddressesCard
                         cardanoWalletName={cardano.walletName || ''}
-                        cardanoBalance={cardano.balance || ''}
+                        cardanoBalance={cardano.balanceADA || ''}
                         cardanoAddress={cardano.address || ''}
                         onDisconnectCardano={() => {
                             disconnectCardanoWallet();
-                            setCurrentStep(1);
+                            // setCurrentStep(1);
                             transaction.resetTransaction();
                         }}
                         midnightWalletName={midnight.walletName || ''}
                         midnightAddress={midnight.address || ''}
                         onDisconnectMidnight={() => {
                             disconnectMidnightWallet();
-                            setCurrentStep(2);
+                            // setCurrentStep(2);
                             transaction.resetTransaction();
                         }}
                         onMatch={handleMatchAddresses}
-                        isMatching={transaction.isExecuting}
-                        transactionState={transaction.transactionState}
-                        disabled={
-                            // Disable if protocol not ready and transaction is idle
-                            (!protocolStatus?.isReady && transaction.transactionState === 'idle') ||
-                            // Disable during transaction execution (but not during error state)
-                            (transaction.transactionState !== 'idle' && transaction.transactionState !== 'error' && transaction.transactionState !== 'success') ||
-                            // Disable if already successfully completed
-                            transaction.transactionState === 'success'
-                        }
                     />
                 </div>
             )}

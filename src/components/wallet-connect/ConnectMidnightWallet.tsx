@@ -8,7 +8,7 @@ import WalletsModal from './WalletsModal';
 const ConnectMidnightWallet: React.FC = () => {
     const { midnight, connectMidnightWallet, disconnectMidnightWallet, getAvailableMidnightWallets } = useWalletContext();
 
-    const { isConnected, address, balance, walletName, isLoading, error } = midnight;
+    const { isConnected, address, balance, walletName, isLoading } = midnight;
 
     const availableWallets = getAvailableMidnightWallets();
 

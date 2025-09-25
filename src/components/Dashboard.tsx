@@ -1,7 +1,6 @@
 'use client';
 
 import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/contexts/WalletContext';
-import { Button } from '@heroui/react';
 import { useState } from 'react';
 import CardanoWalletCard from './dashboard/CardanoWalletCard';
 import GenerationRateCard from './dashboard/GenerationRateCard';
@@ -10,12 +9,8 @@ import WalletsModal from './wallet-connect/WalletsModal';
 
 export default function Dashboard() {
     const {
-        cardano,
-        midnight,
         connectCardanoWallet,
         connectMidnightWallet,
-        disconnectCardanoWallet,
-        disconnectMidnightWallet,
         getAvailableCardanoWallets,
         getAvailableMidnightWallets,
     } = useWalletContext();

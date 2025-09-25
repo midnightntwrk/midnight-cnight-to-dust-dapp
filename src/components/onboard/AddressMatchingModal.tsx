@@ -27,7 +27,7 @@ export default function AddressMatchingModal({ isOpen, onOpenChange }: AddressMa
     return (
         <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
             <ModalContent>
-                {(onClose) => (
+                {() => (
                     <>
                         <ModalHeader className="flex flex-col gap-1">
                             Address Matching Initiated! 🎉

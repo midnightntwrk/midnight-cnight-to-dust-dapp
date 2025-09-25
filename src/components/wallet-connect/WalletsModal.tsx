@@ -12,8 +12,6 @@ export default function WalletsModal({
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
 }) {
-    console.log('>>> wallets', wallets);
-
     return (
         <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
             <ModalContent>
