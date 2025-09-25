@@ -66,7 +66,7 @@ export default function ConnectMidnightCard({
 
                                 {/* Connect Button */}
                                 <Button
-                                    onClick={onConnect}
+                                    onPress={onConnect}
                                     isLoading={isLoading}
                                     className="bg-brand-primary hover:bg-brand-primary-hover text-white font-medium w-full py-3 text-sm md:text-base"
                                     size="lg"
@@ -101,7 +101,7 @@ export default function ConnectMidnightCard({
                                                 }}
                                             />
                                             <Button
-                                                onClick={handleManualSubmit}
+                                                onPress={handleManualSubmit}
                                                 isDisabled={!manualAddress.trim()}
                                                 className="bg-gray-700 hover:bg-gray-600 text-white font-medium px-6"
                                                 size="lg"
@@ -145,7 +145,7 @@ export default function ConnectMidnightCard({
                                     <Image src={CheckIcon} alt="check" width={16} height={16} />
                                     <span className="text-white text-sm font-mono flex-1">{formatAddress(address || '')}</span>
                                     <Button
-                                        onClick={onDisconnect}
+                                        onPress={onDisconnect}
                                         size="sm"
                                         className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 px-4 py-1 text-xs"
                                         radius="md"

@@ -16,11 +16,11 @@ interface ConnectCardanoCardProps {
 
     // Wallet info (when connected)
     walletName?: string;
-    balance?: string;
+    balanceNight?: string;
     address?: string;
 }
 
-export default function ConnectCardanoCard({ isConnected, onConnect, onDisconnect, isLoading = false, error, walletName, balance, address }: ConnectCardanoCardProps) {
+export default function ConnectCardanoCard({ isConnected, onConnect, onDisconnect, isLoading = false, error, walletName, balanceNight, address }: ConnectCardanoCardProps) {
     const formatAddress = (addr: string) => {
         if (!addr) return '';
         return `${addr.slice(0, 9)}...${addr.slice(-9)}`;
@@ -48,7 +48,7 @@ export default function ConnectCardanoCard({ isConnected, onConnect, onDisconnec
 
                                 {/* Connect Button */}
                                 <Button
-                                    onClick={onConnect}
+                                    onPress={onConnect}
                                     isLoading={isLoading}
                                     className="bg-brand-primary hover:bg-brand-primary-hover text-white font-medium w-full py-3 text-sm md:text-base"
                                     size="lg"
@@ -77,7 +77,7 @@ export default function ConnectCardanoCard({ isConnected, onConnect, onDisconnec
 
                                 {/* Balance Info */}
                                 <div className="text-gray-400 text-sm">
-                                    Balance: <span className="text-white font-medium">{balance} NIGHT</span>
+                                    Balance: <span className="text-white font-medium">{balanceNight} NIGHT</span>
                                 </div>
 
                                 {/* Wallet Info */}
@@ -90,7 +90,7 @@ export default function ConnectCardanoCard({ isConnected, onConnect, onDisconnec
                                     <Image src={CheckIcon} alt="check" width={16} height={16} />
                                     <span className="text-white text-sm font-mono flex-1">{formatAddress(address || '')}</span>
                                     <Button
-                                        onClick={onDisconnect}
+                                        onPress={onDisconnect}
                                         size="sm"
                                         className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 px-4 py-1 text-xs"
                                         radius="md"

@@ -12,7 +12,7 @@ import { useDustProtocol } from '@/contexts/DustProtocolContext';
 interface MatchAddressesCardProps {
     // Cardano wallet info
     cardanoWalletName: string;
-    cardanoBalance: string;
+    cardanoBalanceNight: string;
     cardanoAddress: string;
     onDisconnectCardano: () => void;
 
@@ -27,7 +27,7 @@ interface MatchAddressesCardProps {
 
 export default function MatchAddressesCard({
     cardanoWalletName,
-    cardanoBalance,
+    cardanoBalanceNight,
     cardanoAddress,
     onDisconnectCardano,
     midnightWalletName,
@@ -79,7 +79,7 @@ export default function MatchAddressesCard({
                                 <Image src={InfoIcon} alt="info" width={16} height={16} />
                             </div>
                             <Button
-                                onClick={onDisconnectCardano}
+                                onPress={onDisconnectCardano}
                                 size="sm"
                                 className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 px-4 py-1 text-xs"
                                 radius="md"
@@ -89,7 +89,7 @@ export default function MatchAddressesCard({
                         </div>
 
                         <div className="text-gray-400 text-sm">
-                            Balance: <span className="text-white font-medium">{cardanoBalance} NIGHT</span>
+                            Balance: <span className="text-white font-medium">{cardanoBalanceNight} NIGHT</span>
                         </div>
 
                         <div className="text-gray-400 text-sm">
@@ -113,7 +113,7 @@ export default function MatchAddressesCard({
                                 <Image src={InfoIcon} alt="info" width={16} height={16} />
                             </div>
                             <Button
-                                onClick={onDisconnectMidnight}
+                                onPress={onDisconnectMidnight}
                                 size="sm"
                                 className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 px-4 py-1 text-xs"
                                 radius="md"
@@ -137,7 +137,7 @@ export default function MatchAddressesCard({
 
                     {/* Match Addresses Button */}
                     <Button
-                        onClick={onMatch}
+                        onPress={onMatch}
                         isLoading={isMatching}
                         isDisabled={disabled || isMatching}
                         className="bg-brand-primary hover:bg-brand-primary-hover text-white font-medium w-full py-3 text-sm md:text-base disabled:bg-gray-600 disabled:text-gray-400"

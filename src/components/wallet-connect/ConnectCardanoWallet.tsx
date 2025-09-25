@@ -8,7 +8,7 @@ import WalletsModal from './WalletsModal';
 const ConnectCardanoWallet: React.FC = () => {
     const { cardano, connectCardanoWallet, disconnectCardanoWallet, getAvailableCardanoWallets } = useWalletContext();
 
-    const { isConnected, address, balanceADA: balance, walletName, isLoading } = cardano;
+    const { isConnected, address, balanceADA, balanceNight, walletName, isLoading } = cardano;
 
     const availableWallets = getAvailableCardanoWallets();
 
@@ -39,7 +39,10 @@ const ConnectCardanoWallet: React.FC = () => {
                         <strong>Wallet:</strong> {walletInfo[walletName as SupportedWallet]?.name}
                     </p>
                     <p>
-                        <strong>Balance:</strong> {balance} ADA
+                        <strong>ADA Balance:</strong> {balanceADA} ADA
+                    </p>
+                    <p>
+                        <strong>NIGHT Balance:</strong> {balanceNight} NIGHT
                     </p>
                     <p>
                         <strong>Address:</strong> {address?.slice(0, 20)}...{address?.slice(-10)}

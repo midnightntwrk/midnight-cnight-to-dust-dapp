@@ -68,7 +68,7 @@ const CardanoWalletCard = () => {
             </div>
             <div className='flex flex-row gap-2 items-center z-10'>
                 <Image src={NightBalanceIcon} alt='night balance' width={42} height={42} />
-                <span className='text-[24px] font-bold'>{cardano.balanceADA}</span>
+                <span className='text-[24px] font-bold'>{cardano.balanceNight}</span>
                 <span className='text-[24px]'>NIGHT</span>
             </div>
             <div className='flex flex-col gap-2'>

@@ -5,23 +5,20 @@ import { Modal, ModalContent, ModalHeader, ModalBody, Button, Input } from '@her
 import InfoIcon from '@/assets/icons/info.svg';
 import CheckIcon from '@/assets/icons/check.svg';
 import Image from 'next/image';
+import { useTransaction } from '@/contexts/TransactionContext';
+import TransactionProgress from '../ui/TransactionProgress';
+import { useRouter } from 'next/navigation';
 
 interface UpdateAddressModalProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
-    currentAddress?: string;
-    onAddressUpdate: (newAddress: string) => void;
+    onAddressUpdate: () => Promise<void>;
 }
 
-export default function UpdateAddressModal({
-    isOpen,
-    onOpenChange,
-    currentAddress,
-    onAddressUpdate
-}: UpdateAddressModalProps) {
+export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpdate }: UpdateAddressModalProps) {
     const [newAddress, setNewAddress] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [showSuccessState, setShowSuccessState] = useState(false);
+    const router = useRouter();
+    const transaction = useTransaction();
 
     const handleAddressChange = (value: string) => {
         setNewAddress(value);
@@ -29,47 +26,31 @@ export default function UpdateAddressModal({
 
     const handleChangeAddress = async () => {
         if (!newAddress.trim()) return;
-
-        setIsLoading(true);
-
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        // Show success state
-        setShowSuccessState(true);
-        setIsLoading(false);
-
-        // Auto close after showing success
-        setTimeout(() => {
-            onAddressUpdate(newAddress);
-            handleClose();
-        }, 2000);
+        await onAddressUpdate();
     };
 
     const handleClose = () => {
-        setNewAddress('');
-        setIsLoading(false);
-        setShowSuccessState(false);
-        onOpenChange(false);
+        if (!transaction.isAnyTransactionRunning()) {
+            setNewAddress('');
+            onOpenChange(false);
+        }
     };
 
     const handleCancel = () => {
-        if (!isLoading) {
+        if (!transaction.isAnyTransactionRunning()) {
             handleClose();
         }
     };
 
+    const handleContinueToDashboard = () => {
+        onOpenChange(false);
+        router.push('/dashboard');
+    };
+
     // Success state modal
-    if (showSuccessState) {
+    if (transaction.isCurrentTransaction('update') && transaction.transactionState === 'success') {
         return (
-            <Modal
-                isOpen={isOpen}
-                onOpenChange={onOpenChange}
-                hideCloseButton={true}
-                isDismissable={false}
-                className="bg-[#1a1a1a] border border-gray-700"
-                size="md"
-            >
+            <Modal isOpen={isOpen} onOpenChange={onOpenChange} hideCloseButton={true} isDismissable={false} className="bg-[#1a1a1a] border border-gray-700" size="md">
                 <ModalContent>
                     <ModalHeader className="flex flex-col gap-1 text-white">
                         <div className="flex items-center gap-2">
@@ -78,23 +59,14 @@ export default function UpdateAddressModal({
                         </div>
                     </ModalHeader>
                     <ModalBody className="pb-6">
-                        <p className="text-gray-300 text-sm mb-4">
-                            This address will receive your generated DUST tokens.
-                        </p>
+                        <p className="text-gray-300 text-sm mb-4">This address will receive your generated DUST tokens.</p>
 
                         <div className="bg-[#2a2a2a] p-3 rounded-lg border border-gray-600">
-                            <p className="text-white text-sm font-mono break-all">
-                                {newAddress}
-                            </p>
+                            <p className="text-white text-sm font-mono break-all">{newAddress}</p>
                         </div>
 
                         <div className="mt-4">
-                            <Button
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                                onPress={() => {
-                                    // This will be handled by the setTimeout in handleChangeAddress
-                                }}
-                            >
+                            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" onPress={handleContinueToDashboard}>
                                 GO TO DASHBOARD
                             </Button>
                         </div>
@@ -109,7 +81,7 @@ export default function UpdateAddressModal({
             isOpen={isOpen}
             onOpenChange={onOpenChange}
             hideCloseButton={true}
-            isDismissable={!isLoading}
+            isDismissable={!transaction.isAnyTransactionRunning()}
             className="bg-[#1a1a1a] border border-gray-700"
             size="md"
         >
@@ -121,9 +93,7 @@ export default function UpdateAddressModal({
                     </div>
                 </ModalHeader>
                 <ModalBody className="pb-6">
-                    <p className="text-gray-300 text-sm mb-4">
-                        This address will receive your generated DUST tokens. Make sure you control this address.
-                    </p>
+                    <p className="text-gray-300 text-sm mb-4">This address will receive your generated DUST tokens. Make sure you control this address.</p>
 
                     <div className="mb-4">
                         <Input
@@ -133,28 +103,32 @@ export default function UpdateAddressModal({
                             onValueChange={handleAddressChange}
                             className="w-full"
                             classNames={{
-                                input: "bg-[#2a2a2a] border-gray-600 text-white placeholder:text-gray-500",
-                                inputWrapper: "bg-[#2a2a2a] border-gray-600 hover:border-gray-500 focus-within:border-blue-500"
+                                input: 'bg-[#2a2a2a] border-gray-600 text-white placeholder:text-gray-500',
+                                inputWrapper: 'bg-[#2a2a2a] border-gray-600 hover:border-gray-500 focus-within:border-blue-500',
                             }}
-                            isDisabled={isLoading}
+                            isDisabled={transaction.isAnyTransactionRunning()}
                         />
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="mt-4">
+                        <TransactionProgress />
+                    </div>
+
+                    <div className="flex gap-3 mt-4">
                         <Button
                             className="flex-1 bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700"
                             onPress={handleCancel}
-                            isDisabled={isLoading}
+                            isDisabled={transaction.isAnyTransactionRunning()}
                         >
                             CANCEL
                         </Button>
                         <Button
-                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-600 disabled:text-gray-400"
                             onPress={handleChangeAddress}
-                            isLoading={isLoading}
-                            isDisabled={!newAddress.trim() || isLoading}
+                            isLoading={transaction.isCurrentTransaction('update') && transaction.isAnyTransactionRunning()}
+                            isDisabled={!newAddress.trim() || transaction.isAnyTransactionRunning()}
                         >
-                            {isLoading ? 'CHANGING...' : 'CHANGE ADDRESS'}
+                            {transaction.isCurrentTransaction('update') && transaction.isAnyTransactionRunning() ? 'UPDATING...' : 'CHANGE ADDRESS'}
                         </Button>
                     </div>
                 </ModalBody>
