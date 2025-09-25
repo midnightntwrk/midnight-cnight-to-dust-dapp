@@ -11,8 +11,8 @@ const GenerationRateCard = () => {
 
     // Calculate CAP as Night Balance * 10
     const calculateCap = () => {
-        if (!cardano.balance) return '0';
-        const balance = parseFloat(cardano.balance);
+        if (!cardano.balanceNight) return '0';
+        const balance = parseFloat(cardano.balanceNight);
         const cap = Math.floor(balance * 10);
         return cap.toLocaleString();
     };

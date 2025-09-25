@@ -1,6 +1,6 @@
 import { Button, Card } from '@heroui/react';
 import Image from 'next/image';
-import React from 'react';
+import React, { useState } from 'react';
 
 import InfoIcon from '@/assets/icons/info.svg';
 import CopyIcon from '@/assets/icons/copy.svg';
@@ -14,7 +14,6 @@ import { useTransaction } from '@/contexts/TransactionContext';
 import { useDustProtocol } from '@/contexts/DustProtocolContext';
 import { LucidEvolution } from '@lucid-evolution/lucid';
 import DustTransactionsUtils from '@/lib/dustTransactionsUtils';
-import TransactionProgress from '@/components/ui/TransactionProgress';
 import UpdateAddressModal from '../modals/UpdateAddressModal';
 import StopGenerationModal from '../modals/StopGenerationModal';
 
@@ -30,6 +29,20 @@ const MidnightWalletCard = () => {
 
     // Transaction management
     const transaction = useTransaction();
+
+    const handleUpdateModalOpenChange = (isOpen: boolean) => {
+        setIsUpdateModalOpen(isOpen);
+        if (!isOpen) {
+            transaction.resetTransaction();
+        }
+    };
+
+    const handleStopModalOpenChange = (isOpen: boolean) => {
+        setIsStopModalOpen(isOpen);
+        if (!isOpen) {
+            transaction.resetTransaction();
+        }
+    };
 
     const handleUnregisterAddress = async () => {
         if (!cardano.lucid) {
@@ -151,22 +164,6 @@ const MidnightWalletCard = () => {
         }
     };
 
-    const handleAddressUpdate = (newAddress: string) => {
-        console.log('Address updated to:', newAddress);
-        showToast({
-            message: 'DUST address updated successfully!',
-            type: 'success'
-        });
-    };
-
-    const handleStopGeneration = () => {
-        console.log('Generation stopped');
-        showToast({
-            message: 'DUST generation stopped!',
-            type: 'success'
-        });
-    };
-
     return (
         <Card className="bg-[#70707035] p-[24px] w-full lg:w-[40%] flex flex-col gap-4 relative pb-8">
             <div className="absolute top-1/2 right-[16px] transform -translate-y-1/2">
@@ -193,25 +190,21 @@ const MidnightWalletCard = () => {
                 </div>
             </div>
 
-            {/* Transaction Progress */}
-            <div className="z-10 mt-4">
-                <TransactionProgress />
-            </div>
-
             <div className="flex z-10 mt-4 gap-4">
                 <Button
                     className="bg-brand-primary hover:bg-brand-primary-hover text-white w-full py-2 text-sm disabled:bg-gray-600 disabled:text-gray-400"
                     radius="md"
                     size="sm"
-                    onClick={handleUpdateAddress}
-                    isLoading={isLoadingRegistrationUtxo || (transaction.isCurrentTransaction('update') && transaction.isAnyTransactionRunning())}
-                    isDisabled={!protocolStatus?.isReady || isLoadingRegistrationUtxo || !registrationUtxo || transaction.isAnyTransactionRunning()}
+                    onPress={() => setIsUpdateModalOpen(true)}
+                    isLoading={isLoadingRegistrationUtxo}
+                    isDisabled={
+                        !protocolStatus?.isReady ||
+                        isLoadingRegistrationUtxo ||
+                        !registrationUtxo ||
+                        (!transaction.isCurrentTransaction('update') && transaction.isAnyTransactionRunning())
+                    }
                 >
-                    {transaction.isCurrentTransaction('update') && transaction.isAnyTransactionRunning()
-                        ? 'UPDATING...'
-                        : transaction.isCurrentTransaction('update') && transaction.transactionState === 'success'
-                        ? 'ADDRESS UPDATED ✅'
-                        : !protocolStatus?.isReady
+                    {!protocolStatus?.isReady
                         ? 'DUST PROTOCOL NOT READY'
                         : isLoadingRegistrationUtxo
                         ? 'LOADING REGISTRATION UTXO...'
@@ -223,15 +216,16 @@ const MidnightWalletCard = () => {
                     className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 w-full py-2 text-sm disabled:bg-gray-600 disabled:text-gray-400"
                     radius="md"
                     size="sm"
-                    onClick={handleUnregisterAddress}
-                    isLoading={isLoadingRegistrationUtxo || (transaction.isCurrentTransaction('unregister') && transaction.isAnyTransactionRunning())}
-                    isDisabled={!protocolStatus?.isReady || isLoadingRegistrationUtxo || !registrationUtxo || transaction.isAnyTransactionRunning()}
+                    onPress={() => setIsStopModalOpen(true)}
+                    isLoading={isLoadingRegistrationUtxo}
+                    isDisabled={
+                        !protocolStatus?.isReady ||
+                        isLoadingRegistrationUtxo ||
+                        !registrationUtxo ||
+                        (transaction.isCurrentTransaction('unregister') && transaction.isAnyTransactionRunning())
+                    }
                 >
-                    {transaction.isCurrentTransaction('unregister') && transaction.isAnyTransactionRunning()
-                        ? 'UNREGISTERING...'
-                        : transaction.isCurrentTransaction('unregister') && transaction.transactionState === 'success'
-                        ? 'UNREGISTERED ✅'
-                        : !protocolStatus?.isReady
+                    {!protocolStatus?.isReady
                         ? 'DUST PROTOCOL NOT READY'
                         : isLoadingRegistrationUtxo
                         ? 'LOADING REGISTRATION UTXO...'
@@ -245,18 +239,13 @@ const MidnightWalletCard = () => {
             <ToastContainer toasts={toasts} onRemove={removeToast} />
 
             {/* Modals */}
-            <UpdateAddressModal
-                isOpen={isUpdateModalOpen}
-                onOpenChange={setIsUpdateModalOpen}
-                currentAddress={generationStatus?.dustAddress || midnight.address}
-                onAddressUpdate={handleAddressUpdate}
-            />
+            <UpdateAddressModal isOpen={isUpdateModalOpen} onOpenChange={handleUpdateModalOpenChange} onAddressUpdate={handleUpdateAddress} />
 
             <StopGenerationModal
                 isOpen={isStopModalOpen}
-                onOpenChange={setIsStopModalOpen}
-                dustAddress={generationStatus?.dustAddress || midnight.address}
-                onStopGeneration={handleStopGeneration}
+                onOpenChange={handleStopModalOpenChange}
+                dustAddress={(generationStatus && generationStatus.dustAddress) || midnight.address}
+                onStopGeneration={handleUnregisterAddress}
             />
         </Card>
     );

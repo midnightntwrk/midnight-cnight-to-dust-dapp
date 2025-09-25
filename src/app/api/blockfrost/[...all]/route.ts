@@ -42,23 +42,23 @@ async function handleRequest(request: NextRequest) {
         // Extraer la ruta que viene después de /api/blockfrost/
         const blockfrostPath = pathname.replace(/^\/api\/blockfrost/, '');
         
-        console.log('🔄 Blockfrost Proxy Request:', {
-            method: request.method,
-            originalPath: pathname,
-            blockfrostPath,
-            search,
-            target,
-            network: process.env.NEXT_PUBLIC_CARDANO_NET
-        });
+        // console.log('🔄 Blockfrost Proxy Request:', {
+        //     method: request.method,
+        //     originalPath: pathname,
+        //     blockfrostPath,
+        //     search,
+        //     target,
+        //     network: process.env.NEXT_PUBLIC_CARDANO_NET
+        // });
 
         // Proxy normal a Blockfrost usando fetch nativo
         const targetUrl = `${target}${blockfrostPath}${search}`;
         
-        console.log('🌐 Proxying to Blockfrost:', {
-            targetUrl,
-            method: request.method,
-            hasBody: request.method !== 'GET' && !!request.body
-        });
+        // console.log('🌐 Proxying to Blockfrost:', {
+        //     targetUrl,
+        //     method: request.method,
+        //     hasBody: request.method !== 'GET' && !!request.body
+        // });
 
         // Preparar headers
         const headers = new Headers();
@@ -76,11 +76,11 @@ async function handleRequest(request: NextRequest) {
             headers.set('User-Agent', userAgent);
         }
 
-        console.log('📤 Request headers:', {
-            'Content-Type': headers.get('Content-Type'),
-            'project_id': PROJECT_ID.substring(0, 8) + '...', // Solo mostrar primeros 8 chars por seguridad
-            'User-Agent': headers.get('User-Agent')?.substring(0, 50) + '...'
-        });
+        // console.log('📤 Request headers:', {
+        //     'Content-Type': headers.get('Content-Type'),
+        //     'project_id': PROJECT_ID.substring(0, 8) + '...', // Solo mostrar primeros 8 chars por seguridad
+        //     'User-Agent': headers.get('User-Agent')?.substring(0, 50) + '...'
+        // });
 
         // Hacer la petición a Blockfrost
         const fetchResponse = await fetch(targetUrl, {
@@ -89,12 +89,12 @@ async function handleRequest(request: NextRequest) {
             body: request.method !== 'GET' ? request.body : undefined,
         });
 
-        console.log('📥 Blockfrost response:', {
-            status: fetchResponse.status,
-            statusText: fetchResponse.statusText,
-            contentType: fetchResponse.headers.get('content-type'),
-            contentLength: fetchResponse.headers.get('content-length')
-        });
+        // console.log('📥 Blockfrost response:', {
+        //     status: fetchResponse.status,
+        //     statusText: fetchResponse.statusText,
+        //     contentType: fetchResponse.headers.get('content-type'),
+        //     contentLength: fetchResponse.headers.get('content-length')
+        // });
 
         // Crear la respuesta manteniendo headers importantes
         const responseHeaders = new Headers();
@@ -108,12 +108,12 @@ async function handleRequest(request: NextRequest) {
             }
         });
 
-        const duration = Date.now() - startTime;
-        console.log('✅ Request completed', { 
-            status: fetchResponse.status, 
-            duration: `${duration}ms`,
-            success: fetchResponse.ok 
-        });
+        // const duration = Date.now() - startTime;
+        // console.log('✅ Request completed', { 
+        //     status: fetchResponse.status, 
+        //     duration: `${duration}ms`,
+        //     success: fetchResponse.ok 
+        // });
 
         return new Response(fetchResponse.body, {
             status: fetchResponse.status,
