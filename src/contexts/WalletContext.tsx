@@ -1,8 +1,20 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { BLOCKFROST_URL, BLOCKFROST_KEY, getLucidNetwork } from '@/config/network';
+import {
+    CNIGHT_CURRENCY_ENCODEDNAME,
+    CNIGHT_CURRENCY_POLICY_ID,
+    getCurrentNetwork,
+    initializeLucidWithBlockfrostClientSide,
+    isMainnet,
+    isTestnet,
+    LUCID_NETWORK_MAINNET_ID,
+    LUCID_NETWORK_TESTNET_ID,
+} from '@/config/network';
 import { useGenerationStatus } from '@/hooks/useGenerationStatus';
+import { useRegistrationUtxo } from '@/hooks/useRegistrationUtxo';
+import { getTotalOfUnitInUTxOList } from '@/lib/utils';
+import { UTxO } from '@lucid-evolution/lucid';
 
 export type SupportedWallet = 'nami' | 'eternl' | 'lace' | 'flint' | 'typhoncip30' | 'nufi' | 'gero' | 'ccvault';
 export type SupportedMidnightWallet = 'mnLace';
@@ -19,7 +31,8 @@ export interface GenerationStatusData {
 interface CardanoWalletState {
     isConnected: boolean;
     address: string | null;
-    balance: string | null;
+    balanceADA: string | null;
+    balanceNight: string | null;
     walletName: string | null;
     lucid: unknown | null;
     isLoading: boolean;
@@ -42,10 +55,6 @@ interface WalletContextType {
     cardano: CardanoWalletState;
     // Midnight wallet state
     midnight: MidnightWalletState;
-    // Generation status state
-    generationStatus: GenerationStatusData | null;
-    isCheckingRegistration: boolean;
-    registrationError: string | null;
     // Cardano wallet methods
     connectCardanoWallet: (walletName: SupportedWallet) => Promise<void>;
     disconnectCardanoWallet: () => void;
@@ -55,8 +64,18 @@ interface WalletContextType {
     disconnectMidnightWallet: () => void;
     getAvailableMidnightWallets: () => SupportedMidnightWallet[];
     setManualMidnightAddress: (address: string) => void;
+    // Generation status state
+    generationStatus: GenerationStatusData | null;
+    isCheckingRegistration: boolean;
+    registrationError: string | null;
     // Generation status methods
     refetchGenerationStatus: () => void;
+    // Registration UTXO state
+    registrationUtxo: UTxO | null;
+    isLoadingRegistrationUtxo: boolean;
+    registrationUtxoError: string | null;
+    // Registration UTXO methods
+    findRegistrationUtxo: () => Promise<void>;
 }
 
 // Create context
@@ -68,7 +87,8 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const [cardanoState, setCardanoState] = useState<CardanoWalletState>({
         isConnected: false,
         address: null,
-        balance: null,
+        balanceADA: null,
+        balanceNight: null,
         walletName: null,
         lucid: null,
         isLoading: false,
@@ -88,12 +108,15 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     });
 
     // Generation status hook
+    const { data: generationStatus, isLoading: isCheckingRegistration, error: registrationError, refetch: refetchGenerationStatus } = useGenerationStatus(cardanoState.address);
+
+    // Registration UTXO hook
     const {
-        data: generationStatus,
-        isLoading: isCheckingRegistration,
-        error: registrationError,
-        refetch: refetchGenerationStatus
-    } = useGenerationStatus(cardanoState.address);
+        registrationUtxo,
+        isLoadingRegistrationUtxo,
+        registrationUtxoError,
+        refetch: findRegistrationUtxo,
+    } = useRegistrationUtxo(cardanoState.address, midnightState.coinPublicKey);
 
     // Cardano wallet methods
     const getAvailableCardanoWallets = (): SupportedWallet[] => {
@@ -123,14 +146,20 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                 throw new Error(`${walletName} wallet not found. Please install it first.`);
             }
 
-            // Dynamic import to avoid SSR issues
-            const { Lucid, Blockfrost } = await import('@lucid-evolution/lucid');
-
             // Initialize Lucid with Blockfrost using centralized configuration
-            const lucid = await Lucid(new Blockfrost(BLOCKFROST_URL, BLOCKFROST_KEY), getLucidNetwork());
+            const lucid = await initializeLucidWithBlockfrostClientSide();
 
             // Connect to wallet
             const api = await window.cardano[walletName].enable();
+
+            const networkId = await api.getNetworkId();
+            console.log('[Wallet]', `Wallet API - NetworkId: ${networkId}`);
+            if (isMainnet && networkId !== LUCID_NETWORK_MAINNET_ID) {
+                throw new Error(`Must connect with a ${getCurrentNetwork()} Cardano Wallet`);
+            }
+            if (isTestnet && networkId !== LUCID_NETWORK_TESTNET_ID) {
+                throw new Error(`Must connect with a ${getCurrentNetwork()} Testnet Cardano Wallet`);
+            }
 
             // Select the wallet in Lucid directly with the API
             lucid.selectWallet.fromAPI(api);
@@ -139,24 +168,25 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             const address = await lucid.wallet().address();
             const utxos = await lucid.wallet().getUtxos();
 
-            console.log('UTXOs ', utxos);
+            console.log('[Wallet]', 'UTXOs ', utxos);
 
-            const tokenPolicy = '';
+            const tokenNightPolicy = CNIGHT_CURRENCY_POLICY_ID;
+            const tokenNightEncodedName = CNIGHT_CURRENCY_ENCODEDNAME;
 
-            // utxos.assets i have the different balances[]
-            // first 56 characters is policy id
-            // rest is toikenName in hex > fromHex(....) = tokenName
-            // value is balance with 6 decimals
-            // integrate with lucid built in function
+            const balanceNight = getTotalOfUnitInUTxOList(tokenNightPolicy + tokenNightEncodedName, utxos);
+            const balanceNightStr = (Number(balanceNight) / 1_000_000).toFixed(6);
+            console.log('[Wallet]', 'Balance cNight ', balanceNightStr);
 
             // Calculate balance (sum of all UTxOs)
-            const balance = utxos.reduce((acc, utxo) => acc + (utxo.assets?.lovelace || BigInt(0)), BigInt(0));
-            const balanceInAda = (Number(balance) / 1_000_000).toFixed(6);
+            const balanceLovelace = utxos.reduce((acc, utxo) => acc + (utxo.assets?.lovelace || BigInt(0)), BigInt(0));
+            const balanceInAdaStr = (Number(balanceLovelace) / 1_000_000).toFixed(6);
+            console.log('[Wallet]', 'Balance ADA ', balanceInAdaStr);
 
             setCardanoState({
                 isConnected: true,
                 address,
-                balance: balanceInAda,
+                balanceADA: balanceInAdaStr,
+                balanceNight: balanceNightStr,
                 walletName,
                 lucid, // from this variable we will execute all tx
                 isLoading: false,
@@ -166,7 +196,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             // Store connection in localStorage
             localStorage.setItem('connectedCardanoWallet', walletName);
         } catch (error) {
-            console.error('Failed to connect Cardano wallet:', error);
+            console.error('[Wallet]', 'Failed to connect Cardano wallet:', error);
             setCardanoState((prev) => ({
                 ...prev,
                 isLoading: false,
@@ -179,7 +209,8 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         setCardanoState({
             isConnected: false,
             address: null,
-            balance: null,
+            balanceADA: null,
+            balanceNight: null,
             walletName: null,
             lucid: null,
             isLoading: false,
@@ -221,7 +252,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
             // Get wallet state from Midnight API
             const walletState = await api.state();
-            console.log('Midnight Wallet State:', walletState);
+            console.log('[Wallet]', 'Midnight Wallet State:', walletState);
 
             // Extract values from wallet state
             const address = walletState?.address || null;
@@ -242,7 +273,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             // Store connection in localStorage
             localStorage.setItem('connectedMidnightWallet', walletName);
         } catch (error) {
-            console.error('Failed to connect Midnight wallet:', error);
+            console.error('[Wallet]', 'Failed to connect Midnight wallet:', error);
             setMidnightState((prev) => ({
                 ...prev,
                 isLoading: false,
@@ -270,8 +301,8 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             isConnected: true,
             address: address,
             coinPublicKey: address, // For DUST protocol, use the address as coinPublicKey
-            balance: "Manual Address",
-            walletName: "Manual",
+            balance: 'Manual Address',
+            walletName: 'Manual',
             api: null,
             isLoading: false,
             error: null,
@@ -296,9 +327,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const contextValue: WalletContextType = {
         cardano: cardanoState,
         midnight: midnightState,
-        generationStatus,
-        isCheckingRegistration,
-        registrationError,
         connectCardanoWallet,
         disconnectCardanoWallet,
         getAvailableCardanoWallets,
@@ -306,7 +334,14 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         disconnectMidnightWallet,
         getAvailableMidnightWallets,
         setManualMidnightAddress,
+        generationStatus,
+        isCheckingRegistration,
+        registrationError,
         refetchGenerationStatus,
+        registrationUtxo,
+        isLoadingRegistrationUtxo,
+        registrationUtxoError,
+        findRegistrationUtxo,
     };
 
     return <WalletContext.Provider value={contextValue}>{children}</WalletContext.Provider>;
