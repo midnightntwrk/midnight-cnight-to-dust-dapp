@@ -73,15 +73,10 @@ export default function MidnightNavbar() {
           <ThemeSwitcher />
         </NavbarItem> */}
         <NavbarItem>
-          {walletStatus.count >= 1 ? (
+          {cardano.isConnected && (
             <Button as={Link} className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 w-full py-2 text-sm"
               href="/dashboard" variant="flat">
               Dashboard
-            </Button>
-          ) : (
-            <Button as={Link} className="bg-brand-primary hover:bg-brand-primary-hover text-white w-full py-2 text-sm"
-              href="/onboard" variant="flat">
-              Connect Wallet
             </Button>
           )}
         </NavbarItem>

@@ -57,6 +57,8 @@ interface WalletContextType {
     cardano: CardanoWalletState;
     // Midnight wallet state
     midnight: MidnightWalletState;
+    // Auto-reconnect state
+    isAutoReconnecting: boolean;
     // Cardano wallet methods
     connectCardanoWallet: (walletName: SupportedWallet) => Promise<void>;
     disconnectCardanoWallet: () => void;
@@ -112,6 +114,9 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         isLoading: false,
         error: null,
     });
+
+    // Auto-reconnect state
+    const [isAutoReconnecting, setIsAutoReconnecting] = useState(true);
 
     // Generation status hook
     const { data: generationStatus, isLoading: isCheckingRegistration, error: registrationError, refetch: refetchGenerationStatus } = useGenerationStatus(cardanoState.address);
@@ -327,49 +332,58 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     // Auto-reconnect on page load
     useEffect(() => {
-        // Auto-reconnect Cardano wallet
-        const savedCardanoWallet = localStorage.getItem('connectedCardanoWallet') as SupportedWallet;
-        if (savedCardanoWallet && window.cardano?.[savedCardanoWallet]) {
-            connectCardanoWallet(savedCardanoWallet);
-        }
+        const autoReconnect = async () => {
+            setIsAutoReconnecting(true);
 
-        // Auto-reconnect Midnight wallet
-        const savedMidnightWallet = localStorage.getItem('connectedMidnightWallet') as SupportedMidnightWallet;
-        if (savedMidnightWallet && window.midnight?.[savedMidnightWallet]) {
-            connectMidnightWallet(savedMidnightWallet);
-        }
+            // Auto-reconnect Cardano wallet
+            const savedCardanoWallet = localStorage.getItem('connectedCardanoWallet') as SupportedWallet;
+            if (savedCardanoWallet && window.cardano?.[savedCardanoWallet]) {
+                await connectCardanoWallet(savedCardanoWallet);
+            }
+
+            // Auto-reconnect Midnight wallet
+            const savedMidnightWallet = localStorage.getItem('connectedMidnightWallet') as SupportedMidnightWallet;
+            if (savedMidnightWallet && window.midnight?.[savedMidnightWallet]) {
+                await connectMidnightWallet(savedMidnightWallet);
+            }
+
+            setIsAutoReconnecting(false);
+        };
+
+        autoReconnect();
     }, []);
 
     // Auto-redirect to dashboard if user is already registered
-    useEffect(() => {
-        console.log('🔍 Redirect check:', {
-            cardanoConnected: cardanoState.isConnected,
-            isCheckingRegistration,
-            generationStatus,
-            isRegistered: generationStatus?.isRegistered,
-            registrationUtxo,
-            isLoadingRegistrationUtxo,
-            pathname,
-        });
+    // useEffect(() => {
+    //     console.log('🔍 Redirect check:', {
+    //         cardanoConnected: cardanoState.isConnected,
+    //         isCheckingRegistration,
+    //         generationStatus,
+    //         isRegistered: generationStatus?.isRegistered,
+    //         registrationUtxo,
+    //         isLoadingRegistrationUtxo,
+    //         pathname,
+    //     });
 
-        // TODO: cuando funcione indexer, volver a agregar  && !isCheckingRegistration && generationStatus?.isRegistered
-        if (cardanoState.isConnected && !isLoadingRegistrationUtxo && registrationUtxo) {
-            if (pathname !== '/dashboard') {
-                console.log('🎯 User is already registered, redirecting to dashboard...');
-                router.push('/dashboard');
-            }
-        }
-        if (cardanoState.isConnected && !isLoadingRegistrationUtxo && !registrationUtxo) {
-            if (pathname !== '/onboard') {
-                console.log('🎯 User is not registered, redirecting to onboard...');
-                router.push('/onboard');
-            }
-        }
-    }, [cardanoState.isConnected, isCheckingRegistration, generationStatus, registrationUtxo, isLoadingRegistrationUtxo, router, pathname]);
+    //     // TODO: cuando funcione indexer, volver a agregar  && !isCheckingRegistration && generationStatus?.isRegistered
+    //     if (cardanoState.isConnected && !isLoadingRegistrationUtxo && registrationUtxo) {
+    //         if (pathname !== '/dashboard') {
+    //             console.log('🎯 User is already registered, redirecting to dashboard...');
+    //             router.push('/dashboard');
+    //         }
+    //     }
+    //     if (cardanoState.isConnected && !isLoadingRegistrationUtxo && !registrationUtxo) {
+    //         if (pathname !== '/onboard') {
+    //             console.log('🎯 User is not registered, redirecting to onboard...');
+    //             router.push('/onboard');
+    //         }
+    //     }
+    // }, [cardanoState.isConnected, isCheckingRegistration, generationStatus, registrationUtxo, isLoadingRegistrationUtxo, router, pathname]);
 
     const contextValue: WalletContextType = {
         cardano: cardanoState,
         midnight: midnightState,
+        isAutoReconnecting,
         connectCardanoWallet,
         disconnectCardanoWallet,
         getAvailableCardanoWallets,
