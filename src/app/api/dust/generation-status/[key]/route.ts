@@ -19,6 +19,24 @@ export async function GET(
       );
     }
 
+    // Check if simulation mode is enabled
+    const simulationMode = process.env.SIMULATION_MODE === 'true';
+
+    if (simulationMode) {
+      // Mock response for QA/UI testing
+      const mockGenerationStatus = {
+        cardanoStakeKey: stakeKey,
+        dustAddress: "mn1qg5ks9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mc",
+        isRegistered: true,
+        generationRate: "2.5"
+      };
+
+      return NextResponse.json({
+        success: true,
+        data: [mockGenerationStatus]
+      });
+    }
+
     // Check for required environment variable
     const indexerEndpoint = process.env.INDEXER_ENDPOINT;
 

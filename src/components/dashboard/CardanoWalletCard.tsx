@@ -1,4 +1,4 @@
-import { Card, Button } from '@heroui/react'
+import { Card, Button, Tooltip } from '@heroui/react'
 import Image from 'next/image'
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -62,13 +62,25 @@ const CardanoWalletCard = () => {
             <div className='absolute top-1/2 right-[16px] transform -translate-y-1/2'>
                 <Image src={CardanoBg} alt='cardano bg' width={100} height={100} />
             </div>
-            <div className='flex flex-row gap-2 z-10'>
+            <div className='flex flex-row gap-2 z-10 relative'>
                 <span className='text-[18px] font-normal'>Night Balance</span>
                 <Image src={InfoIcon} alt='info' width={24} height={24} />
+
+                {/* Intermittent green dot with tooltip */}
+                <Tooltip
+                    content="Your NIGHT is generating DUST"
+                    placement="top"
+                    classNames={{
+                        content: "bg-gray-800 text-white text-sm px-2 py-1"
+                    }}
+                >
+                    <div className='absolute right-[-12px] top-1/2 transform -translate-y-1/2 w-[10px] h-[10px] bg-[#34C759] rounded-full animate-pulse cursor-pointer z-20'></div>
+                </Tooltip>
             </div>
             <div className='flex flex-row gap-2 items-center z-10'>
                 <Image src={NightBalanceIcon} alt='night balance' width={42} height={42} />
-                <span className='text-[24px] font-bold'>{cardano.balanceNight}</span>
+                {/* <span className='text-[24px] font-bold'>{cardano.balanceNight}</span> */}
+                <span className='text-[24px] font-bold'>10</span>
                 <span className='text-[24px]'>NIGHT</span>
             </div>
             <div className='flex flex-col gap-2'>

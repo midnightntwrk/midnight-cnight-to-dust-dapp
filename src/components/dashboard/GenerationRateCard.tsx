@@ -34,7 +34,8 @@ const GenerationRateCard = () => {
                     <Image src={InfoIcon} alt='info' width={24} height={24} />
                 </div>
                 <div className='flex flex-row gap-2 items-center z-10'>
-                    <span className='text-[24px] font-bold'>{calculateCap()}</span>
+                    {/* <span className='text-[24px] font-bold'>{calculateCap()}</span> */}
+                    <span className='text-[24px] font-bold'>100</span>
                     <span className='text-[24px]'>DUST</span>
                 </div>
             </div>

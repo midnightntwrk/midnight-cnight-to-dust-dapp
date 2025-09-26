@@ -8,13 +8,13 @@ import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/co
 import { DustTransactionsUtils } from '@/lib/dustTransactionsUtils';
 import { useDisclosure } from '@heroui/react';
 import type { LucidEvolution } from '@lucid-evolution/lucid';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AddressMatchingModal from './onboard/AddressMatchingModal';
 import ConnectCardanoCard from './onboard/ConnectCardanoCard';
 import ConnectMidnightCard from './onboard/ConnectMidnightCard';
 import MatchAddressesCard from './onboard/MatchAddressesCard';
 import WalletsModal from './wallet-connect/WalletsModal';
-import TransactionProgress from './ui/TransactionProgress';
+import TransactionProgressModal from './ui/TransactionProgressModal';
 
 export default function Onboard() {
     const {
@@ -31,8 +31,6 @@ export default function Onboard() {
         findRegistrationUtxo,
     } = useWalletContext();
 
-    // TODO: delete if dont need transaction progress component
-    // const [currentStep, setCurrentStep] = useState(1);
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
     const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);
 
@@ -43,16 +41,23 @@ export default function Onboard() {
     const transaction = useTransaction();
 
     const { isOpen: isMatchModalOpen, onOpen: onMatchModalOpen, onOpenChange: onMatchModalChange } = useDisclosure();
+    const { isOpen: isTransactionModalOpen, onOpen: onTransactionModalOpen, onOpenChange: onTransactionModalChange } = useDisclosure();
 
-    // TODO: delete if dont need transaction progress component
     // Labels for registration transaction - only override specific ones
-    // const registrationLabels: TransactionLabels = {
-    //     title: 'DUST Registration Transaction',
-    //     success: 'Registration completed successfully!',
-    //     error: 'Registration transaction failed',
-    //     signHelper: '💡 Please check your wallet and approve the registration transaction to continue.',
-    //     successDescription: 'Your Cardano and Midnight addresses have been successfully registered in the DUST protocol.',
-    // };
+    const registrationLabels = {
+        title: 'DUST Registration Transaction',
+        success: 'Registration completed successfully!',
+        error: 'Registration transaction failed',
+        signHelper: '💡 Please check your wallet and approve the registration transaction to continue.',
+        successDescription: 'Your Cardano and Midnight addresses have been successfully registered in the DUST protocol.',
+    };
+
+    // Auto-open modal when transaction starts (not idle)
+    useEffect(() => {
+        if (transaction.transactionState !== 'idle' && !isTransactionModalOpen) {
+            onTransactionModalOpen();
+        }
+    }, [transaction.transactionState, isTransactionModalOpen, onTransactionModalOpen]);
 
     const handleCardanoWalletSelect = async (wallet: SupportedWallet | SupportedMidnightWallet) => {
         await connectCardanoWallet(wallet as SupportedWallet);
@@ -171,12 +176,6 @@ export default function Onboard() {
             {/* Step 3: Address Matching - Only show when both wallets connected */}
             {cardano.isConnected && midnight.isConnected && (
                 <div className="space-y-4">
-                    {/* Dust Protocol Status */}
-                    {/* <DustProtocolStatus /> */}
-
-                    {/* Transaction Progress */}
-                    <TransactionProgress />
-
                     {/* DUST PKH Info - show the coinPublicKey from midnight wallet 
                     NOTE | TODO: This is for testing purposes only. Dont show this in production */}
                     {/* {protocolStatus?.isReady && transaction.transactionState === 'idle' && midnight.coinPublicKey && (
@@ -221,8 +220,12 @@ export default function Onboard() {
                 handleWalletSelect={handleMidnightWalletSelect}
             />
 
-            {/* Address Matching Confirmation Modal */}
-            <AddressMatchingModal isOpen={isMatchModalOpen} onOpenChange={onMatchModalChange} />
+            {/* Transaction Progress Modal */}
+            <TransactionProgressModal
+                isOpen={isTransactionModalOpen}
+                onOpenChange={onTransactionModalChange}
+                labels={registrationLabels}
+            />
         </div>
     );
 }
