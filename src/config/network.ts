@@ -148,9 +148,15 @@ const initializeLucidWithBlockfrostClientSide = async () => {
         //-----------------
         // Dynamic import to avoid SSR issues
         const { Lucid, Blockfrost } = await import('@lucid-evolution/lucid');
-        const lucid = await Lucid(new Blockfrost(process.env.NEXT_PUBLIC_REACT_SERVER_API_URL + '/blockfrost', 'xxxx'), getLucidNetwork(), {
+
+        const apiServerUrl = process.env.NEXT_PUBLIC_REACT_SERVER_API_URL || '';
+        
+        const lucid = await Lucid(
+            new Blockfrost(apiServerUrl + '/blockfrost', 'xxxx'),
+            getLucidNetwork(), {
             presetProtocolParameters: protocolParameters,
-        });
+        }
+        );
         return lucid;
     } catch (error) {
         console.log('[Network]', `initializeLucidWithBlockfrostClientSide - Error: ${error}`);
