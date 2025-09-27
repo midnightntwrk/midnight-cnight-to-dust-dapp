@@ -57,7 +57,7 @@ export default function Stepper({ currentStep, cardanoConnected, midnightConnect
                 };
             case 'active':
                 return {
-                    circle: 'bg-[#0000FE] text-white',
+                    circle: 'bg-button-fill-primary text-white',
                     label: 'text-white',
                     line: 'bg-gray-600'
                 };

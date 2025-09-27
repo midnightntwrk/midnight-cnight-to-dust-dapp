@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Providers } from "@/contexts/Providers";
-import MidnightNavbar from "@/components/Navbar";
-import Footer from "@/components/ui/Footer";
 
 export const metadata: Metadata = {
   title: "Midnight vs Cardano",
@@ -17,13 +14,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>
-          <main>
-            <MidnightNavbar />
-            {children}
-            <Footer />
-          </main>
-        </Providers>
+        {children}
       </body>
     </html>
   );

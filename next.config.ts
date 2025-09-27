@@ -1,24 +1,25 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  webpack: (config) => {
+  output: "standalone",
+  reactStrictMode: false, // Disabled to prevent duplicate executions in development
+  webpack: (config, { isServer }) => {
     config.experiments = {
-      ...config.experiments,
       asyncWebAssembly: true,
+      topLevelAwait: true,
+      layers: true,
     };
-    
-    // Handle .wasm files
-    config.module.rules.push({
-      test: /\.wasm$/,
-      type: "webassembly/async",
-    });
-
+    // fix warnings for async functions in the browser (https://github.com/vercel/next.js/issues/64792)
+    if (!isServer) {
+      config.output.environment = {
+        ...config.output.environment,
+        asyncFunction: true,
+      };
+    }
     return config;
   },
-  // Optimize for production with async modules
-  experimental: {
-    esmExternals: true,
+  env: {
+    // Add any environment variables here if needed
   },
 };
 

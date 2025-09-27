@@ -1,6 +1,6 @@
-import { Card } from '@heroui/react'
-import Image from 'next/image'
-import React from 'react'
+import { Button, Card } from '@heroui/react';
+import Image from 'next/image';
+import React, { useState } from 'react';
 
 import InfoIcon from '@/assets/icons/info.svg';
 import CopyIcon from '@/assets/icons/copy.svg';
@@ -8,45 +8,284 @@ import CheckIcon from '@/assets/icons/check.svg';
 import MidnightBg from '@/assets/midnight.svg';
 import DustBalanceIcon from '@/assets/icons/DUST.svg';
 import { useWalletContext } from '@/contexts/WalletContext';
-
+import ToastContainer from '../ui/ToastContainer';
+import { useToast } from '@/hooks/useToast';
+import { useTransaction } from '@/contexts/TransactionContext';
+import { useDustProtocol } from '@/contexts/DustProtocolContext';
+import { LucidEvolution } from '@lucid-evolution/lucid';
+import DustTransactionsUtils from '@/lib/dustTransactionsUtils';
+import UpdateAddressModal from '../modals/UpdateAddressModal';
+import StopGenerationModal from '../modals/StopGenerationModal';
+import WalletsModal from '../wallet-connect/WalletsModal';
+import { SupportedMidnightWallet, SupportedWallet } from '@/contexts/WalletContext';
 
 const MidnightWalletCard = () => {
+    const { toasts, showToast, removeToast } = useToast();
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [isStopModalOpen, setIsStopModalOpen] = useState(false);
+    const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);
 
-    const {
-        midnight
-    } = useWalletContext();
+    const { cardano, midnight, generationStatus, refetchGenerationStatus, findRegistrationUtxo, isLoadingRegistrationUtxo, registrationUtxo, connectMidnightWallet, getAvailableMidnightWallets } = useWalletContext();
+
+    // Use DUST protocol context
+    const { contracts, protocolStatus } = useDustProtocol();
+
+    // Transaction management
+    const transaction = useTransaction();
+
+    const handleUpdateModalOpenChange = (isOpen: boolean) => {
+        setIsUpdateModalOpen(isOpen);
+        if (!isOpen) {
+            transaction.resetTransaction();
+        }
+    };
+
+    const handleStopModalOpenChange = (isOpen: boolean) => {
+        setIsStopModalOpen(isOpen);
+        if (!isOpen) {
+            transaction.resetTransaction();
+        }
+    };
+
+    const handleUnregisterAddress = async () => {
+        if (!cardano.lucid) {
+            console.error('❌ Cardano wallet not connected');
+            return;
+        }
+
+        // Check if dust protocol is ready first
+        if (!protocolStatus?.isReady) {
+            console.error('❌ Dust protocol not ready for unregistration');
+            transaction.setError('Dust protocol is not ready. Please ensure InitVersioningCommand & InitDustProductionCommand are completed.');
+            return;
+        }
+
+        // Get DUST PKH from midnight wallet
+        const dustPKHValue = midnight.coinPublicKey;
+        if (!dustPKHValue) {
+            console.error('❌ Midnight wallet coinPublicKey not available');
+            transaction.setError('Midnight wallet coinPublicKey not available. Please reconnect your Midnight wallet.');
+            return;
+        }
+
+        if (!registrationUtxo) {
+            console.error('❌ Registration UTXO not found');
+            transaction.setError('Registration UTXO not found. Please ensure you have registered your address.');
+            return;
+        }
+
+        try {
+            console.log('🚀 Starting DUST unregistration...');
+
+            // Create the unregistration executor and execute it
+            const unregistrationExecutor = DustTransactionsUtils.createUnregistrationExecutor(cardano.lucid as LucidEvolution, contracts, dustPKHValue, registrationUtxo);
+
+            const transactionState = await transaction.executeTransaction('unregister', unregistrationExecutor, {}, cardano.lucid as LucidEvolution);
+
+            // Only open success modal if transaction actually succeeded
+            if (transactionState === 'success') {
+                refetchGenerationStatus();
+                findRegistrationUtxo();
+            } else {
+                console.error('transactionState:', transactionState);
+                throw new Error('transactionState:' + transactionState);
+            }
+        } catch (error) {
+            console.error('❌ DUST unregistration failed:', error);
+            // Error is already handled by TransactionContext, no need to set it again
+        }
+    };
+
+    const handleUpdateAddress = async () => {
+        if (!cardano.lucid) {
+            console.error('❌ Cardano wallet not connected');
+            return;
+        }
+
+        // Check if dust protocol is ready first
+        if (!protocolStatus?.isReady) {
+            console.error('❌ Dust protocol not ready for update');
+            transaction.setError('Dust protocol is not ready. Please ensure InitVersioningCommand & InitDustProductionCommand are completed.');
+            return;
+        }
+
+        // Get DUST PKH from midnight wallet
+        const dustPKHValue = midnight.coinPublicKey;
+        if (!dustPKHValue) {
+            console.error('❌ Midnight wallet coinPublicKey not available');
+            transaction.setError('Midnight wallet coinPublicKey not available. Please reconnect your Midnight wallet.');
+            return;
+        }
+
+        if (!registrationUtxo) {
+            console.error('❌ Registration UTXO not found');
+            transaction.setError('Registration UTXO not found. Please ensure you have registered your address.');
+            return;
+        }
+
+        try {
+            console.log('🚀 Starting DUST update...');
+
+            // Create the update executor and execute it
+            const updateExecutor = DustTransactionsUtils.createUpdateExecutor(cardano.lucid as LucidEvolution, contracts, dustPKHValue, registrationUtxo);
+
+            const transactionState = await transaction.executeTransaction('update', updateExecutor, {}, cardano.lucid as LucidEvolution);
+
+            // Only open success modal if transaction actually succeeded
+            if (transactionState === 'success') {
+                refetchGenerationStatus();
+                findRegistrationUtxo();
+            } else {
+                console.error('transactionState:', transactionState);
+                throw new Error('transactionState:' + transactionState);
+            }
+        } catch (error) {
+            console.error('❌ DUST update failed:', error);
+            // Error is already handled by TransactionContext, no need to set it again
+        }
+    };
+
+    const handleConnectMidnight = () => {
+        setIsMidnightModalOpen(true);
+    };
+
+    const handleMidnightWalletSelect = async (wallet: SupportedWallet | SupportedMidnightWallet) => {
+        await connectMidnightWallet(wallet as SupportedMidnightWallet);
+        setIsMidnightModalOpen(false);
+    };
 
     const handleFormatWalletAddress = (address: string) => {
         return address.slice(0, 10) + '...' + address.slice(-10);
-    }
+    };
+
+    const handleCopyAddress = async () => {
+        const addressToCopy = generationStatus?.dustAddress || midnight.address;
+        if (addressToCopy) {
+            try {
+                await navigator.clipboard.writeText(addressToCopy);
+                showToast({
+                    message: 'DUST address copied to clipboard!',
+                    type: 'success',
+                });
+            } catch {
+                showToast({
+                    message: 'Failed to copy address',
+                    type: 'error',
+                });
+            }
+        }
+    };
 
     return (
-        <Card className='bg-[#70707035] p-[24px] w-full lg:w-[40%] flex flex-col gap-4 relative pb-8'>
-            <div className='absolute top-1/2 right-[16px] transform -translate-y-1/2'>
-                <Image src={MidnightBg} alt='cardano bg' width={100} height={100} />
+        <Card className="bg-[#70707035] p-[24px] w-full lg:w-[40%] flex flex-col gap-4 relative pb-8">
+            <div className="absolute top-1/2 right-[16px] transform -translate-y-1/2">
+                <Image src={MidnightBg} alt="cardano bg" width={100} height={100} />
             </div>
-            <div className='flex flex-row gap-2 z-10'>
-                <span className='text-[18px] font-normal'>DUST Balance</span>
-                <Image src={InfoIcon} alt='info' width={24} height={24} />
+            <div className="flex flex-row gap-2 z-10">
+                <span className="text-[18px] font-normal">DUST Balance</span>
+                <Image src={InfoIcon} alt="info" width={24} height={24} />
             </div>
-            <div className='flex flex-row gap-2 items-center z-10'>
-                <Image src={DustBalanceIcon} alt='night balance' width={42} height={42} />
-                <span className='text-[24px] font-bold'>1000</span>
-                <span className='text-[24px]'>DUST</span>
+            <div className="flex flex-row gap-2 items-center z-10">
+                <Image src={DustBalanceIcon} alt="night balance" width={42} height={42} />
+                <span className="text-[24px] font-bold">{midnight.isConnected ? '1000' : '***'}</span>
+                <span className="text-[24px]">DUST</span>
             </div>
-            <div className='flex flex-col gap-2'>
-                <div className='flex flex-row gap-2 items-center z-10'>
-                    <span className='text-[14px] font-normal text-gray-400'>Destination Address Midnight</span>
-                    <Image src={InfoIcon} alt='info' width={20} height={20} />
+            <div className="flex flex-col gap-2">
+                <div className="flex flex-row gap-2 items-center z-10">
+                    <span className="text-[14px] font-normal text-gray-400">Destination Address Midnight</span>
+                    <Image src={InfoIcon} alt="info" width={20} height={20} />
                 </div>
-                <div className='flex flex-row gap-2 items-center z-10'>
-                    <Image src={CheckIcon} alt='check' width={18} height={18} />
-                    <span>{handleFormatWalletAddress(midnight.address || '')}</span>
-                    <Image src={CopyIcon} alt='copy' width={18} height={18} onClick={() => navigator.clipboard.writeText(midnight.address || '')} />
+                <div className="flex flex-row gap-2 items-center z-10">
+                    <Image src={CheckIcon} alt="check" width={18} height={18} />
+                    <span>{handleFormatWalletAddress(generationStatus?.dustAddress || midnight.address || '')}</span>
+                    <Image src={CopyIcon} alt="copy" width={18} height={18} className="cursor-pointer hover:opacity-70" onClick={handleCopyAddress} />
                 </div>
             </div>
-        </Card>
-    )
-}
 
-export default MidnightWalletCard
+            <div className="flex z-10 mt-4 gap-4">
+                {midnight.isConnected ? (
+                    // Connected: Show update and stop buttons
+                    <>
+                        <Button
+                            className="bg-brand-primary hover:bg-brand-primary-hover text-white w-full py-2 text-sm disabled:bg-gray-600 disabled:text-gray-400"
+                            radius="md"
+                            size="sm"
+                            onPress={() => setIsUpdateModalOpen(true)}
+                            isLoading={isLoadingRegistrationUtxo}
+                            isDisabled={
+                                !protocolStatus?.isReady ||
+                                isLoadingRegistrationUtxo ||
+                                !registrationUtxo ||
+                                (!transaction.isCurrentTransaction('update') && transaction.isAnyTransactionRunning())
+                            }
+                        >
+                            {!protocolStatus?.isReady
+                                ? 'DUST PROTOCOL NOT READY'
+                                : isLoadingRegistrationUtxo
+                                ? 'LOADING REGISTRATION UTXO...'
+                                : !registrationUtxo
+                                ? 'NO REGISTRATION FOUND'
+                                : 'CHANGE ADDRESS'}
+                        </Button>
+                        <Button
+                            className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 w-full py-2 text-sm disabled:bg-gray-600 disabled:text-gray-400"
+                            radius="md"
+                            size="sm"
+                            onPress={() => setIsStopModalOpen(true)}
+                            isLoading={isLoadingRegistrationUtxo}
+                            isDisabled={
+                                !protocolStatus?.isReady ||
+                                isLoadingRegistrationUtxo ||
+                                !registrationUtxo ||
+                                (transaction.isCurrentTransaction('unregister') && transaction.isAnyTransactionRunning())
+                            }
+                        >
+                            {!protocolStatus?.isReady
+                                ? 'DUST PROTOCOL NOT READY'
+                                : isLoadingRegistrationUtxo
+                                ? 'LOADING REGISTRATION UTXO...'
+                                : !registrationUtxo
+                                ? 'NO REGISTRATION FOUND'
+                                : 'STOP GENERATION'}
+                        </Button>
+                    </>
+                ) : (
+                    // Not connected: Show connect button
+                    <Button
+                        className="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 text-sm"
+                        radius="md"
+                        size="sm"
+                        onPress={handleConnectMidnight}
+                        isLoading={midnight.isLoading}
+                        isDisabled={midnight.isLoading}
+                    >
+                        {midnight.isLoading ? 'CONNECTING...' : 'CONNECT MIDNIGHT WALLET'}
+                    </Button>
+                )}
+            </div>
+
+            {/* Toast Notifications */}
+            <ToastContainer toasts={toasts} onRemove={removeToast} />
+
+            {/* Modals */}
+            <UpdateAddressModal isOpen={isUpdateModalOpen} onOpenChange={handleUpdateModalOpenChange} onAddressUpdate={handleUpdateAddress} />
+
+            <StopGenerationModal
+                isOpen={isStopModalOpen}
+                onOpenChange={handleStopModalOpenChange}
+                dustAddress={(generationStatus && generationStatus.dustAddress) || midnight.address}
+                onStopGeneration={handleUnregisterAddress}
+            />
+
+            {/* Midnight Wallet Selection Modal */}
+            <WalletsModal
+                isOpen={isMidnightModalOpen}
+                onOpenChange={setIsMidnightModalOpen}
+                wallets={getAvailableMidnightWallets()}
+                handleWalletSelect={handleMidnightWalletSelect}
+            />
+        </Card>
+    );
+};
+
+export default MidnightWalletCard;

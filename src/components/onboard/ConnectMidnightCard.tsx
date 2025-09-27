@@ -1,12 +1,11 @@
-"use client";
+'use client';
 
-import React from 'react';
-import { Card, CardBody, Button } from "@heroui/react";
-import Image from 'next/image';
-import MidnightLogo from '@/assets/midnight.svg';
-import CopyIcon from '@/assets/icons/copy.svg';
 import CheckIcon from '@/assets/icons/check.svg';
 import InfoIcon from '@/assets/icons/info.svg';
+import MidnightLogo from '@/assets/midnight.svg';
+import { Button, Card, CardBody, Input } from '@heroui/react';
+import Image from 'next/image';
+import { useState } from 'react';
 
 interface ConnectMidnightCardProps {
     // Connection state
@@ -15,27 +14,31 @@ interface ConnectMidnightCardProps {
     onDisconnect: () => void;
     isLoading?: boolean;
     error?: string | null;
-    
+
     // Wallet info (when connected)
     walletName?: string;
     balance?: string;
     address?: string;
+
+    // Manual address input
+    onManualAddressSubmit?: (address: string) => void;
 }
 
-export default function ConnectMidnightCard({ 
+export default function ConnectMidnightCard({
     isConnected,
-    onConnect, 
+    onConnect,
     onDisconnect,
-    isLoading = false, 
+    isLoading = false,
     error,
     walletName,
-    balance,
-    address
+    address,
+    onManualAddressSubmit,
 }: ConnectMidnightCardProps) {
+    const [manualAddress, setManualAddress] = useState('');
 
-    const handleCopyAddress = () => {
-        if (address) {
-            navigator.clipboard.writeText(address);
+    const handleManualSubmit = () => {
+        if (manualAddress.trim() && onManualAddressSubmit) {
+            onManualAddressSubmit(manualAddress.trim());
         }
     };
 
@@ -50,12 +53,7 @@ export default function ConnectMidnightCard({
                 <CardBody className="p-6 md:p-8">
                     {/* Midnight Logo - Background */}
                     <div className="absolute top-8 right-8">
-                        <Image 
-                            src={MidnightLogo} 
-                            alt="Midnight" 
-                            width={90} 
-                            height={90}
-                        />
+                        <Image src={MidnightLogo} alt="Midnight" width={90} height={90} />
                     </div>
 
                     {/* Content */}
@@ -64,32 +62,60 @@ export default function ConnectMidnightCard({
                             /* Disconnected State */
                             <div className="space-y-6">
                                 {/* Title */}
-                                <h2 className="text-xl md:text-2xl font-bold text-white">
-                                    Connect your Midnight Wallet
-                                </h2>
-
-                                {/* Subtitle */}
-                                <p className="text-[#FFFFFF50] text-sm md:text-base">
-                                    Connect your Midnight wallet.
-                                </p>
+                                <h2 className="text-xl md:text-2xl font-bold text-white">Connect your Midnight Wallet</h2>
 
                                 {/* Connect Button */}
                                 <Button
-                                    onClick={onConnect}
+                                    onPress={onConnect}
                                     isLoading={isLoading}
-                                    className="bg-[#0000FE] hover:bg-blue-600 text-white font-medium w-full py-3 text-sm md:text-base"
+                                    className="bg-brand-primary hover:bg-brand-primary-hover text-white font-medium w-full py-3 text-sm md:text-base"
                                     size="lg"
                                     radius="md"
                                 >
                                     {isLoading ? 'CONNECTING...' : 'CONNECT MIDNIGHT WALLET'}
                                 </Button>
 
+                                {/* OR Divider */}
+                                {onManualAddressSubmit && (
+                                    <div className="flex items-center gap-4 my-6">
+                                        <div className="flex-1 h-px bg-gray-600"></div>
+                                        <span className="text-gray-400 text-sm">OR</span>
+                                        <div className="flex-1 h-px bg-gray-600"></div>
+                                    </div>
+                                )}
+
+                                {/* Manual Address Input */}
+                                {onManualAddressSubmit && (
+                                    <div className="space-y-4">
+                                        <p className="text-[#FFFFFF50] text-sm">Add a DUST address manually</p>
+                                        <div className="flex gap-3">
+                                            <Input
+                                                placeholder="Enter Midnight DUST address..."
+                                                value={manualAddress}
+                                                onChange={(e) => setManualAddress(e.target.value)}
+                                                className="flex-1"
+                                                size="lg"
+                                                classNames={{
+                                                    input: 'bg-transparent text-white placeholder:text-gray-500',
+                                                    inputWrapper: 'bg-white/10 border border-white/20 hover:border-white/40',
+                                                }}
+                                            />
+                                            <Button
+                                                onPress={handleManualSubmit}
+                                                isDisabled={!manualAddress.trim()}
+                                                className="bg-gray-700 hover:bg-gray-600 text-white font-medium px-6"
+                                                size="lg"
+                                            >
+                                                Add
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Error Message */}
                                 {error && (
                                     <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                                        <p className="text-red-400 text-sm">
-                                            ❌ {error}
-                                        </p>
+                                        <p className="text-red-400 text-sm">❌ {error}</p>
                                     </div>
                                 )}
                             </div>
@@ -99,13 +125,10 @@ export default function ConnectMidnightCard({
                                 {/* Header with Info Icon */}
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <h2 className="text-xl md:text-2xl font-bold text-white">
-                                            Destination Address Midnight
-                                        </h2>
+                                        <h2 className="text-xl md:text-2xl font-bold text-white">Destination Address Midnight</h2>
                                         <Image src={InfoIcon} alt="info" width={16} height={16} />
                                     </div>
                                 </div>
-
 
                                 {/* Balance Info */}
                                 <div className="text-gray-400 text-sm">
@@ -120,11 +143,9 @@ export default function ConnectMidnightCard({
                                 {/* Address with Check and Copy Icons */}
                                 <div className="flex items-center gap-2 mt-3">
                                     <Image src={CheckIcon} alt="check" width={16} height={16} />
-                                    <span className="text-white text-sm font-mono flex-1">
-                                        {formatAddress(address || '')}
-                                    </span>
+                                    <span className="text-white text-sm font-mono flex-1">{formatAddress(address || '')}</span>
                                     <Button
-                                        onClick={onDisconnect}
+                                        onPress={onDisconnect}
                                         size="sm"
                                         className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 px-4 py-1 text-xs"
                                         radius="md"

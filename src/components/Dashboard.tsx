@@ -1,30 +1,53 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react';
-import { useWalletContext } from '@/contexts/WalletContext';
-import { SupportedWallet } from '@/hooks/useCardanoWallet';
-import { SupportedMidnightWallet } from '@/hooks/useMidnightWallet';
-import { Button } from '@heroui/react';
-import WalletsModal from './wallet-connect/WalletsModal';
+import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/contexts/WalletContext';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import CardanoWalletCard from './dashboard/CardanoWalletCard';
-import MidnightWalletCard from './dashboard/MidnightWalletCard';
 import GenerationRateCard from './dashboard/GenerationRateCard';
-
+import MidnightWalletCard from './dashboard/MidnightWalletCard';
+import WalletsModal from './wallet-connect/WalletsModal';
+import LoadingBackdrop from './ui/LoadingBackdrop';
 
 export default function Dashboard() {
+    const router = useRouter();
     const {
         cardano,
-        midnight,
+        isAutoReconnecting,
         connectCardanoWallet,
         connectMidnightWallet,
-        disconnectCardanoWallet,
-        disconnectMidnightWallet,
         getAvailableCardanoWallets,
-        getAvailableMidnightWallets
+        getAvailableMidnightWallets,
     } = useWalletContext();
 
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
     const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);
+
+    // Redirect to home if Cardano wallet is not connected (after auto-reconnect is complete)
+    useEffect(() => {
+        if (!isAutoReconnecting && !cardano.isConnected) {
+            console.log('🏠 No Cardano wallet connected after auto-reconnect, redirecting to home...');
+            router.push('/');
+        }
+    }, [cardano.isConnected, isAutoReconnecting, router]);
+
+    // Show loading backdrop while auto-reconnecting
+    if (isAutoReconnecting) {
+        return (
+            <div className="max-w-6xl mx-auto p-6">
+                <LoadingBackdrop
+                    isVisible={true}
+                    title="Connecting to saved wallets..."
+                    subtitle="Please wait while we restore your wallet connections"
+                />
+            </div>
+        );
+    }
+
+    // Don't render dashboard if Cardano wallet is not connected (after auto-reconnect is complete)
+    if (!cardano.isConnected) {
+        return null; // This should trigger redirect via useEffect
+    }
 
     // Wallet display names and icons
 
@@ -47,39 +70,10 @@ export default function Dashboard() {
                     <p className="text-gray-500">Manage your Cardano and Midnight wallet connections</p>
                 </div>
             </div>
-            <div className='flex flex-col lg:flex-row gap-4 lg:gap-6'>
+            <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
                 <CardanoWalletCard />
                 <GenerationRateCard />
                 <MidnightWalletCard />
-            </div>
-
-            <div className='flex flex-col gap-4 mt-12 mb-12'>
-                Available RAW Info:
-                <div>
-                    <p className='text-lg font-bold'>Cardano Wallet</p>
-                    <p>Address: {cardano.address}</p>
-                    <p>Balance: {cardano.balance}</p>
-                    <p>Wallet Name: {cardano.walletName}</p>
-                </div>
-                <div>
-                    <p className='text-lg font-bold'>Midnight Wallet</p>
-                    <p>Address: {midnight.address}</p>
-                    <p>Balance: {midnight.balance}</p>
-                    <p>Wallet Name: {midnight.walletName}</p>
-                </div>
-            </div>
-
-            {/* <div>
-                <ConnectionStatus />
-            </div> */}
-
-            <div className='flex flex-col gap-4'>
-                <Button color='danger' onPress={() => disconnectCardanoWallet()}>
-                    Disconnect Cardano Wallet
-                </Button>
-                <Button color='danger' onPress={() => disconnectMidnightWallet()}>
-                    Disconnect Midnight Wallet
-                </Button>
             </div>
 
             {/* Wallet Selection Modals */}

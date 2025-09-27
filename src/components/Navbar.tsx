@@ -11,7 +11,6 @@ import {
   NavbarMenuItem,
   Link,
   Button,
-  Badge,
 } from "@heroui/react";
 import { useWalletContext } from '@/contexts/WalletContext';
 import Image from "next/image";
@@ -74,19 +73,10 @@ export default function MidnightNavbar() {
           <ThemeSwitcher />
         </NavbarItem> */}
         <NavbarItem>
-          {walletStatus.count === 2 ? (
-            <Badge
-              content={walletStatus.count}
-              color={walletStatus.color as "success" | "warning" | "danger"}
-              size="sm"
-            >
-              <Button as={Link} color="primary" href="/dashboard" variant="flat">
-                🔗 Wallets Connected
-              </Button>
-            </Badge>
-          ) : (
-            <Button as={Link} color="primary" href="/onboard" variant="flat">
-              Connect Wallets
+          {cardano.isConnected && (
+            <Button as={Link} className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 w-full py-2 text-sm"
+              href="/dashboard" variant="flat">
+              Dashboard
             </Button>
           )}
         </NavbarItem>

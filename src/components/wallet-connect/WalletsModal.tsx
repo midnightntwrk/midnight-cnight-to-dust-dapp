@@ -1,41 +1,27 @@
-import {
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Button,
-    useDisclosure,
-} from "@heroui/react";
-import { SupportedWallet } from "@/hooks/useCardanoWallet";
-import { SupportedMidnightWallet } from "@/hooks/useMidnightWallet";
+import { SupportedMidnightWallet, SupportedWallet } from '@/contexts/WalletContext';
+import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react';
 
-export default function WalletsModal({ wallets, handleWalletSelect, isOpen, onOpenChange }:
-    {
-        wallets: SupportedWallet[] | SupportedMidnightWallet[],
-        handleWalletSelect: (wallet: SupportedWallet | SupportedMidnightWallet) => void,
-        isOpen: boolean,
-        onOpenChange: (open: boolean) => void
-    }) {
-
-    console.log('>>> wallets', wallets);
-
+export default function WalletsModal({
+    wallets,
+    handleWalletSelect,
+    isOpen,
+    onOpenChange,
+}: {
+    wallets: SupportedWallet[] | SupportedMidnightWallet[];
+    handleWalletSelect: (wallet: SupportedWallet | SupportedMidnightWallet) => void;
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
+}) {
     return (
         <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
             <ModalContent>
                 {(onClose) => (
                     <>
-                        <ModalHeader className="flex flex-col gap-1">
-                            Connect your wallet
-                        </ModalHeader>
+                        <ModalHeader className="flex flex-col gap-1">Connect your wallet</ModalHeader>
                         {wallets.length > 0 ? (
                             <ModalBody>
                                 {wallets.map((wallet, index) => (
-                                    <Button
-                                        key={index}
-                                        color="primary"
-                                        onPress={() => handleWalletSelect(wallet)}
-                                    >
+                                    <Button key={index} color="primary" onPress={() => handleWalletSelect(wallet)}>
                                         {wallet}
                                     </Button>
                                 ))}
