@@ -192,7 +192,7 @@ Usage:
 - **Midnight**: Testnet integration with privacy features
 - **WebAssembly**: Configured for cryptographic operations
 
-## 📱 User Flows
+## User Flows
 
 ### Registration Flow
 1. **Landing Page**: User views application overview
