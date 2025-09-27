@@ -72,9 +72,25 @@ yarn lint
 # Copy environment template
 cp .env.example .env.local
 
-# Configure required variables
-BLOCKFROST_API_KEY=your_blockfrost_key
-INDEXER_ENDPOINT=http://localhost:8088/api/v1/graphql
+# Configure required variables in .env.local
+NEXT_PUBLIC_CARDANO_NET="Preview"
+
+# Blockfrost API configuration
+BLOCKFROST_KEY_MAINNET=your_mainnet_key
+BLOCKFROST_KEY_PREVIEW=your_preview_key
+BLOCKFROST_KEY_PREPROD=your_preprod_key
+
+# Simulation mode (for development/testing)
+SIMULATION_MODE=true
+NEXT_PUBLIC_SIMULATION_MODE=true
+
+# Server configuration
+NEXT_PUBLIC_REACT_SERVER_BASEURL="http://localhost"
+NEXT_PUBLIC_REACT_SERVER_URL="$NEXT_PUBLIC_REACT_SERVER_BASEURL:3000"
+NEXT_PUBLIC_REACT_SERVER_API_URL="$NEXT_PUBLIC_REACT_SERVER_URL/api"
+
+# cNIGHT token configuration
+NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_POLICY_ID="fb3cec684bc96575f4ba6ed7f11b1547114d7af41a9f38e552bcfbd2"
 ```
 
 ### Simulation Mode
