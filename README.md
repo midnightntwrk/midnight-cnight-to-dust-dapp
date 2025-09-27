@@ -77,6 +77,49 @@ BLOCKFROST_API_KEY=your_blockfrost_key
 INDEXER_ENDPOINT=http://localhost:8088/api/v1/graphql
 ```
 
+### Simulation Mode
+The application includes a simulation mode for development and testing without requiring a live indexer:
+
+```bash
+# Enable simulation mode in .env.local
+SIMULATION_MODE=true
+NEXT_PUBLIC_SIMULATION_MODE=true
+```
+
+When simulation mode is enabled:
+- **API Endpoints**: `/api/dust/generation-status/[key]` returns mock data instead of querying the real indexer
+- **Mock Response**: Provides realistic test data including stake key, dust address, registration status, and generation rate
+- **Development Benefits**: Allows UI/UX testing without backend dependencies
+- **QA Testing**: Enables consistent test scenarios for quality assurance
+
+**Mock Data Structure**:
+```json
+{
+  "success": true,
+  "data": [{
+    "cardanoStakeKey": "provided_stake_key",
+    "dustAddress": "mn1qg5ks9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mc",
+    "isRegistered": true,
+    "generationRate": "2.5"
+  }]
+}
+```
+
+When disabled (`SIMULATION_MODE=false`), the application queries the real GraphQL indexer endpoint for live data.
+
+## Smart Contract Integration
+
+The application integrates with the MIDNIGHT DUST smart contract system on Cardano, enabling users to link their Cardano wallets with Midnight addresses for DUST token generation. The system consists of 8 parameterized smart contracts that handle registration, versioning, and governance.
+
+**Key Features:**
+- **Dual-Chain Architecture**: Links Cardano wallet addresses to Midnight addresses
+- **Parameterized Contracts**: Genesis UTxO ensures deployment uniqueness
+- **User Registration**: Secure wallet-to-address mapping with auth tokens
+- **Governance System**: Multi-signature governance for system upgrades
+- **Version Oracle**: Upgradeable contract logic with versioning support
+
+For complete smart contract integration details, transaction structures, and deployment steps, see the [**DAPP Integration Guide**](./DAPP_INTEGRATION_GUIDE.md).
+
 ## API Integration
 
 ### GraphQL Subgraph

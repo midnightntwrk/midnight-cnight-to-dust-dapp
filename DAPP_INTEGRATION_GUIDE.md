@@ -2,33 +2,33 @@
 
 ## Overview
 
-This guide provides the complete technical flow for integrating the MIDNIGHT DUST smart contract system into your dapp. The system enables linking Cardano wallet addresses with Midnight addresses for DUST token production.
+This guide walks you through integrating the MIDNIGHT DUST smart contract system. At its core, the system creates secure links between Cardano wallets and Midnight addresses, enabling DUST token generation based on cNIGHT holdings.
 
 ## Architecture Components
 
 The system consists of 8 smart contracts:
 
-**Validators (2):**
-1. **Mapping Validator** - Stores wallet→Midnight address mappings
-2. **Version Oracle Validator** - Handles versioning system for upgradeable logic
+### Validators (2)
+1. Mapping Validator - Stores wallet→Midnight address mappings
+2. Version Oracle Validator - Handles versioning system for upgradeable logic
 
-**Minting Policies (6):**
-3. **Auth Token Policy** - Main authentication token policy (proxy)
-4. **Auth Token Minting Policy** - Validates token minting during registration
-5. **Auth Token Burning Policy** - Validates token burning during deregistration  
-6. **Mapping Validator Spend Policy** - Controls spending from mapping validator
-7. **Version Oracle Policy** - Manages versioning system tokens
-8. **Governance MultiSig Policy** - Handles governance and permission tokens
+### Minting Policies (6)
+3. Auth Token Policy - Main authentication token policy (proxy)
+4. Auth Token Minting Policy - Validates token minting during registration
+5. Auth Token Burning Policy - Validates token burning during deregistration
+6. Mapping Validator Spend Policy - Controls spending from mapping validator
+7. Version Oracle Policy - Manages versioning system tokens
+8. Governance MultiSig Policy - Handles governance and permission tokens
 
 ---
 
 ## Smart Contract Parameters
 
-All smart contracts in the MIDNIGHT DUST system are **parameterized** to ensure deployment uniqueness and security. Understanding these parameters is crucial for proper integration.
+All smart contracts in the MIDNIGHT DUST system are parameterized to ensure deployment uniqueness and security. Understanding these parameters is crucial for proper integration.
 
 ### Genesis UTxO Parameter
 
-**ALL 8 smart contracts** are parameterized by the Genesis UTxO:
+All 8 smart contracts are parameterized by the Genesis UTxO:
 
 ```
 Contract Parameters:
@@ -44,37 +44,33 @@ Contract Parameters:
 
 ### Parameter Details
 
-**Genesis UTxO (`TxOutRef`):**
+Genesis UTxO (`TxOutRef`):
 - Format: `{txId: "64-char-hex-string", index: number}`
-- **Critical**: This UTxO will be consumed during system initialization
-- **Purpose**: Makes your deployment globally unique across all Cardano
-- **Effect**: Different Genesis UTxOs produce completely different:
-  - Script hashes
-  - Policy IDs (currency symbols)
-  - Contract addresses
-  - Token identifiers
+- Critical: This UTxO will be consumed during system initialization
+- Purpose: Makes your deployment globally unique across all Cardano
+- Effect: Different Genesis UTxOs produce completely different script hashes, policy IDs, contract addresses, and token identifiers
 
-**Governance Configuration:**
-- **Members Count**: Number of governance participants (e.g., 3)
-- **Required Signatures**: Threshold for governance actions (e.g., 2 of 3)
-- **Only affects**: `governance-multisig-policy.plutus`
+Governance Configuration:
+- Members Count: Number of governance participants (e.g., 3)
+- Required Signatures: Threshold for governance actions (e.g., 2 of 3)
+- Only affects: `governance-multisig-policy.plutus`
 
 ### Derived Parameters
 
 Some contracts also use parameters derived from other contracts:
-- **Mapping Validator Address**: Computed from mapping validator script hash
-- **Auth Token Currency Symbol**: Computed from auth token policy script hash
-- **Version Oracle Config**: Wrapper around Genesis UTxO for versioning system
+- Mapping Validator Address: Computed from mapping validator script hash
+- Auth Token Currency Symbol: Computed from auth token policy script hash
+- Version Oracle Config: Wrapper around Genesis UTxO for versioning system
 
 ### Security Implications
 
-**Uniqueness Guarantee:**
+### Uniqueness Guarantee
 Each Genesis UTxO creates a completely isolated DUST system deployment. This prevents:
 - Cross-deployment token conflicts
 - Accidental interaction between different deployments
 - Script address collisions
 
-**Parameter Validation:**
+### Parameter Validation
 - Genesis UTxO must exist and be spendable during initialization
 - Governance parameters must be consistent across all deployment transactions
 - All derived parameters are cryptographically bound to the Genesis UTxO
@@ -130,30 +126,30 @@ SCRIPT WITNESS:
 └── Version Oracle Policy (for minting)
 ```
 
-### Redeemer Exacto
+### Redeemer Structure
 ```haskell
 InitializeVersionOracle
-  (VersionOracle { scriptId = 0 })                           -- VALOR FIJO: 0
-  (toPlutusScriptHash (cardanoScriptHash govScript))         -- Hash del Governance MultiSig Script
-  "Governance Policy"                                        -- VALOR FIJO: "Governance Policy"
+  (VersionOracle { scriptId = 0 })                           -- Fixed value: 0
+  (toPlutusScriptHash (cardanoScriptHash govScript))         -- Hash of Governance MultiSig Script
+  "Governance Policy"                                        -- Fixed value: "Governance Policy"
 ```
 
-**Campos del Redeemer:**
-- **VersionOracle**: `scriptId = 0` (siempre 0 para governance)
-- **ScriptHash**: Hash del Governance MultiSig Policy Script compilado
-- **TokenName**: `"Governance Policy"` (nombre fijo del token)
+Redeemer Fields:
+- VersionOracle: `scriptId = 0` (always 0 for governance)
+- ScriptHash: Hash of compiled Governance MultiSig Policy Script
+- TokenName: `"Governance Policy"` (fixed token name)
 
-### Datum Exacto
+### Datum Structure
 ```haskell
 VersionOracleDatum
-  { versionOracle = VersionOracle { scriptId = 0 }           -- MISMO que en redeemer
-  , currencySymbol = versionOraclePolicyId                   -- Currency symbol del Version Oracle Policy
+  { versionOracle = VersionOracle { scriptId = 0 }           -- Same as in redeemer
+  , currencySymbol = versionOraclePolicyId                   -- Currency symbol of Version Oracle Policy
   }
 ```
 
-**Campos del Datum:**
-- **versionOracle**: Debe ser exactamente igual al del redeemer
-- **currencySymbol**: El policy ID del Version Oracle Policy (se calcula automáticamente)
+Datum Fields:
+- versionOracle: Must match exactly with the redeemer
+- currencySymbol: The policy ID of the Version Oracle Policy (calculated automatically)
 
 ---
 
@@ -374,10 +370,10 @@ data DustMappingSpendPolicyRedeemer
 ## Security Considerations
 
 ### Critical Invariants
-1. **Auth Token Isolation**: Auth tokens must never leave the Mapping Validator address
-2. **Single Registration**: One registration per Cardano wallet (enforced by token uniqueness)
-3. **Owner Control**: Only the wallet owner can register, update, or deregister
-4. **Token Conservation**: Auth tokens can only be minted during registration and burned during deregistration
+1. Auth Token Isolation: Auth tokens must never leave the Mapping Validator address
+2. Single Registration: One registration per Cardano wallet (enforced by token uniqueness)
+3. Owner Control: Only the wallet owner can register, update, or deregister
+4. Token Conservation: Auth tokens can only be minted during registration and burned during deregistration
 
 ### Validation Hierarchy
 ```
@@ -449,4 +445,4 @@ Smart contracts use specific error codes for debugging:
 - `ERROR-PROXY-VALIDATOR-01`: Spend not approved by versioning system
 - `ERROR-PROXY-VALIDATOR-02`: Failed to get spend policy from versioning system
 
-This comprehensive guide provides everything needed to integrate the MIDNIGHT DUST system into your dapp. Share this with the Midnight team for technical validation.
+This guide covers the complete integration process for the MIDNIGHT DUST system. Use it as a reference when implementing wallet-to-address mapping functionality in your application.
