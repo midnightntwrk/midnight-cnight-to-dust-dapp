@@ -191,6 +191,7 @@ export default function Onboard() {
                     <MatchAddressesCard
                         cardanoWalletName={cardano.walletName || ''}
                         cardanoBalanceNight={cardano.balanceNight || ''}
+                        cardanoBalanceADA={cardano.balanceADA || '0'}
                         cardanoAddress={cardano.address || ''}
                         onDisconnectCardano={() => {
                             disconnectCardanoWallet();

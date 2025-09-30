@@ -8,11 +8,13 @@ import CheckIcon from '@/assets/icons/check.svg';
 import InfoIcon from '@/assets/icons/info.svg';
 import { useTransaction } from '@/contexts/TransactionContext';
 import { useDustProtocol } from '@/contexts/DustProtocolContext';
+import { hasMinimumBalance, MIN_ADA_FOR_REGISTRATION } from '@/config/transactionLimits';
 
 interface MatchAddressesCardProps {
     // Cardano wallet info
     cardanoWalletName: string;
     cardanoBalanceNight: string;
+    cardanoBalanceADA: string;
     cardanoAddress: string;
     onDisconnectCardano: () => void;
 
@@ -28,6 +30,7 @@ interface MatchAddressesCardProps {
 export default function MatchAddressesCard({
     cardanoWalletName,
     cardanoBalanceNight,
+    cardanoBalanceADA,
     cardanoAddress,
     onDisconnectCardano,
     midnightWalletName,
@@ -41,9 +44,14 @@ export default function MatchAddressesCard({
     // Use DUST protocol context
     const { protocolStatus } = useDustProtocol();
 
+    // Check if user has minimum balance
+    const hasEnoughBalance = hasMinimumBalance(cardanoBalanceADA);
+
     const isMatching = transaction.isCurrentTransaction('register') && transaction.isAnyTransactionRunning();
     const disabled = // Disable if protocol not ready
         !protocolStatus?.isReady ||
+        // Disable if insufficient balance
+        !hasEnoughBalance ||
         // Disable during any transaction execution
         transaction.isAnyTransactionRunning() ||
         // Disable if registration already successfully completed
@@ -93,6 +101,15 @@ export default function MatchAddressesCard({
                         </div>
 
                         <div className="text-gray-400 text-sm">
+                            ADA Balance: <span className={`font-medium ${hasEnoughBalance ? 'text-white' : 'text-red-400'}`}>{cardanoBalanceADA} ADA</span>
+                            {!hasEnoughBalance && (
+                                <span className="text-red-400 ml-2 text-xs">
+                                    (Min. {MIN_ADA_FOR_REGISTRATION} ADA required)
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="text-gray-400 text-sm">
                             Wallet: <span className="text-white font-medium">{cardanoWalletName}</span>
                         </div>
 
@@ -135,6 +152,15 @@ export default function MatchAddressesCard({
                         </div>
                     </div>
 
+                    {/* Insufficient Balance Warning */}
+                    {!hasEnoughBalance && (
+                        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4">
+                            <p className="text-red-400 text-sm">
+                                Insufficient ADA balance. You need at least {MIN_ADA_FOR_REGISTRATION} ADA to execute the registration transaction.
+                            </p>
+                        </div>
+                    )}
+
                     {/* Match Addresses Button */}
                     <Button
                         onPress={onMatch}
@@ -148,6 +174,8 @@ export default function MatchAddressesCard({
                             ? 'MATCHING...'
                             : transaction.isCurrentTransaction('register') && transaction.transactionState === 'success'
                             ? 'REGISTRATION COMPLETED ✅'
+                            : !hasEnoughBalance
+                            ? `INSUFFICIENT BALANCE (Min. ${MIN_ADA_FOR_REGISTRATION} ADA)`
                             : protocolStatus?.isReady
                             ? 'MATCH ADDRESSES'
                             : 'DUST PROTOCOL NOT READY'}
