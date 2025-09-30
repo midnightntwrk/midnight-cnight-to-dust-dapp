@@ -34,15 +34,12 @@ export default function Dashboard() {
         }
     }, [cardano.isConnected, isAutoReconnecting, router]);
 
+    // Debug logging - redirect logic is now centralized in WalletContext
     useEffect(() => {
-        console.log('🔍 Cardano State:', cardano);
-        console.log('🔍 Midnight State:', midnight);
-        console.log("DASHBOARD UTXO", registrationUtxo);
-        console.log("DASHBOARD LOADING UTXO", isLoadingRegistrationUtxo);
-        // if (cardano.isConnected && !isLoadingRegistrationUtxo && !registrationUtxo) {
-        //     console.log('🎯 User is already registered, redirecting to dashboard...');
-        //     router.push('/');
-        // }
+        console.log('🔍 Dashboard - Cardano State:', cardano);
+        console.log('🔍 Dashboard - Midnight State:', midnight);
+        console.log('🔍 Dashboard - Registration UTXO:', registrationUtxo);
+        console.log('🔍 Dashboard - Loading UTXO:', isLoadingRegistrationUtxo);
     }, [cardano, midnight, registrationUtxo, isLoadingRegistrationUtxo]);
 
     // Show loading backdrop while auto-reconnecting

@@ -362,20 +362,38 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         autoReconnect();
     }, []);
 
+    // Centralized redirect logic based on registration status
     useEffect(() => {
         console.log('🔍 Cardano State:', cardanoState);
         console.log('🔍 Midnight State:', midnightState);
         console.log("REGISTRATION UTXO", registrationUtxo);
+        console.log("IS LOADING REGISTRATION UTXO", isLoadingRegistrationUtxo);
 
-        // Don't redirect while still loading or during auto-reconnect
+        // Guard: Don't redirect while still loading or during auto-reconnect
         if (isAutoReconnecting || isLoadingRegistrationUtxo) {
+            console.log('⏸️  Skipping redirect - still loading...');
             return;
         }
 
-        if (cardanoState.isConnected && registrationUtxo) {
+        // Guard: Only redirect if Cardano wallet is connected
+        if (!cardanoState.isConnected) {
+            console.log('⏸️  Skipping redirect - Cardano wallet not connected');
+            return;
+        }
+
+        // User IS registered (has registrationUtxo)
+        if (registrationUtxo) {
             if (pathname !== '/dashboard') {
-                console.log('🎯 User is already registered, redirecting to dashboard...');
+                console.log('🎯 User is registered, redirecting to dashboard...');
                 router.push('/dashboard');
+            }
+        }
+        // User is NOT registered (no registrationUtxo)
+        else {
+            // If user is on dashboard but not registered, redirect to home
+            if (pathname === '/dashboard') {
+                console.log('🏠 User is not registered, redirecting to home...');
+                router.push('/');
             }
         }
     }, [cardanoState.isConnected, midnightState, registrationUtxo, isLoadingRegistrationUtxo, isAutoReconnecting, pathname, router]);
