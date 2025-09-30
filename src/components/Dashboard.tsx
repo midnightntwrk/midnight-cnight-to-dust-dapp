@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import CardanoWalletCard from './dashboard/CardanoWalletCard';
 import GenerationRateCard from './dashboard/GenerationRateCard';
 import MidnightWalletCard from './dashboard/MidnightWalletCard';
+import RegistrationUtxoCard from './dashboard/RegistrationUtxoCard';
 import WalletsModal from './wallet-connect/WalletsModal';
 import LoadingBackdrop from './ui/LoadingBackdrop';
 
@@ -97,6 +98,11 @@ export default function Dashboard() {
                 <CardanoWalletCard />
                 <GenerationRateCard />
                 <MidnightWalletCard />
+            </div>
+
+            {/* Registration UTXO Card */}
+            <div className="mt-6">
+                <RegistrationUtxoCard />
             </div>
 
             {/* Wallet Selection Modals */}
