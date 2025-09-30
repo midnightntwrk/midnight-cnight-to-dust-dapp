@@ -187,7 +187,7 @@ const MidnightWalletCard = () => {
             </div>
             <div className="flex flex-row gap-2 items-center z-10">
                 <Image src={DustBalanceIcon} alt="night balance" width={42} height={42} />
-                <span className="text-[24px] font-bold">{midnight.isConnected ? '1000' : '***'}</span>
+                <span className="text-[24px] font-bold">***</span>
                 <span className="text-[24px]">DUST</span>
             </div>
             <div className="flex flex-col gap-2">
