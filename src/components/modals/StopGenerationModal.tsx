@@ -79,11 +79,11 @@ export default function StopGenerationModal({ isOpen, onOpenChange, dustAddress,
                             <p className="text-white text-sm font-mono break-all">{dustAddress}</p>
                         </div>
 
-                        <div className="mt-4">
+                        {/* <div className="mt-4">
                             <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" onPress={handleContinueToDashboard}>
-                                GO TO DASHBOARD
+                                Back to Home
                             </Button>
-                        </div>
+                        </div> */}
                     </ModalBody>
                 </ModalContent>
             </Modal>
