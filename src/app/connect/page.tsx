@@ -1,8 +1,11 @@
 'use client';
 
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 
-const DynamicConnect = dynamic(() => import('@/components/ConnectMain'), { ssr: false });
+const DynamicConnect = dynamicImport(() => import('@/components/ConnectMain'), { ssr: false });
+
+// Force dynamic rendering - prevent static generation during build
+export const dynamic = 'force-dynamic';
 
 export default function Home() {
   return (

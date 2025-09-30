@@ -20,7 +20,8 @@ const CardanoWalletCard = () => {
 
     const {
         cardano,
-        disconnectCardanoWallet
+        disconnectCardanoWallet,
+        disconnectMidnightWallet
     } = useWalletContext();
 
     const handleFormatWalletAddress = (address: string) => {
@@ -50,8 +51,9 @@ const CardanoWalletCard = () => {
         // Add small delay for better UX
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // Disconnect wallet
+        // Disconnect both wallets and clear localStorage
         disconnectCardanoWallet();
+        disconnectMidnightWallet();
 
         // Redirect to home
         router.push('/');

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { ContractUtils } from '@/lib/contractUtils';
 import { useDustProtocol } from '@/contexts/DustProtocolContext';
 import { getAddressDetails, OutRef, toHex, UTxO } from '@lucid-evolution/lucid';
@@ -24,6 +24,9 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
     const [registrationUtxo, setRegistrationUtxo] = useState<UTxO | null>(null);
     const [isLoadingRegistrationUtxo, setIsLoadingRegistrationUtxo] = useState(false);
     const [registrationUtxoError, setRegistrationUtxoError] = useState<string | null>(null);
+
+    // Track if we've already fetched for current params to avoid unnecessary re-fetches
+    const lastFetchedRef = useRef<string>('');
 
     // Get contracts from DUST protocol context
     const { contracts, isContractsLoaded } = useDustProtocol();
@@ -168,14 +171,21 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
     };
 
     useEffect(() => {
+        const fetchKey = `${cardanoAddress}-${dustPKH}-${isContractsLoaded}`;
+
         if (cardanoAddress && dustPKH && isContractsLoaded) {
-            findRegistrationUtxo();
+            // Only fetch if params actually changed
+            if (lastFetchedRef.current !== fetchKey) {
+                lastFetchedRef.current = fetchKey;
+                findRegistrationUtxo();
+            }
         } else {
+            lastFetchedRef.current = '';
             setRegistrationUtxo(null);
             setRegistrationUtxoError(null);
             setIsLoadingRegistrationUtxo(false);
         }
-    }, [cardanoAddress, dustPKH, findRegistrationUtxo, isContractsLoaded, contracts]);
+    }, [cardanoAddress, dustPKH, isContractsLoaded, findRegistrationUtxo]);
 
     return {
         registrationUtxo,
