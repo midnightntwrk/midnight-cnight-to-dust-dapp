@@ -18,17 +18,35 @@ import UpdateAddressModal from '../modals/UpdateAddressModal';
 import StopGenerationModal from '../modals/StopGenerationModal';
 import WalletsModal from '../wallet-connect/WalletsModal';
 import { SupportedMidnightWallet, SupportedWallet } from '@/contexts/WalletContext';
+import LoadingBackdrop from '../ui/LoadingBackdrop';
+import { useRouter } from 'next/navigation';
 
 const MidnightWalletCard = () => {
     const { toasts, showToast, removeToast } = useToast();
+    const router = useRouter();
+
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     const [isStopModalOpen, setIsStopModalOpen] = useState(false);
     const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);
 
-    const { cardano, midnight, generationStatus, refetchGenerationStatus, findRegistrationUtxo, isLoadingRegistrationUtxo, registrationUtxo, connectMidnightWallet, getAvailableMidnightWallets } = useWalletContext();
+    const {
+        cardano,
+        midnight,
+        generationStatus,
+        refetchGenerationStatus,
+        findRegistrationUtxo,
+        isLoadingRegistrationUtxo,
+        registrationUtxo,
+        connectMidnightWallet,
+        getAvailableMidnightWallets,
+        disconnectMidnightWallet,
+        disconnectCardanoWallet
+    } = useWalletContext();
 
     // Use DUST protocol context
     const { contracts, protocolStatus } = useDustProtocol();
+
+    const [isDisconnecting, setIsDisconnecting] = useState(false);
 
     // Transaction management
     const transaction = useTransaction();
@@ -46,6 +64,21 @@ const MidnightWalletCard = () => {
             transaction.resetTransaction();
         }
     };
+
+    const handleDisconnect = async () => {
+        setIsDisconnecting(true);
+
+        // Add small delay for better UX
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Disconnect both wallets and clear localStorage
+        disconnectCardanoWallet();
+        disconnectMidnightWallet();
+
+        // Redirect to home
+        router.push('/');
+    };
+
 
     const handleUnregisterAddress = async () => {
         if (!cardano.lucid) {
@@ -78,14 +111,25 @@ const MidnightWalletCard = () => {
             console.log('🚀 Starting DUST unregistration...');
 
             // Create the unregistration executor and execute it
-            const unregistrationExecutor = DustTransactionsUtils.createUnregistrationExecutor(cardano.lucid as LucidEvolution, contracts, dustPKHValue, registrationUtxo);
+            const unregistrationExecutor = DustTransactionsUtils.createUnregistrationExecutor(
+                cardano.lucid as LucidEvolution,
+                contracts,
+                dustPKHValue,
+                registrationUtxo
+            );
 
-            const transactionState = await transaction.executeTransaction('unregister', unregistrationExecutor, {}, cardano.lucid as LucidEvolution);
+            const transactionState = await transaction.executeTransaction(
+                'unregister',
+                unregistrationExecutor,
+                {},
+                cardano.lucid as LucidEvolution
+            );
 
             // Only open success modal if transaction actually succeeded
             if (transactionState === 'success') {
-                refetchGenerationStatus();
-                findRegistrationUtxo();
+                handleDisconnect();
+                // refetchGenerationStatus();
+                // findRegistrationUtxo();
             } else {
                 console.error('transactionState:', transactionState);
                 throw new Error('transactionState:' + transactionState);
@@ -176,6 +220,7 @@ const MidnightWalletCard = () => {
         }
     };
 
+
     return (
         <Card className="bg-[#70707035] p-[24px] w-full lg:w-[40%] flex flex-col gap-4 relative pb-8">
             <div className="absolute top-1/2 right-[16px] transform -translate-y-1/2">
@@ -222,10 +267,10 @@ const MidnightWalletCard = () => {
                             {!protocolStatus?.isReady
                                 ? 'DUST PROTOCOL NOT READY'
                                 : isLoadingRegistrationUtxo
-                                ? 'LOADING REGISTRATION UTXO...'
-                                : !registrationUtxo
-                                ? 'NO REGISTRATION FOUND'
-                                : 'CHANGE ADDRESS'}
+                                    ? 'LOADING REGISTRATION UTXO...'
+                                    : !registrationUtxo
+                                        ? 'NO REGISTRATION FOUND'
+                                        : 'CHANGE ADDRESS'}
                         </Button>
                         <Button
                             className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 w-full py-2 text-sm disabled:bg-gray-600 disabled:text-gray-400"
@@ -243,10 +288,10 @@ const MidnightWalletCard = () => {
                             {!protocolStatus?.isReady
                                 ? 'DUST PROTOCOL NOT READY'
                                 : isLoadingRegistrationUtxo
-                                ? 'LOADING REGISTRATION UTXO...'
-                                : !registrationUtxo
-                                ? 'NO REGISTRATION FOUND'
-                                : 'STOP GENERATION'}
+                                    ? 'LOADING REGISTRATION UTXO...'
+                                    : !registrationUtxo
+                                        ? 'NO REGISTRATION FOUND'
+                                        : 'STOP GENERATION'}
                         </Button>
                     </>
                 ) : (
@@ -284,6 +329,13 @@ const MidnightWalletCard = () => {
                 wallets={getAvailableMidnightWallets()}
                 handleWalletSelect={handleMidnightWalletSelect}
             />
+
+            <LoadingBackdrop
+                isVisible={isDisconnecting}
+                title="Disconnecting wallet..."
+                subtitle="Redirecting to home page"
+            />
+
         </Card>
     );
 };
