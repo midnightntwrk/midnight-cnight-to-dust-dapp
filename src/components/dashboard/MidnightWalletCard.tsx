@@ -197,7 +197,7 @@ const MidnightWalletCard = () => {
                 </div>
                 <div className="flex flex-row gap-2 items-center z-10">
                     <Image src={CheckIcon} alt="check" width={18} height={18} />
-                    <span>{handleFormatWalletAddress(generationStatus?.dustAddress || midnight.address || '')}</span>
+                    <span>{handleFormatWalletAddress(midnight.address || '')}</span>
                     <Image src={CopyIcon} alt="copy" width={18} height={18} className="cursor-pointer hover:opacity-70" onClick={handleCopyAddress} />
                 </div>
             </div>
@@ -273,7 +273,7 @@ const MidnightWalletCard = () => {
             <StopGenerationModal
                 isOpen={isStopModalOpen}
                 onOpenChange={handleStopModalOpenChange}
-                dustAddress={(generationStatus && generationStatus.dustAddress) || midnight.address}
+                dustAddress={midnight.address}
                 onStopGeneration={handleUnregisterAddress}
             />
 
