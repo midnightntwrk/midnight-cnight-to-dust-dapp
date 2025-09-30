@@ -40,7 +40,6 @@ export default function Onboard() {
     // Transaction management
     const transaction = useTransaction();
 
-    const { isOpen: isMatchModalOpen, onOpen: onMatchModalOpen, onOpenChange: onMatchModalChange } = useDisclosure();
     const { isOpen: isTransactionModalOpen, onOpen: onTransactionModalOpen, onOpenChange: onTransactionModalChange } = useDisclosure();
 
     // Labels for registration transaction - only override specific ones
@@ -53,11 +52,11 @@ export default function Onboard() {
     };
 
     // Auto-open modal when transaction starts (not idle)
-    useEffect(() => {
-        if (transaction.transactionState !== 'idle' && !isTransactionModalOpen) {
-            onTransactionModalOpen();
-        }
-    }, [transaction.transactionState, isTransactionModalOpen, onTransactionModalOpen]);
+    // useEffect(() => {
+    //     if (transaction.transactionState !== 'idle' && !isTransactionModalOpen) {
+    //         onTransactionModalOpen();
+    //     }
+    // }, [transaction.transactionState, isTransactionModalOpen, onTransactionModalOpen]);
 
     const handleCardanoWalletSelect = async (wallet: SupportedWallet | SupportedMidnightWallet) => {
         await connectCardanoWallet(wallet as SupportedWallet);
@@ -111,9 +110,9 @@ export default function Onboard() {
 
             // Only open success modal if transaction actually succeeded
             if (transactionState === 'success') {
+                transaction.resetTransaction();
                 refetchGenerationStatus();
                 findRegistrationUtxo();
-                onMatchModalOpen();
             } else {
                 console.error('transactionState:', transactionState);
                 throw new Error('transactionState:' + transactionState);
@@ -124,20 +123,8 @@ export default function Onboard() {
         }
     };
 
-    // TODO: delete if dont need transaction progress component
-    // // Calculate progress percentage
-    // const getProgress = () => {
-    //     if (currentStep === 1 && !cardano.isConnected) return 0;
-    //     if (currentStep === 2 && cardano.isConnected && !midnight.isConnected) return 33;
-    //     if (currentStep === 3 && cardano.isConnected && midnight.isConnected) return 100;
-    //     return (currentStep - 1) * 33;
-    // };
-
     return (
         <div className="w-full max-w-4xl lg:max-w-6xl mx-auto p-6">
-            {/* Stepper Progress */}
-            {/* <Stepper currentStep={currentStep} cardanoConnected={cardano.isConnected} midnightConnected={midnight.isConnected} /> */}
-
             {/* Step 2: Midnight Wallet Connection - Hide when both wallets connected */}
             {cardano.isConnected && !(cardano.isConnected && midnight.isConnected) && (
                 <ConnectMidnightCard
@@ -168,7 +155,7 @@ export default function Onboard() {
                     isLoading={cardano.isLoading}
                     error={cardano.error}
                     walletName={cardano.walletName || ''}
-                    balanceNight={cardano.balanceNight|| ''}
+                    balanceNight={cardano.balanceNight || ''}
                     address={cardano.address || ''}
                 />
             )}
@@ -176,18 +163,6 @@ export default function Onboard() {
             {/* Step 3: Address Matching - Only show when both wallets connected */}
             {cardano.isConnected && midnight.isConnected && (
                 <div className="space-y-4">
-                    {/* DUST PKH Info - show the coinPublicKey from midnight wallet 
-                    NOTE | TODO: This is for testing purposes only. Dont show this in production */}
-                    {/* {protocolStatus?.isReady && transaction.transactionState === 'idle' && midnight.coinPublicKey && (
-                        <div className="bg-white/5 rounded-lg p-4 mb-4">
-                            <h4 className="text-white font-semibold mb-2">Midnight DUST Public Key</h4>
-                            <div className="p-3 bg-white/10 rounded-lg border border-white/20">
-                                <p className="text-white/80 text-sm font-mono break-all">{midnight.coinPublicKey}</p>
-                            </div>
-                            <p className="text-xs text-white/60 mt-1">💡 This key will be used for DUST protocol registration</p>
-                        </div>
-                    )} */}
-
                     <MatchAddressesCard
                         cardanoWalletName={cardano.walletName || ''}
                         cardanoBalanceNight={cardano.balanceNight || ''}
@@ -195,14 +170,12 @@ export default function Onboard() {
                         cardanoAddress={cardano.address || ''}
                         onDisconnectCardano={() => {
                             disconnectCardanoWallet();
-                            // setCurrentStep(1);
                             transaction.resetTransaction();
                         }}
                         midnightWalletName={midnight.walletName || ''}
                         midnightAddress={midnight.address || ''}
                         onDisconnectMidnight={() => {
                             disconnectMidnightWallet();
-                            // setCurrentStep(2);
                             transaction.resetTransaction();
                         }}
                         onMatch={handleMatchAddresses}
@@ -211,7 +184,12 @@ export default function Onboard() {
             )}
 
             {/* Cardano Wallet Selection Modal */}
-            <WalletsModal isOpen={isCardanoModalOpen} onOpenChange={setIsCardanoModalOpen} wallets={getAvailableCardanoWallets()} handleWalletSelect={handleCardanoWalletSelect} />
+            <WalletsModal
+                isOpen={isCardanoModalOpen}
+                onOpenChange={setIsCardanoModalOpen}
+                wallets={getAvailableCardanoWallets()}
+                handleWalletSelect={handleCardanoWalletSelect}
+            />
 
             {/* Midnight Wallet Selection Modal */}
             <WalletsModal
@@ -222,11 +200,11 @@ export default function Onboard() {
             />
 
             {/* Transaction Progress Modal */}
-            <TransactionProgressModal
+            {/* <TransactionProgressModal
                 isOpen={isTransactionModalOpen}
                 onOpenChange={onTransactionModalChange}
                 labels={registrationLabels}
-            />
+            /> */}
         </div>
     );
 }
