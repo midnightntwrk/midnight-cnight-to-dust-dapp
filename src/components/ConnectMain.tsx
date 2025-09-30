@@ -2,12 +2,10 @@
 
 import ConnectCardanoWallet from './wallet-connect/ConnectCardanoWallet';
 import ConnectMidnightWallet from './wallet-connect/ConnectMidnightWallet';
-import ClientWrapper from './ui/ClientWrapper';
 
 export default function ConnectMain() {
     return (
-        <ClientWrapper>
-            <div className="font-sans min-h-screen p-8 pb-20 sm:p-20">
+        <div className="font-sans min-h-screen p-8 pb-20 sm:p-20">
                 <div className="max-w-6xl mx-auto">
                     <h1 className="text-3xl font-bold text-center mb-8">Cardano vs Midnight Wallet Compatibility Test</h1>
 
@@ -66,6 +64,5 @@ export default function ConnectMain() {
                     </div>
                 </div>
             </div>
-        </ClientWrapper>
     );
 }

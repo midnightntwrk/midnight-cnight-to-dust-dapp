@@ -15,7 +15,7 @@ import { useRegistrationUtxo } from '@/hooks/useRegistrationUtxo';
 import { getTotalOfUnitInUTxOList } from '@/lib/utils';
 import { getAddressDetails, UTxO } from '@lucid-evolution/lucid';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import React, { createContext, ReactNode, useContext, useEffect, useState, useRef } from 'react';
 
 export type SupportedWallet = 'nami' | 'eternl' | 'lace' | 'flint' | 'typhoncip30' | 'nufi' | 'gero' | 'ccvault';
 export type SupportedMidnightWallet = 'mnLace';
@@ -117,6 +117,9 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     // Auto-reconnect state
     const [isAutoReconnecting, setIsAutoReconnecting] = useState(true);
+
+    // Track if we've already initialized to prevent re-running autoReconnect
+    const hasInitializedRef = useRef(false);
 
     // Generation status hook
     const { data: generationStatus, isLoading: isCheckingRegistration, error: registrationError, refetch: refetchGenerationStatus } = useGenerationStatus(cardanoState.address);
@@ -330,10 +333,16 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         });
     };
 
-    // Auto-reconnect on page load
+    // Auto-reconnect on page load (only once per session)
     useEffect(() => {
+        // Only auto-reconnect once on initial mount
+        if (hasInitializedRef.current) {
+            return;
+        }
+
         const autoReconnect = async () => {
             setIsAutoReconnecting(true);
+            hasInitializedRef.current = true; // Mark as initialized
 
             // Auto-reconnect Cardano wallet
             const savedCardanoWallet = localStorage.getItem('connectedCardanoWallet') as SupportedWallet;
@@ -352,6 +361,24 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
         autoReconnect();
     }, []);
+
+    useEffect(() => {
+        console.log('🔍 Cardano State:', cardanoState);
+        console.log('🔍 Midnight State:', midnightState);
+        console.log("REGISTRATION UTXO", registrationUtxo);
+
+        // Don't redirect while still loading or during auto-reconnect
+        if (isAutoReconnecting || isLoadingRegistrationUtxo) {
+            return;
+        }
+
+        if (cardanoState.isConnected && registrationUtxo) {
+            if (pathname !== '/dashboard') {
+                console.log('🎯 User is already registered, redirecting to dashboard...');
+                router.push('/dashboard');
+            }
+        }
+    }, [cardanoState.isConnected, midnightState, registrationUtxo, isLoadingRegistrationUtxo, isAutoReconnecting, pathname, router]);
 
     // Auto-redirect to dashboard if user is already registered
     // useEffect(() => {
