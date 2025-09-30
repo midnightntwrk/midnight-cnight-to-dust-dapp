@@ -18,6 +18,9 @@ export default function Dashboard() {
         connectMidnightWallet,
         getAvailableCardanoWallets,
         getAvailableMidnightWallets,
+        midnight,
+        registrationUtxo,
+        isLoadingRegistrationUtxo,
     } = useWalletContext();
 
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
@@ -31,6 +34,14 @@ export default function Dashboard() {
         }
     }, [cardano.isConnected, isAutoReconnecting, router]);
 
+    // Debug logging - redirect logic is now centralized in WalletContext
+    useEffect(() => {
+        console.log('🔍 Dashboard - Cardano State:', cardano);
+        console.log('🔍 Dashboard - Midnight State:', midnight);
+        console.log('🔍 Dashboard - Registration UTXO:', registrationUtxo);
+        console.log('🔍 Dashboard - Loading UTXO:', isLoadingRegistrationUtxo);
+    }, [cardano, midnight, registrationUtxo, isLoadingRegistrationUtxo]);
+
     // Show loading backdrop while auto-reconnecting
     if (isAutoReconnecting) {
         return (
@@ -39,6 +50,18 @@ export default function Dashboard() {
                     isVisible={true}
                     title="Connecting to saved wallets..."
                     subtitle="Please wait while we restore your wallet connections"
+                />
+            </div>
+        );
+    }
+
+    if (isLoadingRegistrationUtxo) {
+        return (
+            <div className="max-w-6xl mx-auto p-6">
+                <LoadingBackdrop
+                    isVisible={true}
+                    title="Loading registration UTXO..."
+                    subtitle="Please wait while we load your registration UTXO"
                 />
             </div>
         );
