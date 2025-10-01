@@ -18,6 +18,7 @@ export interface UseRegistrationUtxoReturn {
     isLoadingRegistrationUtxo: boolean;
     registrationUtxoError: string | null;
     refetch: () => Promise<void>;
+    pollUntilFound: () => Promise<void>;
 }
 
 export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: string | null): UseRegistrationUtxoReturn {
@@ -31,11 +32,8 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
     // Get contracts from DUST protocol context
     const { contracts, isContractsLoaded } = useDustProtocol();
 
-    // Method to find registration UTXO in the DUST Mapping Validator
-    const findRegistrationUtxo = useCallback(async () => {
-        setIsLoadingRegistrationUtxo(true);
-        setRegistrationUtxoError(null);
-
+    // Internal method to find registration UTXO - returns the UTXO or null
+    const searchRegistrationUtxo = useCallback(async (): Promise<UTxO | null> => {
         try {
             console.log('[RegistrationUtxo]', '🔍 Searching for registration UTXO...', { cardanoAddress, dustPKH });
 
@@ -92,8 +90,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
             console.log('[RegistrationUtxo]', `🔍 Found ${validUtxos.length} valid UTXOs with auth token and inline datum`);
 
             if (validUtxos.length === 0) {
-                setRegistrationUtxo(null);
-                return;
+                return null;
             }
 
             // Import Lucid for datum deserialization
@@ -137,13 +134,11 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
 
                             if (!registrationUTxO || registrationUTxO.length === 0) {
                                 console.log('[RegistrationUtxo]', '❌ No matching registration UTXO found');
-                                setRegistrationUtxo(null);
-                                return;
+                                return null;
                             }
 
                             console.log('[RegistrationUtxo]', '✅ Found matching registration UTXO:', toJson(registrationUTxO[0]));
-                            setRegistrationUtxo(registrationUTxO[0]);
-                            return;
+                            return registrationUTxO[0];
                         }
                     }
                 } catch (datumError) {
@@ -154,7 +149,21 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
 
             // If we get here, no matching registration was found
             console.log('[RegistrationUtxo]', '❌ No matching registration UTXO found');
-            setRegistrationUtxo(null);
+            return null;
+        } catch (error) {
+            console.error('[RegistrationUtxo]', '❌ Error finding registration UTXO:', error);
+            throw error;
+        }
+    }, [cardanoAddress, dustPKH, isContractsLoaded, contracts]);
+
+    // Method to find registration UTXO (single attempt, updates state)
+    const findRegistrationUtxo = useCallback(async () => {
+        setIsLoadingRegistrationUtxo(true);
+        setRegistrationUtxoError(null);
+
+        try {
+            const utxo = await searchRegistrationUtxo();
+            setRegistrationUtxo(utxo);
         } catch (error) {
             console.error('[RegistrationUtxo]', '❌ Error finding registration UTXO:', error);
             setRegistrationUtxoError(error instanceof Error ? error.message : 'Failed to find registration UTXO');
@@ -162,13 +171,58 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
         } finally {
             setIsLoadingRegistrationUtxo(false);
         }
-    }, [cardanoAddress, dustPKH, isContractsLoaded, contracts]);
+    }, [searchRegistrationUtxo]);
 
     const refetch = async () => {
         if (cardanoAddress && dustPKH && isContractsLoaded) {
             await findRegistrationUtxo();
         }
     };
+
+    // Poll until registration UTXO is found (useful after registration transaction)
+    const pollUntilFound = useCallback(async () => {
+        const MAX_ATTEMPTS = 20; // Maximum number of polling attempts
+        const POLL_INTERVAL = 3000; // 3 seconds between attempts
+
+        console.log('[RegistrationUtxo]', '🔄 Starting polling for registration UTXO...');
+        setIsLoadingRegistrationUtxo(true);
+        setRegistrationUtxoError(null);
+
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            console.log('[RegistrationUtxo]', `🔄 Polling attempt ${attempt}/${MAX_ATTEMPTS}`);
+
+            try {
+                // Search for the UTXO
+                const utxo = await searchRegistrationUtxo();
+
+                // If found, update state and return
+                if (utxo) {
+                    console.log('[RegistrationUtxo]', '✅ Registration UTXO found after', attempt, 'attempts');
+                    setRegistrationUtxo(utxo);
+                    setIsLoadingRegistrationUtxo(false);
+                    return;
+                }
+
+                // Wait before next attempt (except on last attempt)
+                if (attempt < MAX_ATTEMPTS) {
+                    console.log('[RegistrationUtxo]', `⏳ Waiting ${POLL_INTERVAL/1000}s before next attempt...`);
+                    await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+                }
+            } catch (error) {
+                console.error('[RegistrationUtxo]', '❌ Error during polling attempt', attempt, error);
+
+                // Continue trying unless it's the last attempt
+                if (attempt < MAX_ATTEMPTS) {
+                    await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+                }
+            }
+        }
+
+        // All attempts exhausted
+        console.log('[RegistrationUtxo]', '❌ Registration UTXO not found after', MAX_ATTEMPTS, 'attempts');
+        setRegistrationUtxoError('Registration UTXO not found after polling. The transaction may still be pending on the blockchain. Please wait a moment and refresh the page.');
+        setIsLoadingRegistrationUtxo(false);
+    }, [searchRegistrationUtxo]);
 
     useEffect(() => {
         const fetchKey = `${cardanoAddress}-${dustPKH}-${isContractsLoaded}`;
@@ -192,5 +246,6 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
         isLoadingRegistrationUtxo,
         registrationUtxoError,
         refetch,
+        pollUntilFound,
     };
 }

@@ -80,6 +80,7 @@ interface WalletContextType {
     registrationUtxoError: string | null;
     // Registration UTXO methods
     findRegistrationUtxo: () => Promise<void>;
+    pollRegistrationUtxo: () => Promise<void>;
 }
 
 // Create context
@@ -130,6 +131,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         isLoadingRegistrationUtxo,
         registrationUtxoError,
         refetch: findRegistrationUtxo,
+        pollUntilFound: pollRegistrationUtxo,
     } = useRegistrationUtxo(cardanoState.address, midnightState.coinPublicKey);
 
     // Cardano wallet methods
@@ -444,6 +446,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         isLoadingRegistrationUtxo,
         registrationUtxoError,
         findRegistrationUtxo,
+        pollRegistrationUtxo,
     };
 
     return <WalletContext.Provider value={contextValue}>{children}</WalletContext.Provider>;

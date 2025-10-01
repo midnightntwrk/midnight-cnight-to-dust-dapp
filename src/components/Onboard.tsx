@@ -28,7 +28,7 @@ export default function Onboard() {
         getAvailableMidnightWallets,
         setManualMidnightAddress,
         refetchGenerationStatus,
-        findRegistrationUtxo,
+        pollRegistrationUtxo,
     } = useWalletContext();
 
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
@@ -61,22 +61,15 @@ export default function Onboard() {
     const handleCardanoWalletSelect = async (wallet: SupportedWallet | SupportedMidnightWallet) => {
         await connectCardanoWallet(wallet as SupportedWallet);
         setIsCardanoModalOpen(false);
-        if (!cardano.error) {
-            // setCurrentStep(2);
-        }
     };
 
     const handleMidnightWalletSelect = async (wallet: SupportedWallet | SupportedMidnightWallet) => {
         await connectMidnightWallet(wallet as SupportedMidnightWallet);
         setIsMidnightModalOpen(false);
-        if (!midnight.error) {
-            // setCurrentStep(3);
-        }
     };
 
     const handleManualMidnightAddress = (address: string) => {
         setManualMidnightAddress(address);
-        // setCurrentStep(3);
     };
 
     const handleMatchAddresses = async () => {
@@ -104,15 +97,25 @@ export default function Onboard() {
             console.log('🚀 Starting DUST registration...');
 
             // Create the registration executor and execute it
-            const registrationExecutor = DustTransactionsUtils.createRegistrationExecutor(cardano.lucid as LucidEvolution, contracts, dustPKHValue);
+            const registrationExecutor = DustTransactionsUtils.createRegistrationExecutor(
+                cardano.lucid as LucidEvolution,
+                contracts,
+                dustPKHValue
+            );
 
-            const transactionState = await transaction.executeTransaction('register', registrationExecutor, {}, cardano.lucid as LucidEvolution);
+            const transactionState = await transaction.executeTransaction(
+                'register',
+                registrationExecutor,
+                {},
+                cardano.lucid as LucidEvolution
+            );
 
             // Only open success modal if transaction actually succeeded
             if (transactionState === 'success') {
                 transaction.resetTransaction();
                 refetchGenerationStatus();
-                findRegistrationUtxo();
+                // Poll until registration UTXO is found (Blockfrost might take a few seconds to index)
+                await pollRegistrationUtxo();
             } else {
                 console.error('transactionState:', transactionState);
                 throw new Error('transactionState:' + transactionState);
