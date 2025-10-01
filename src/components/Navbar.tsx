@@ -73,12 +73,12 @@ export default function MidnightNavbar() {
           <ThemeSwitcher />
         </NavbarItem> */}
         <NavbarItem>
-          {cardano.isConnected && (
+          {/* {cardano.isConnected && (
             <Button as={Link} className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 w-full py-2 text-sm"
               href="/dashboard" variant="flat">
               Dashboard
             </Button>
-          )}
+          )} */}
         </NavbarItem>
       </NavbarContent>
       <NavbarMenu>
