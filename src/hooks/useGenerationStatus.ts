@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 
 interface GenerationStatusData {
     cardanoStakeKey: string;
@@ -44,7 +45,7 @@ export function useGenerationStatus(cardanoAddress: string | null): UseGeneratio
 
             const result = await response.json();
 
-            console.log('[GenerationStatus]','result', result);
+            logger.log('[GenerationStatus]','result', result);
 
             if (result.success && result.data && result.data.length > 0) {
                 setData(result.data[0]);
@@ -52,7 +53,7 @@ export function useGenerationStatus(cardanoAddress: string | null): UseGeneratio
                 setData(null);
             }
         } catch (err) {
-            console.error('[GenerationStatus]','Failed to fetch generation status:', err);
+            logger.error('[GenerationStatus]','Failed to fetch generation status:', err);
             setError(err instanceof Error ? err.message : 'Failed to fetch generation status');
             setData(null);
         } finally {

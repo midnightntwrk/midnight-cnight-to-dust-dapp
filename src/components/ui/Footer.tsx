@@ -1,4 +1,5 @@
 "use client";
+import { logger } from '@/lib/logger';
 
 import React, { useState } from 'react';
 import { Button, Input, Link, Checkbox } from "@heroui/react";
@@ -12,7 +13,7 @@ export default function Footer() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (email && agreedToTerms) {
-            console.log('Email submitted:', email);
+            logger.log('Email submitted:', email);
             // Handle email submission logic here
             setEmail('');
             setAgreedToTerms(false);

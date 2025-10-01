@@ -1,4 +1,5 @@
 /**
+import { logger } from '@/lib/logger';
  * Centralized network configuration
  * Dynamically sets constants based on NEXT_PUBLIC_CARDANO_NET environment variable
  */
@@ -93,7 +94,7 @@ const getCurrentNetwork = (): CardanoNetwork => {
         }
         return network;
     } catch (error) {
-        console.error('[Network]', 'Error getting current network:', error);
+        logger.error('[Network]', 'Error getting current network:', error);
         throw error;
     }
 };
@@ -118,7 +119,7 @@ const getCurrentNetworkConfig = (): NetworkConfig => {
 
         return config;
     } catch (error) {
-        console.error('[Network]', 'Error getting current network config:', error);
+        logger.error('[Network]', 'Error getting current network config:', error);
         throw error;
     }
 };
@@ -141,7 +142,7 @@ const getLucidNetwork = (): Network => {
 };
 
 const initializeLucidWithBlockfrostClientSide = async () => {
-    console.log('[Network]', `initializeLucidWithBlockfrostClientSide`);
+    logger.log('[Network]', `initializeLucidWithBlockfrostClientSide`);
     try {
         //-----------------
         const protocolParameters = protocolParametersForLucid[CARDANO_NET! as keyof typeof protocolParametersForLucid] as ProtocolParameters;
@@ -159,7 +160,7 @@ const initializeLucidWithBlockfrostClientSide = async () => {
         );
         return lucid;
     } catch (error) {
-        console.log('[Network]', `initializeLucidWithBlockfrostClientSide - Error: ${error}`);
+        logger.log('[Network]', `initializeLucidWithBlockfrostClientSide - Error: ${error}`);
         throw error;
     }
 };

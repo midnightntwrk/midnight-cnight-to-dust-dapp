@@ -1,4 +1,5 @@
 import { ContractUtils, ContractsRegistry } from './contractUtils';
+import { logger } from '@/lib/logger';
 import { initializeLucidWithBlockfrostClientSide } from '@/config/network';
 
 export interface DustProtocolStatus {
@@ -28,19 +29,19 @@ export class DustProtocolUtils {
      */
     static async checkSetupStatus(contracts: ContractsRegistry): Promise<DustProtocolStatus> {
         try {
-            console.log('[DustProtocol]','🔍 Starting dust protocol setup status check...');
+            logger.log('[DustProtocol]','🔍 Starting dust protocol setup status check...');
 
             // Check for Version Oracle UTxO (Step 01 completion)
-            console.log('[DustProtocol]','📍 Getting Version Oracle address...');
+            logger.log('[DustProtocol]','📍 Getting Version Oracle address...');
             const versionOracleAddress = DustProtocolUtils.getVersionOracleAddress(contracts);
 
             // Initialize Lucid with Blockfrost using centralized configuration
             const lucid = await initializeLucidWithBlockfrostClientSide();
 
-            console.log('[DustProtocol]','🔎 Fetching UTxOs at Version Oracle address:', versionOracleAddress);
+            logger.log('[DustProtocol]','🔎 Fetching UTxOs at Version Oracle address:', versionOracleAddress);
             const versionOracleUtxos = await lucid.utxosAt(versionOracleAddress);
 
-            console.log('[DustProtocol]','💰 Found UTxOs:', {
+            logger.log('[DustProtocol]','💰 Found UTxOs:', {
                 count: versionOracleUtxos.length,
                 utxos: versionOracleUtxos.map((utxo) => ({
                     txHash: utxo.txHash,
@@ -55,12 +56,12 @@ export class DustProtocolUtils {
             const versionOraclePolicyContract = ContractUtils.getContract(contracts, 'version-oracle-policy.plutus');
             const versionOraclePolicyId = versionOraclePolicyContract?.policyId;
 
-            console.log('[DustProtocol]','🔍 Looking for Version Oracle Policy ID:', versionOraclePolicyId);
+            logger.log('[DustProtocol]','🔍 Looking for Version Oracle Policy ID:', versionOraclePolicyId);
 
             const hasVersionOracle = versionOracleUtxos.some((utxo) => {
                 // Check if UTxO has Version Oracle Token with the correct policy ID
                 const hasOracleAsset = Object.keys(utxo.assets).some((asset) => versionOraclePolicyId && asset.startsWith(versionOraclePolicyId));
-                console.log('[DustProtocol]','🔍 Checking UTxO for Version Oracle token:', {
+                logger.log('[DustProtocol]','🔍 Checking UTxO for Version Oracle token:', {
                     txHash: utxo.txHash,
                     assets: Object.keys(utxo.assets),
                     lookingForPolicyId: versionOraclePolicyId,
@@ -69,10 +70,10 @@ export class DustProtocolUtils {
                 return hasOracleAsset;
             });
 
-            console.log('[DustProtocol]','🎯 Version Oracle check result:', { InitVersioningCommand: hasVersionOracle });
+            logger.log('[DustProtocol]','🎯 Version Oracle check result:', { InitVersioningCommand: hasVersionOracle });
 
             if (!hasVersionOracle) {
-                console.log('[DustProtocol]','⏭️ Setup step 1 needed (InitVersioningCommand not completed)');
+                logger.log('[DustProtocol]','⏭️ Setup step 1 needed (InitVersioningCommand not completed)');
                 return {
                     isReady: false,
                     currentStep: 1,
@@ -82,13 +83,13 @@ export class DustProtocolUtils {
             }
 
             // Check for multiple Version Oracle tokens (Step 02 completion)
-            console.log('[DustProtocol]','🔢 Checking for multiple Version Oracle tokens (Step 02 completion)...');
+            logger.log('[DustProtocol]','🔢 Checking for multiple Version Oracle tokens (Step 02 completion)...');
 
             const versionOracleTokens = versionOracleUtxos.filter((utxo) => {
                 return Object.keys(utxo.assets).some((asset) => versionOraclePolicyId && asset.startsWith(versionOraclePolicyId));
             });
 
-            console.log('[DustProtocol]','🔍 Version Oracle tokens found:', {
+            logger.log('[DustProtocol]','🔍 Version Oracle tokens found:', {
                 totalUtxos: versionOracleUtxos.length,
                 tokenUtxos: versionOracleTokens.length,
             });
@@ -97,7 +98,7 @@ export class DustProtocolUtils {
             const hasMultipleVersionOracleTokens = versionOracleTokens.length >= 4;
 
             if (!hasMultipleVersionOracleTokens) {
-                console.log('[DustProtocol]','⏭️ Setup step 2 needed (InitDustProductionCommand not completed)');
+                logger.log('[DustProtocol]','⏭️ Setup step 2 needed (InitDustProductionCommand not completed)');
                 return {
                     isReady: false,
                     currentStep: 2,
@@ -107,7 +108,7 @@ export class DustProtocolUtils {
             }
 
             // Both steps completed - ready for registration
-            console.log('[DustProtocol]','✅ Dust protocol is ready for user registration (InitVersioningCommand & InitDustProductionCommand completed)');
+            logger.log('[DustProtocol]','✅ Dust protocol is ready for user registration (InitVersioningCommand & InitDustProductionCommand completed)');
             return {
                 isReady: true,
                 currentStep: 3,
@@ -115,7 +116,7 @@ export class DustProtocolUtils {
                 InitDustProductionCommand: true,
             };
         } catch (error) {
-            console.error('[DustProtocol]','❌ Error checking dust protocol setup status:', error);
+            logger.error('[DustProtocol]','❌ Error checking dust protocol setup status:', error);
             return {
                 isReady: false,
                 currentStep: 1,

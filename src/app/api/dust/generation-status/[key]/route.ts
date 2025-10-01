@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from '@/lib/logger';
 import { Subgraph } from "@/lib/subgraph/query";
 
 export async function GET(
@@ -8,7 +9,7 @@ export async function GET(
   try {
     const resolvedParams = await params;
 
-    console.log("resolvedParams", resolvedParams);
+    logger.log("resolvedParams", resolvedParams);
     
     const stakeKey = resolvedParams.key;
 
@@ -41,7 +42,7 @@ export async function GET(
     const indexerEndpoint = process.env.INDEXER_ENDPOINT;
 
     if (!indexerEndpoint) {
-      console.error("INDEXER_ENDPOINT environment variable not set");
+      logger.error("INDEXER_ENDPOINT environment variable not set");
       return NextResponse.json(
         { error: "Indexer endpoint not configured" },
         { status: 500 }
@@ -72,7 +73,7 @@ export async function GET(
 
   } catch (error) {
     const resolvedParams = await params;
-    console.error(`❌ Error fetching stake key ${resolvedParams.key}:`, error);
+    logger.error(`❌ Error fetching stake key ${resolvedParams.key}:`, error);
 
     // Handle GraphQL errors
     if (error instanceof Error) {
