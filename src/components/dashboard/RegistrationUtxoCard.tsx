@@ -1,4 +1,4 @@
-import { Card } from '@heroui/react'
+import { Card, Tooltip } from '@heroui/react'
 import Image from 'next/image'
 import React, { useState } from 'react'
 import InfoIcon from '@/assets/icons/info.svg';
@@ -48,7 +48,15 @@ const RegistrationUtxoCard = () => {
             <Card className='bg-[#70707035] p-[24px] w-full flex flex-col gap-4 relative'>
                 <div className='flex flex-row gap-2 z-10 relative items-center'>
                     <span className='text-[18px] font-normal'>Registration UTXO</span>
-                    <Image src={InfoIcon} alt='info' width={24} height={24} />
+                    <Tooltip
+                        content="On-chain proof of your Cardano-Midnight address registration"
+                        placement="top"
+                        classNames={{
+                            content: "bg-gray-800 text-white text-sm px-2 py-1"
+                        }}
+                    >
+                        <Image src={InfoIcon} alt='info' width={24} height={24} className="cursor-pointer" />
+                    </Tooltip>
                 </div>
 
                 {/* Transaction Hash */}

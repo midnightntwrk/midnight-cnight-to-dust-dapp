@@ -43,6 +43,8 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
     };
 
     const handleContinueToDashboard = () => {
+        transaction.resetTransaction();
+        setNewAddress('');
         onOpenChange(false);
         router.push('/dashboard');
     };

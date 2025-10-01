@@ -1,4 +1,4 @@
-import { Card } from '@heroui/react'
+import { Card, Tooltip } from '@heroui/react'
 import React from 'react'
 
 import InfoIcon from '@/assets/icons/info.svg';
@@ -21,7 +21,15 @@ const GenerationRateCard = () => {
             <div className='flex flex-col gap-1'>
                 <div className='flex flex-row gap-2 z-10'>
                     <span className='text-[18px] font-normal'>Generation Rate</span>
-                    <Image src={InfoIcon} alt='info' width={24} height={24} />
+                    <Tooltip
+                        content="Rate of DUST tokens generated per hour"
+                        placement="top"
+                        classNames={{
+                            content: "bg-gray-800 text-white text-sm px-2 py-1"
+                        }}
+                    >
+                        <Image src={InfoIcon} alt='info' width={24} height={24} className="cursor-pointer" />
+                    </Tooltip>
                 </div>
                 <div className='flex flex-row gap-2 items-center z-10'>
                     <span className='text-[24px] font-bold'>{generationStatus?.generationRate || '0'}</span>
@@ -31,11 +39,18 @@ const GenerationRateCard = () => {
             <div className='flex flex-col gap-1'>
                 <div className='flex flex-row gap-2 z-10'>
                     <span className='text-[18px] font-normal'>CAP</span>
-                    <Image src={InfoIcon} alt='info' width={24} height={24} />
+                    <Tooltip
+                        content="Maximum DUST you can generate (NIGHT Balance × 10)"
+                        placement="top"
+                        classNames={{
+                            content: "bg-gray-800 text-white text-sm px-2 py-1"
+                        }}
+                    >
+                        <Image src={InfoIcon} alt='info' width={24} height={24} className="cursor-pointer" />
+                    </Tooltip>
                 </div>
                 <div className='flex flex-row gap-2 items-center z-10'>
-                    {/* <span className='text-[24px] font-bold'>{calculateCap()}</span> */}
-                    <span className='text-[24px] font-bold'>100</span>
+                    <span className='text-[24px] font-bold'>{calculateCap()}</span>
                     <span className='text-[24px]'>DUST</span>
                 </div>
             </div>
