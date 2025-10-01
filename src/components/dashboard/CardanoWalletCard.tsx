@@ -66,7 +66,15 @@ const CardanoWalletCard = () => {
             </div>
             <div className='flex flex-row gap-2 z-10 relative'>
                 <span className='text-[18px] font-normal'>Night Balance</span>
-                <Image src={InfoIcon} alt='info' width={24} height={24} />
+                <Tooltip
+                    content="Your NIGHT token balance on Cardano"
+                    placement="top"
+                    classNames={{
+                        content: "bg-gray-800 text-white text-sm px-2 py-1"
+                    }}
+                >
+                    <Image src={InfoIcon} alt='info' width={24} height={24} className="cursor-pointer" />
+                </Tooltip>
 
                 {/* Intermittent green dot with tooltip */}
                 <Tooltip
@@ -81,14 +89,21 @@ const CardanoWalletCard = () => {
             </div>
             <div className='flex flex-row gap-2 items-center z-10'>
                 <Image src={NightBalanceIcon} alt='night balance' width={42} height={42} />
-                {/* <span className='text-[24px] font-bold'>{cardano.balanceNight}</span> */}
-                <span className='text-[24px] font-bold'>10</span>
+                <span className='text-[24px] font-bold'>{cardano.balanceNight}</span>
                 <span className='text-[24px]'>NIGHT</span>
             </div>
             <div className='flex flex-col gap-2'>
                 <div className='flex flex-row gap-2 items-center z-10'>
                     <span className='text-[14px] font-normal text-gray-400'>Origin Address Cardano</span>
-                    <Image src={InfoIcon} alt='info' width={20} height={20} />
+                    <Tooltip
+                        content="Your Cardano wallet address where NIGHT is locked"
+                        placement="top"
+                        classNames={{
+                            content: "bg-gray-800 text-white text-sm px-2 py-1"
+                        }}
+                    >
+                        <Image src={InfoIcon} alt='info' width={20} height={20} className="cursor-pointer" />
+                    </Tooltip>
                 </div>
                 <div className='flex flex-row gap-2 items-center z-10'>
                     <Image src={CheckIcon} alt='check' width={18} height={18} />

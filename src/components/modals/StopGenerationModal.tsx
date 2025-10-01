@@ -57,6 +57,7 @@ export default function StopGenerationModal({ isOpen, onOpenChange, dustAddress,
     };
 
     const handleContinueToDashboard = () => {
+        transaction.resetTransaction();
         onOpenChange(false);
         router.push('/dashboard');
     };

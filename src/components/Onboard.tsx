@@ -14,7 +14,6 @@ import ConnectCardanoCard from './onboard/ConnectCardanoCard';
 import ConnectMidnightCard from './onboard/ConnectMidnightCard';
 import MatchAddressesCard from './onboard/MatchAddressesCard';
 import WalletsModal from './wallet-connect/WalletsModal';
-import TransactionProgressModal from './ui/TransactionProgressModal';
 
 export default function Onboard() {
     const {
@@ -202,12 +201,6 @@ export default function Onboard() {
                 handleWalletSelect={handleMidnightWalletSelect}
             />
 
-            {/* Transaction Progress Modal */}
-            {/* <TransactionProgressModal
-                isOpen={isTransactionModalOpen}
-                onOpenChange={onTransactionModalChange}
-                labels={registrationLabels}
-            /> */}
         </div>
     );
 }

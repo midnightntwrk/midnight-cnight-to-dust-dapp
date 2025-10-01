@@ -1,4 +1,4 @@
-import { Button, Card } from '@heroui/react';
+import { Button, Card, Tooltip } from '@heroui/react';
 import Image from 'next/image';
 import React, { useState } from 'react';
 
@@ -127,6 +127,7 @@ const MidnightWalletCard = () => {
 
             // Only open success modal if transaction actually succeeded
             if (transactionState === 'success') {
+                transaction.resetTransaction();
                 handleDisconnect();
                 // refetchGenerationStatus();
                 // findRegistrationUtxo();
@@ -177,6 +178,7 @@ const MidnightWalletCard = () => {
 
             // Only open success modal if transaction actually succeeded
             if (transactionState === 'success') {
+                transaction.resetTransaction();
                 refetchGenerationStatus();
                 findRegistrationUtxo();
             } else {
@@ -228,7 +230,15 @@ const MidnightWalletCard = () => {
             </div>
             <div className="flex flex-row gap-2 z-10">
                 <span className="text-[18px] font-normal">DUST Balance</span>
-                <Image src={InfoIcon} alt="info" width={24} height={24} />
+                <Tooltip
+                    content="Your generated DUST token balance"
+                    placement="top"
+                    classNames={{
+                        content: "bg-gray-800 text-white text-sm px-2 py-1"
+                    }}
+                >
+                    <Image src={InfoIcon} alt="info" width={24} height={24} className="cursor-pointer" />
+                </Tooltip>
             </div>
             <div className="flex flex-row gap-2 items-center z-10">
                 <Image src={DustBalanceIcon} alt="night balance" width={42} height={42} />
@@ -238,7 +248,15 @@ const MidnightWalletCard = () => {
             <div className="flex flex-col gap-2">
                 <div className="flex flex-row gap-2 items-center z-10">
                     <span className="text-[14px] font-normal text-gray-400">Destination Address Midnight</span>
-                    <Image src={InfoIcon} alt="info" width={20} height={20} />
+                    <Tooltip
+                        content="Your Midnight wallet address where DUST will be sent"
+                        placement="top"
+                        classNames={{
+                            content: "bg-gray-800 text-white text-sm px-2 py-1"
+                        }}
+                    >
+                        <Image src={InfoIcon} alt="info" width={20} height={20} className="cursor-pointer" />
+                    </Tooltip>
                 </div>
                 <div className="flex flex-row gap-2 items-center z-10">
                     <Image src={CheckIcon} alt="check" width={18} height={18} />

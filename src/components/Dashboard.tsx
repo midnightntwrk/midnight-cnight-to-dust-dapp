@@ -27,21 +27,11 @@ export default function Dashboard() {
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
     const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);
 
-    // Redirect to home if Cardano wallet is not connected (after auto-reconnect is complete)
     useEffect(() => {
         if (!isAutoReconnecting && !cardano.isConnected) {
-            console.log('🏠 No Cardano wallet connected after auto-reconnect, redirecting to home...');
             router.push('/');
         }
     }, [cardano.isConnected, isAutoReconnecting, router]);
-
-    // Debug logging - redirect logic is now centralized in WalletContext
-    useEffect(() => {
-        console.log('🔍 Dashboard - Cardano State:', cardano);
-        console.log('🔍 Dashboard - Midnight State:', midnight);
-        console.log('🔍 Dashboard - Registration UTXO:', registrationUtxo);
-        console.log('🔍 Dashboard - Loading UTXO:', isLoadingRegistrationUtxo);
-    }, [cardano, midnight, registrationUtxo, isLoadingRegistrationUtxo]);
 
     // Show loading backdrop while auto-reconnecting
     if (isAutoReconnecting) {
