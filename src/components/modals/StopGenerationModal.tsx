@@ -119,9 +119,9 @@ export default function StopGenerationModal({ isOpen, onOpenChange, dustAddress,
 
                         <p className="text-gray-300 text-sm mb-6">This address will no longer receive your DUST tokens. Ensure you manage this address accordingly.</p>
 
-                        <div className="mt-4">
+                        {/* <div className="mt-4">
                             <TransactionProgress />
-                        </div>
+                        </div> */}
 
                         <div className="flex gap-3 mt-4">
                             <Button

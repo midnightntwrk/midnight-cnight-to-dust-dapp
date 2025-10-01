@@ -167,9 +167,8 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
             // Connect to wallet
             const api = await window.cardano[walletName].enable();
-
             const networkId = await api.getNetworkId();
-            console.log('[Wallet]', `Wallet API - NetworkId: ${networkId}`);
+
             if (isMainnet && networkId !== LUCID_NETWORK_MAINNET_ID) {
                 throw new Error(`Must connect with a ${getCurrentNetwork()} Cardano Wallet`);
             }
@@ -184,27 +183,19 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             const address = await lucid.wallet().address();
             const cardanoAddressDetails = getAddressDetails(address);
 
-            console.log('Cardano Address Details:', cardanoAddressDetails);
-
             const cardanoStakeKey = cardanoAddressDetails?.stakeCredential?.hash;
 
-            console.log('Cardano Stake Key:', cardanoStakeKey);
-
             const utxos = await lucid.wallet().getUtxos();
-
-            console.log('[Wallet]', 'UTXOs ', utxos);
 
             const tokenNightPolicy = CNIGHT_CURRENCY_POLICY_ID;
             const tokenNightEncodedName = CNIGHT_CURRENCY_ENCODEDNAME;
 
             const balanceNight = getTotalOfUnitInUTxOList(tokenNightPolicy + tokenNightEncodedName, utxos);
             const balanceNightStr = (Number(balanceNight) / 1_000_000).toFixed(6);
-            console.log('[Wallet]', 'Balance cNight ', balanceNightStr);
 
             // Calculate balance (sum of all UTxOs)
             const balanceLovelace = utxos.reduce((acc, utxo) => acc + (utxo.assets?.lovelace || BigInt(0)), BigInt(0));
             const balanceInAdaStr = (Number(balanceLovelace) / 1_000_000).toFixed(6);
-            console.log('[Wallet]', 'Balance ADA ', balanceInAdaStr);
 
             setCardanoState({
                 isConnected: true,
