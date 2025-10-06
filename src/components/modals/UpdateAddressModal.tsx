@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Modal, ModalContent, ModalHeader, ModalBody, Button, Input } from '@heroui/react';
+import { Modal, ModalContent, ModalHeader, ModalBody, Button, Textarea } from '@heroui/react';
 import InfoIcon from '@/assets/icons/info.svg';
 import CheckIcon from '@/assets/icons/check.svg';
 import Image from 'next/image';
@@ -95,11 +95,12 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
                     </div>
                 </ModalHeader>
                 <ModalBody className="pb-6">
-                    <p className="text-gray-300 text-sm mb-4">This address will receive your generated DUST tokens. Make sure you control this address.</p>
+                    <p className="text-gray-300 text-sm mb-4">
+                        This address will receive your generated DUST tokens. Make sure you control this address.
+                    </p>
 
                     <div className="mb-4">
-                        <Input
-                            type="text"
+                        <Textarea
                             placeholder="Enter your DUST public address"
                             value={newAddress}
                             onValueChange={handleAddressChange}
@@ -108,15 +109,13 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
                                 input: 'bg-[#2a2a2a] border-gray-600 text-white placeholder:text-gray-500',
                                 inputWrapper: 'bg-[#2a2a2a] border-gray-600 hover:border-gray-500 focus-within:border-blue-500',
                             }}
+                            minRows={3}
+                            maxRows={3}
                             isDisabled={transaction.isAnyTransactionRunning()}
                         />
                     </div>
 
-                    <div className="mt-4">
-                        <TransactionProgress />
-                    </div>
-
-                    <div className="flex gap-3 mt-4">
+                    <div className="flex gap-3">
                         <Button
                             className="flex-1 bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700"
                             onPress={handleCancel}

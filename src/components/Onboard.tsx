@@ -1,7 +1,5 @@
 'use client';
 
-// TODO: delete if dont need transaction progress component
-// import { TransactionLabels } from '@/components/ui/TransactionProgress';
 import { useDustProtocol } from '@/contexts/DustProtocolContext';
 import { useTransaction } from '@/contexts/TransactionContext';
 import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/contexts/WalletContext';
@@ -9,7 +7,6 @@ import { DustTransactionsUtils } from '@/lib/dustTransactionsUtils';
 import { useDisclosure } from '@heroui/react';
 import type { LucidEvolution } from '@lucid-evolution/lucid';
 import { useState, useEffect } from 'react';
-import AddressMatchingModal from './onboard/AddressMatchingModal';
 import ConnectCardanoCard from './onboard/ConnectCardanoCard';
 import ConnectMidnightCard from './onboard/ConnectMidnightCard';
 import MatchAddressesCard from './onboard/MatchAddressesCard';
