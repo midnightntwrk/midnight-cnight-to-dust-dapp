@@ -1,8 +1,4 @@
-/**
 import { logger } from '@/lib/logger';
- * Centralized network configuration
- * Dynamically sets constants based on NEXT_PUBLIC_CARDANO_NET environment variable
- */
 
 import { Network, ProtocolParameters } from '@lucid-evolution/lucid';
 import { protocolParametersForLucid } from './protocolParameters';
@@ -151,7 +147,7 @@ const initializeLucidWithBlockfrostClientSide = async () => {
         const { Lucid, Blockfrost } = await import('@lucid-evolution/lucid');
 
         const apiServerUrl = process.env.NEXT_PUBLIC_REACT_SERVER_API_URL || '';
-        
+
         const lucid = await Lucid(
             new Blockfrost(apiServerUrl + '/blockfrost', 'xxxx'),
             getLucidNetwork(), {
