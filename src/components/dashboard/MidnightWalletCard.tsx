@@ -138,7 +138,8 @@ const MidnightWalletCard = () => {
             }
         } catch (error) {
             logger.error('❌ DUST unregistration failed:', error);
-            // Error is already handled by TransactionContext, no need to set it again
+            // Re-throw error so modal can handle it
+            throw error;
         }
     };
 
@@ -188,7 +189,8 @@ const MidnightWalletCard = () => {
             }
         } catch (error) {
             logger.error('❌ DUST update failed:', error);
-            // Error is already handled by TransactionContext, no need to set it again
+            // Re-throw error so modal can handle it
+            throw error;
         }
     };
 

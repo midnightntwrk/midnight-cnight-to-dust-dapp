@@ -12,6 +12,8 @@ import ConnectCardanoCard from './onboard/ConnectCardanoCard';
 import ConnectMidnightCard from './onboard/ConnectMidnightCard';
 import MatchAddressesCard from './onboard/MatchAddressesCard';
 import WalletsModal from './wallet-connect/WalletsModal';
+import ToastContainer from './ui/ToastContainer';
+import { useToast } from '@/hooks/useToast';
 
 export default function Onboard() {
     const {
@@ -36,6 +38,9 @@ export default function Onboard() {
 
     // Transaction management
     const transaction = useTransaction();
+
+    // Toast notifications
+    const { toasts, showToast, removeToast } = useToast();
 
     const { isOpen: isTransactionModalOpen, onOpen: onTransactionModalOpen, onOpenChange: onTransactionModalChange } = useDisclosure();
 
@@ -119,7 +124,11 @@ export default function Onboard() {
             }
         } catch (error) {
             logger.error('❌ DUST registration failed:', error);
-            // Error is already handled by TransactionContext, no need to set it again
+            showToast({
+                message: error instanceof Error ? error.message : 'Registration failed',
+                type: 'error',
+                duration: 5000
+            });
         }
     };
 
@@ -199,6 +208,8 @@ export default function Onboard() {
                 handleWalletSelect={handleMidnightWalletSelect}
             />
 
+            {/* Toast Notifications */}
+            <ToastContainer toasts={toasts} onRemove={removeToast} />
         </div>
     );
 }
