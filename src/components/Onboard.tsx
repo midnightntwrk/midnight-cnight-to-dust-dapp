@@ -1,4 +1,5 @@
 'use client';
+import { logger } from '@/lib/logger';
 
 import { useDustProtocol } from '@/contexts/DustProtocolContext';
 import { useTransaction } from '@/contexts/TransactionContext';
@@ -70,13 +71,13 @@ export default function Onboard() {
 
     const handleMatchAddresses = async () => {
         if (!cardano.lucid) {
-            console.error('❌ Cardano wallet not connected');
+            logger.error('❌ Cardano wallet not connected');
             return;
         }
 
         // Check if dust protocol is ready first
         if (!protocolStatus?.isReady) {
-            console.error('❌ Dust protocol not ready for registration');
+            logger.error('❌ Dust protocol not ready for registration');
             transaction.setError('Dust protocol is not ready. Please ensure InitVersioningCommand & InitDustProductionCommand are completed.');
             return;
         }
@@ -84,13 +85,13 @@ export default function Onboard() {
         // Get DUST PKH from midnight wallet
         const dustPKHValue = midnight.coinPublicKey;
         if (!dustPKHValue) {
-            console.error('❌ Midnight wallet coinPublicKey not available');
+            logger.error('❌ Midnight wallet coinPublicKey not available');
             transaction.setError('Midnight wallet coinPublicKey not available. Please reconnect your Midnight wallet.');
             return;
         }
 
         try {
-            console.log('🚀 Starting DUST registration...');
+            logger.log('🚀 Starting DUST registration...');
 
             // Create the registration executor and execute it
             const registrationExecutor = DustTransactionsUtils.createRegistrationExecutor(
@@ -113,11 +114,11 @@ export default function Onboard() {
                 // Poll until registration UTXO is found (Blockfrost might take a few seconds to index)
                 await pollRegistrationUtxo();
             } else {
-                console.error('transactionState:', transactionState);
+                logger.error('transactionState:', transactionState);
                 throw new Error('transactionState:' + transactionState);
             }
         } catch (error) {
-            console.error('❌ DUST registration failed:', error);
+            logger.error('❌ DUST registration failed:', error);
             // Error is already handled by TransactionContext, no need to set it again
         }
     };

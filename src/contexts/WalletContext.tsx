@@ -1,4 +1,5 @@
 'use client';
+import { logger } from '@/lib/logger';
 
 import {
     CNIGHT_CURRENCY_ENCODEDNAME,
@@ -212,7 +213,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             // Store connection in localStorage
             localStorage.setItem('connectedCardanoWallet', walletName);
         } catch (error) {
-            console.error('[Wallet]', 'Failed to connect Cardano wallet:', error);
+            logger.error('[Wallet]', 'Failed to connect Cardano wallet:', error);
             setCardanoState((prev) => ({
                 ...prev,
                 isLoading: false,
@@ -269,7 +270,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
             // Get wallet state from Midnight API
             const walletState = await api.state();
-            console.log('[Wallet]', 'Midnight Wallet State:', walletState);
+            logger.log('[Wallet]', 'Midnight Wallet State:', walletState);
 
             // Extract values from wallet state
             const address = walletState?.address || null;
@@ -290,7 +291,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             // Store connection in localStorage
             localStorage.setItem('connectedMidnightWallet', walletName);
         } catch (error) {
-            console.error('[Wallet]', 'Failed to connect Midnight wallet:', error);
+            logger.error('[Wallet]', 'Failed to connect Midnight wallet:', error);
             setMidnightState((prev) => ({
                 ...prev,
                 isLoading: false,
@@ -357,27 +358,27 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     // Centralized redirect logic based on registration status
     useEffect(() => {
-        console.log('🔍 Cardano State:', cardanoState);
-        console.log('🔍 Midnight State:', midnightState);
-        console.log("REGISTRATION UTXO", registrationUtxo);
-        console.log("IS LOADING REGISTRATION UTXO", isLoadingRegistrationUtxo);
+        logger.log('🔍 Cardano State:', cardanoState);
+        logger.log('🔍 Midnight State:', midnightState);
+        logger.log("REGISTRATION UTXO", registrationUtxo);
+        logger.log("IS LOADING REGISTRATION UTXO", isLoadingRegistrationUtxo);
 
         // Guard: Don't redirect while still loading or during auto-reconnect
         if (isAutoReconnecting || isLoadingRegistrationUtxo) {
-            console.log('⏸️  Skipping redirect - still loading...');
+            logger.log('⏸️  Skipping redirect - still loading...');
             return;
         }
 
         // Guard: Only redirect if Cardano wallet is connected
         if (!cardanoState.isConnected) {
-            console.log('⏸️  Skipping redirect - Cardano wallet not connected');
+            logger.log('⏸️  Skipping redirect - Cardano wallet not connected');
             return;
         }
 
         // User IS registered (has registrationUtxo)
         if (registrationUtxo) {
             if (pathname !== '/dashboard') {
-                console.log('🎯 User is registered, redirecting to dashboard...');
+                logger.log('🎯 User is registered, redirecting to dashboard...');
                 router.push('/dashboard');
             }
         }
@@ -385,7 +386,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         else {
             // If user is on dashboard but not registered, redirect to home
             if (pathname === '/dashboard') {
-                console.log('🏠 User is not registered, redirecting to home...');
+                logger.log('🏠 User is not registered, redirecting to home...');
                 router.push('/');
             }
         }
@@ -393,7 +394,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     // Auto-redirect to dashboard if user is already registered
     // useEffect(() => {
-    //     console.log('🔍 Redirect check:', {
+    //     logger.log('🔍 Redirect check:', {
     //         cardanoConnected: cardanoState.isConnected,
     //         isCheckingRegistration,
     //         generationStatus,
@@ -406,13 +407,13 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     //     // TODO: cuando funcione indexer, volver a agregar  && !isCheckingRegistration && generationStatus?.isRegistered
     //     if (cardanoState.isConnected && !isLoadingRegistrationUtxo && registrationUtxo) {
     //         if (pathname !== '/dashboard') {
-    //             console.log('🎯 User is already registered, redirecting to dashboard...');
+    //             logger.log('🎯 User is already registered, redirecting to dashboard...');
     //             router.push('/dashboard');
     //         }
     //     }
     //     if (cardanoState.isConnected && !isLoadingRegistrationUtxo && !registrationUtxo) {
     //         if (pathname !== '/onboard') {
-    //             console.log('🎯 User is not registered, redirecting to onboard...');
+    //             logger.log('🎯 User is not registered, redirecting to onboard...');
     //             router.push('/onboard');
     //         }
     //     }

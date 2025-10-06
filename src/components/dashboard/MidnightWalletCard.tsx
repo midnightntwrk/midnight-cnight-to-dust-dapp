@@ -1,4 +1,5 @@
 import { Button, Card, Tooltip } from '@heroui/react';
+import { logger } from '@/lib/logger';
 import Image from 'next/image';
 import React, { useState } from 'react';
 
@@ -82,13 +83,13 @@ const MidnightWalletCard = () => {
 
     const handleUnregisterAddress = async () => {
         if (!cardano.lucid) {
-            console.error('❌ Cardano wallet not connected');
+            logger.error('❌ Cardano wallet not connected');
             return;
         }
 
         // Check if dust protocol is ready first
         if (!protocolStatus?.isReady) {
-            console.error('❌ Dust protocol not ready for unregistration');
+            logger.error('❌ Dust protocol not ready for unregistration');
             transaction.setError('Dust protocol is not ready. Please ensure InitVersioningCommand & InitDustProductionCommand are completed.');
             return;
         }
@@ -96,19 +97,19 @@ const MidnightWalletCard = () => {
         // Get DUST PKH from midnight wallet
         const dustPKHValue = midnight.coinPublicKey;
         if (!dustPKHValue) {
-            console.error('❌ Midnight wallet coinPublicKey not available');
+            logger.error('❌ Midnight wallet coinPublicKey not available');
             transaction.setError('Midnight wallet coinPublicKey not available. Please reconnect your Midnight wallet.');
             return;
         }
 
         if (!registrationUtxo) {
-            console.error('❌ Registration UTXO not found');
+            logger.error('❌ Registration UTXO not found');
             transaction.setError('Registration UTXO not found. Please ensure you have registered your address.');
             return;
         }
 
         try {
-            console.log('🚀 Starting DUST unregistration...');
+            logger.log('🚀 Starting DUST unregistration...');
 
             // Create the unregistration executor and execute it
             const unregistrationExecutor = DustTransactionsUtils.createUnregistrationExecutor(
@@ -132,24 +133,24 @@ const MidnightWalletCard = () => {
                 // refetchGenerationStatus();
                 // findRegistrationUtxo();
             } else {
-                console.error('transactionState:', transactionState);
+                logger.error('transactionState:', transactionState);
                 throw new Error('transactionState:' + transactionState);
             }
         } catch (error) {
-            console.error('❌ DUST unregistration failed:', error);
+            logger.error('❌ DUST unregistration failed:', error);
             // Error is already handled by TransactionContext, no need to set it again
         }
     };
 
     const handleUpdateAddress = async () => {
         if (!cardano.lucid) {
-            console.error('❌ Cardano wallet not connected');
+            logger.error('❌ Cardano wallet not connected');
             return;
         }
 
         // Check if dust protocol is ready first
         if (!protocolStatus?.isReady) {
-            console.error('❌ Dust protocol not ready for update');
+            logger.error('❌ Dust protocol not ready for update');
             transaction.setError('Dust protocol is not ready. Please ensure InitVersioningCommand & InitDustProductionCommand are completed.');
             return;
         }
@@ -157,19 +158,19 @@ const MidnightWalletCard = () => {
         // Get DUST PKH from midnight wallet
         const dustPKHValue = midnight.coinPublicKey;
         if (!dustPKHValue) {
-            console.error('❌ Midnight wallet coinPublicKey not available');
+            logger.error('❌ Midnight wallet coinPublicKey not available');
             transaction.setError('Midnight wallet coinPublicKey not available. Please reconnect your Midnight wallet.');
             return;
         }
 
         if (!registrationUtxo) {
-            console.error('❌ Registration UTXO not found');
+            logger.error('❌ Registration UTXO not found');
             transaction.setError('Registration UTXO not found. Please ensure you have registered your address.');
             return;
         }
 
         try {
-            console.log('🚀 Starting DUST update...');
+            logger.log('🚀 Starting DUST update...');
 
             // Create the update executor and execute it
             const updateExecutor = DustTransactionsUtils.createUpdateExecutor(cardano.lucid as LucidEvolution, contracts, dustPKHValue, registrationUtxo);
@@ -182,11 +183,11 @@ const MidnightWalletCard = () => {
                 refetchGenerationStatus();
                 findRegistrationUtxo();
             } else {
-                console.error('transactionState:', transactionState);
+                logger.error('transactionState:', transactionState);
                 throw new Error('transactionState:' + transactionState);
             }
         } catch (error) {
-            console.error('❌ DUST update failed:', error);
+            logger.error('❌ DUST update failed:', error);
             // Error is already handled by TransactionContext, no need to set it again
         }
     };
