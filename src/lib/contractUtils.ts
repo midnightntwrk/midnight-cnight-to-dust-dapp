@@ -1,4 +1,5 @@
 import { getLucidNetwork } from '@/config/network';
+import { logger } from '@/lib/logger';
 import { toJson } from '@/lib/utils';
 import { validatorToAddress, validatorToScriptHash, mintingPolicyToId, Script } from '@lucid-evolution/lucid';
 
@@ -22,25 +23,25 @@ export class ContractUtils {
      * Load specified contracts and compute their hashes/addresses - Pure function
      */
     static async loadContracts(contractFiles: readonly string[]): Promise<ContractsRegistry> {
-        console.log('[Contracts]', '🔄 Loading contracts and computing hashes/addresses...');
-        console.log('[Contracts]', '📂 Contract files to load:', contractFiles);
+        logger.log('[Contracts]', '🔄 Loading contracts and computing hashes/addresses...');
+        logger.log('[Contracts]', '📂 Contract files to load:', contractFiles);
 
         const loadedContracts: ContractsRegistry = {};
 
         // Load all contract files
         for (const filename of contractFiles) {
             try {
-                // console.log('[Contracts]',`📄 Loading contract: ${filename}`);
+                // logger.log('[Contracts]',`📄 Loading contract: ${filename}`);
 
                 // Try both possible paths
                 let response = await fetch(`/contracts/${filename}`);
                 if (!response.ok) {
-                    console.log('[Contracts]',`   ⚠️ /contracts/${filename} not found, trying /contracts/${filename}`);
+                    logger.log('[Contracts]',`   ⚠️ /contracts/${filename} not found, trying /contracts/${filename}`);
                     response = await fetch(`/contracts/${filename}`);
                 }
 
                 if (!response.ok) {
-                    console.error('[Contracts]', `❌ Failed to fetch ${filename}:`, response.status, response.statusText);
+                    logger.error('[Contracts]', `❌ Failed to fetch ${filename}:`, response.status, response.statusText);
                     continue;
                 }
 
@@ -51,18 +52,18 @@ export class ContractUtils {
                     loadedContracts[filename] = contractInfo;
                 }
             } catch (error) {
-                console.error('[Contracts]', `❌ Error loading ${filename}:`, error);
+                logger.error('[Contracts]', `❌ Error loading ${filename}:`, error);
             }
         }
 
         // Log comprehensive summary
-        console.log('[Contracts]', '🎯 CONTRACT LOADING SUMMARY:');
-        console.log('[Contracts]', '=====================================');
-        console.log('[Contracts]',`📊 Total contracts loaded: ${Object.keys(loadedContracts).length}/${contractFiles.length}`);
-        console.log('[Contracts]', '📋 Successfully loaded contracts:');
+        logger.log('[Contracts]', '🎯 CONTRACT LOADING SUMMARY:');
+        logger.log('[Contracts]', '=====================================');
+        logger.log('[Contracts]',`📊 Total contracts loaded: ${Object.keys(loadedContracts).length}/${contractFiles.length}`);
+        logger.log('[Contracts]', '📋 Successfully loaded contracts:');
 
         for (const [filename, info] of Object.entries(loadedContracts)) {
-            console.log('[Contracts]', 
+            logger.log('[Contracts]', 
                 `   ✅ ${filename}:`,
                 toJson({
                     type: info.type,
@@ -76,10 +77,10 @@ export class ContractUtils {
 
         const failed = contractFiles.filter((f: string) => !loadedContracts[f]);
         if (failed.length > 0) {
-            console.log('[Contracts]', '❌ Failed to load contracts:', failed);
+            logger.log('[Contracts]', '❌ Failed to load contracts:', failed);
         }
 
-        console.log('[Contracts]', '=====================================');
+        logger.log('[Contracts]', '=====================================');
 
         return loadedContracts;
     }
@@ -98,11 +99,11 @@ export class ContractUtils {
                 cborHex = parsedContract.cborHex;
 
                 if (!cborHex) {
-                    console.error('[Contracts]', `❌ No cborHex found in ${filename}`);
+                    logger.error('[Contracts]', `❌ No cborHex found in ${filename}`);
                     return null;
                 }
             } catch (parseError) {
-                console.error('[Contracts]', `❌ Failed to parse JSON in ${filename}:`, parseError);
+                logger.error('[Contracts]', `❌ Failed to parse JSON in ${filename}:`, parseError);
                 return null;
             }
 
@@ -144,7 +145,7 @@ export class ContractUtils {
                     contractInfo.address = address;
                 }
             } catch (computeError) {
-                console.error('[Contracts]', `❌ Failed to compute hash/address for ${filename}:`, computeError);
+                logger.error('[Contracts]', `❌ Failed to compute hash/address for ${filename}:`, computeError);
                 // Still add to registry even if hash computation fails
             }
 

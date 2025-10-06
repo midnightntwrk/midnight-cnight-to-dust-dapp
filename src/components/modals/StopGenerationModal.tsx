@@ -79,12 +79,6 @@ export default function StopGenerationModal({ isOpen, onOpenChange, dustAddress,
                         <div className="bg-[#2a2a2a] p-3 rounded-lg border border-gray-600">
                             <p className="text-white text-sm font-mono break-all">{dustAddress}</p>
                         </div>
-
-                        {/* <div className="mt-4">
-                            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" onPress={handleContinueToDashboard}>
-                                Back to Home
-                            </Button>
-                        </div> */}
                     </ModalBody>
                 </ModalContent>
             </Modal>
@@ -118,13 +112,11 @@ export default function StopGenerationModal({ isOpen, onOpenChange, dustAddress,
                             </div>
                         )}
 
-                        <p className="text-gray-300 text-sm mb-6">This address will no longer receive your DUST tokens. Ensure you manage this address accordingly.</p>
+                        <p className="text-gray-300 text-sm mb-4">
+                            This address will no longer receive your DUST tokens. Ensure you manage this address accordingly.
+                        </p>
 
-                        {/* <div className="mt-4">
-                            <TransactionProgress />
-                        </div> */}
-
-                        <div className="flex gap-3 mt-4">
+                        <div className="flex gap-3">
                             <Button
                                 className="flex-1 bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700"
                                 onPress={handleCancel}
@@ -141,8 +133,8 @@ export default function StopGenerationModal({ isOpen, onOpenChange, dustAddress,
                                 {transaction.isCurrentTransaction('unregister') && transaction.isAnyTransactionRunning()
                                     ? 'UNREGISTERING...'
                                     : transaction.isCurrentTransaction('unregister') && transaction.transactionState === 'success'
-                                    ? 'UNREGISTERED ✅'
-                                    : 'STOP GENERATION'}
+                                        ? 'UNREGISTERED ✅'
+                                        : 'STOP GENERATION'}
                             </Button>
                         </div>
                     </ModalBody>
