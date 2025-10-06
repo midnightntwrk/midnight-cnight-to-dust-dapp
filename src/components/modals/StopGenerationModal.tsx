@@ -47,7 +47,15 @@ export default function StopGenerationModal({ isOpen, onOpenChange, dustAddress,
     };
 
     const handleStop = async () => {
-        await onStopGeneration();
+        try {
+            await onStopGeneration();
+        } catch (error) {
+            showToast({
+                message: error instanceof Error ? error.message : 'Failed to stop generation',
+                type: 'error',
+                duration: 5000
+            });
+        }
     };
 
     const handleCancel = () => {
