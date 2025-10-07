@@ -1,4 +1,5 @@
 'use client';
+import { logger } from '@/lib/logger';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { LucidEvolution } from '@lucid-evolution/lucid';
@@ -49,15 +50,15 @@ export const DustProtocolProvider: React.FC<{ children: ReactNode }> = ({ childr
             setIsContractsLoading(true);
             setContractsError(null);
 
-            console.log('[DustProtocol]','🔄 Loading DUST protocol contracts...');
+            logger.log('[DustProtocol]','🔄 Loading DUST protocol contracts...');
             const loadedContracts = await ContractUtils.loadContracts(DUST_PROTOCOL_CONTRACTS);
 
             setContracts(loadedContracts);
             setIsContractsLoaded(true);
-            console.log('[DustProtocol]','✅ DUST protocol contracts loaded successfully');
+            logger.log('[DustProtocol]','✅ DUST protocol contracts loaded successfully');
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to load contracts';
-            console.error('[DustProtocol]','❌ Failed to load contracts:', errorMessage);
+            logger.error('[DustProtocol]','❌ Failed to load contracts:', errorMessage);
             setContractsError(errorMessage);
         } finally {
             setIsContractsLoading(false);
@@ -67,22 +68,22 @@ export const DustProtocolProvider: React.FC<{ children: ReactNode }> = ({ childr
     // Check protocol status method
     const checkProtocolStatus = useCallback(async () => {
         if (!isContractsLoaded) {
-            console.warn('[DustProtocol]','⚠️ Contracts not loaded yet, cannot check protocol status');
+            logger.warn('[DustProtocol]','⚠️ Contracts not loaded yet, cannot check protocol status');
             return;
         }
 
         try {
             setIsProtocolStatusLoading(true);
 
-            console.log('[DustProtocol]','🔄 Checking DUST protocol status...');
+            logger.log('[DustProtocol]','🔄 Checking DUST protocol status...');
             const status = await DustProtocolUtils.checkSetupStatus(contracts);
 
             setProtocolStatus(status);
             setIsProtocolStatusLoaded(true);
-            console.log('[DustProtocol]','✅ DUST protocol status checked:', status);
+            logger.log('[DustProtocol]','✅ DUST protocol status checked:', status);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to check protocol status';
-            console.error('[DustProtocol]','❌ Failed to check protocol status:', errorMessage);
+            logger.error('[DustProtocol]','❌ Failed to check protocol status:', errorMessage);
 
             // Set protocol status with error
             setProtocolStatus({
@@ -115,7 +116,7 @@ export const DustProtocolProvider: React.FC<{ children: ReactNode }> = ({ childr
     // The context is now responsible for automatically managing protocol status checks
     useEffect(() => {
         if (isContractsLoaded && !isProtocolStatusLoaded) {
-            console.log('[DustProtocol]','🔄 Auto-checking protocol status after contracts are loaded...');
+            logger.log('[DustProtocol]','🔄 Auto-checking protocol status after contracts are loaded...');
             checkProtocolStatus();
         }
     }, [isContractsLoaded, isProtocolStatusLoaded, checkProtocolStatus]);

@@ -1,4 +1,5 @@
 import { Subgraph } from "@/lib/subgraph/query";
+import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error("Failed to fetch last block:", error);
+    logger.error("Failed to fetch last block:", error);
     
     return NextResponse.json(
       { error: "Failed to fetch last block" },

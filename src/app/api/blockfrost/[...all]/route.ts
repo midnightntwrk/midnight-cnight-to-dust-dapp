@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
     return handleRequest(request);
@@ -35,14 +36,14 @@ async function handleRequest(request: NextRequest) {
     try {
         // Validación inicial
         if (!target || !PROJECT_ID) {
-            console.error('🚨 Blockfrost Proxy - Missing configuration:', { target: !!target, PROJECT_ID: !!PROJECT_ID });
+            logger.error('🚨 Blockfrost Proxy - Missing configuration:', { target: !!target, PROJECT_ID: !!PROJECT_ID });
             throw new Error(`Invalid target: ${target} or project id ${PROJECT_ID}`);
         }
         
         // Extraer la ruta que viene después de /api/blockfrost/
         const blockfrostPath = pathname.replace(/^\/api\/blockfrost/, '');
         
-        // console.log('🔄 Blockfrost Proxy Request:', {
+        // logger.log('🔄 Blockfrost Proxy Request:', {
         //     method: request.method,
         //     originalPath: pathname,
         //     blockfrostPath,
@@ -54,7 +55,7 @@ async function handleRequest(request: NextRequest) {
         // Proxy normal a Blockfrost usando fetch nativo
         const targetUrl = `${target}${blockfrostPath}${search}`;
         
-        // console.log('🌐 Proxying to Blockfrost:', {
+        // logger.log('🌐 Proxying to Blockfrost:', {
         //     targetUrl,
         //     method: request.method,
         //     hasBody: request.method !== 'GET' && !!request.body
@@ -76,7 +77,7 @@ async function handleRequest(request: NextRequest) {
             headers.set('User-Agent', userAgent);
         }
 
-        // console.log('📤 Request headers:', {
+        // logger.log('📤 Request headers:', {
         //     'Content-Type': headers.get('Content-Type'),
         //     'project_id': PROJECT_ID.substring(0, 8) + '...', // Solo mostrar primeros 8 chars por seguridad
         //     'User-Agent': headers.get('User-Agent')?.substring(0, 50) + '...'
@@ -89,7 +90,7 @@ async function handleRequest(request: NextRequest) {
             body: request.method !== 'GET' ? request.body : undefined,
         });
 
-        // console.log('📥 Blockfrost response:', {
+        // logger.log('📥 Blockfrost response:', {
         //     status: fetchResponse.status,
         //     statusText: fetchResponse.statusText,
         //     contentType: fetchResponse.headers.get('content-type'),
@@ -109,7 +110,7 @@ async function handleRequest(request: NextRequest) {
         });
 
         // const duration = Date.now() - startTime;
-        // console.log('✅ Request completed', { 
+        // logger.log('✅ Request completed', { 
         //     status: fetchResponse.status, 
         //     duration: `${duration}ms`,
         //     success: fetchResponse.ok 
@@ -123,7 +124,7 @@ async function handleRequest(request: NextRequest) {
 
     } catch (error) {
         const duration = Date.now() - startTime;
-        console.error('❌ Blockfrost Proxy Error:', {
+        logger.error('❌ Blockfrost Proxy Error:', {
             error: error instanceof Error ? error.message : String(error),
             duration: `${duration}ms`,
             pathname: pathname,

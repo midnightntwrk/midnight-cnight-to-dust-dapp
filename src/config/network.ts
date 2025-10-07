@@ -1,7 +1,4 @@
-/**
- * Centralized network configuration
- * Dynamically sets constants based on NEXT_PUBLIC_CARDANO_NET environment variable
- */
+import { logger } from '@/lib/logger';
 
 import { Network, ProtocolParameters } from '@lucid-evolution/lucid';
 import { protocolParametersForLucid } from './protocolParameters';
@@ -93,7 +90,7 @@ const getCurrentNetwork = (): CardanoNetwork => {
         }
         return network;
     } catch (error) {
-        console.error('[Network]', 'Error getting current network:', error);
+        logger.error('[Network]', 'Error getting current network:', error);
         throw error;
     }
 };
@@ -118,7 +115,7 @@ const getCurrentNetworkConfig = (): NetworkConfig => {
 
         return config;
     } catch (error) {
-        console.error('[Network]', 'Error getting current network config:', error);
+        logger.error('[Network]', 'Error getting current network config:', error);
         throw error;
     }
 };
@@ -141,7 +138,7 @@ const getLucidNetwork = (): Network => {
 };
 
 const initializeLucidWithBlockfrostClientSide = async () => {
-    console.log('[Network]', `initializeLucidWithBlockfrostClientSide`);
+    logger.log('[Network]', `initializeLucidWithBlockfrostClientSide`);
     try {
         //-----------------
         const protocolParameters = protocolParametersForLucid[CARDANO_NET! as keyof typeof protocolParametersForLucid] as ProtocolParameters;
@@ -150,7 +147,7 @@ const initializeLucidWithBlockfrostClientSide = async () => {
         const { Lucid, Blockfrost } = await import('@lucid-evolution/lucid');
 
         const apiServerUrl = process.env.NEXT_PUBLIC_REACT_SERVER_API_URL || '';
-        
+
         const lucid = await Lucid(
             new Blockfrost(apiServerUrl + '/blockfrost', 'xxxx'),
             getLucidNetwork(), {
@@ -159,7 +156,7 @@ const initializeLucidWithBlockfrostClientSide = async () => {
         );
         return lucid;
     } catch (error) {
-        console.log('[Network]', `initializeLucidWithBlockfrostClientSide - Error: ${error}`);
+        logger.log('[Network]', `initializeLucidWithBlockfrostClientSide - Error: ${error}`);
         throw error;
     }
 };
