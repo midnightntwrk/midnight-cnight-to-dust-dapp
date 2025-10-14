@@ -7,6 +7,7 @@ import CardanoWalletCard from './dashboard/CardanoWalletCard';
 import GenerationRateCard from './dashboard/GenerationRateCard';
 import MidnightWalletCard from './dashboard/MidnightWalletCard';
 import RegistrationUtxoCard from './dashboard/RegistrationUtxoCard';
+import DustLifecycleChart from './dashboard/DustLifecycleChart';
 import WalletsModal from './wallet-connect/WalletsModal';
 import LoadingBackdrop from './ui/LoadingBackdrop';
 
@@ -27,11 +28,11 @@ export default function Dashboard() {
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
     const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);
 
-    useEffect(() => {
-        if (!isAutoReconnecting && !cardano.isConnected) {
-            router.push('/');
-        }
-    }, [cardano.isConnected, isAutoReconnecting, router]);
+    // useEffect(() => {
+    //     if (!isAutoReconnecting && !cardano.isConnected) {
+    //         router.push('/');
+    //     }
+    // }, [cardano.isConnected, isAutoReconnecting, router]);
 
     // Show loading backdrop while auto-reconnecting
     if (isAutoReconnecting) {
@@ -93,6 +94,11 @@ export default function Dashboard() {
             {/* Registration UTXO Card */}
             <div className="mt-6">
                 <RegistrationUtxoCard />
+            </div>
+
+            {/* DUST Lifecycle Chart */}
+            <div className="mt-6">
+                <DustLifecycleChart />
             </div>
 
             {/* Wallet Selection Modals */}

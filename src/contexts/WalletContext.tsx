@@ -241,7 +241,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const getAvailableMidnightWallets = (): SupportedMidnightWallet[] => {
         if (typeof window === 'undefined') return [];
 
-        const wallets: SupportedMidnightWallet[] = [];
+        const wallets: SupportedMidnightWallet[] = [];        
         const supportedWallets: SupportedMidnightWallet[] = ['mnLace'];
 
         supportedWallets.forEach((wallet) => {
@@ -383,13 +383,13 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             }
         }
         // User is NOT registered (no registrationUtxo)
-        else {
-            // If user is on dashboard but not registered, redirect to home
-            if (pathname === '/dashboard') {
-                logger.log('🏠 User is not registered, redirecting to home...');
-                router.push('/');
-            }
-        }
+        // else {
+        //     // If user is on dashboard but not registered, redirect to home
+        //     if (pathname === '/dashboard') {
+        //         logger.log('🏠 User is not registered, redirecting to home...');
+        //         router.push('/');
+        //     }
+        // }
     }, [cardanoState.isConnected, midnightState, registrationUtxo, isLoadingRegistrationUtxo, isAutoReconnecting, pathname, router]);
 
     // Auto-redirect to dashboard if user is already registered
