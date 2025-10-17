@@ -241,7 +241,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const getAvailableMidnightWallets = (): SupportedMidnightWallet[] => {
         if (typeof window === 'undefined') return [];
 
-        const wallets: SupportedMidnightWallet[] = [];
+        const wallets: SupportedMidnightWallet[] = [];        
         const supportedWallets: SupportedMidnightWallet[] = ['mnLace'];
 
         supportedWallets.forEach((wallet) => {
@@ -404,7 +404,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     //         pathname,
     //     });
 
-    //     // TODO: cuando funcione indexer, volver a agregar  && !isCheckingRegistration && generationStatus?.isRegistered
+    //     // TODO: When indexer back, add again:  && !isCheckingRegistration && generationStatus?.isRegistered
     //     if (cardanoState.isConnected && !isLoadingRegistrationUtxo && registrationUtxo) {
     //         if (pathname !== '/dashboard') {
     //             logger.log('🎯 User is already registered, redirecting to dashboard...');
