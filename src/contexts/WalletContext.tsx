@@ -383,13 +383,13 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             }
         }
         // User is NOT registered (no registrationUtxo)
-        // else {
-        //     // If user is on dashboard but not registered, redirect to home
-        //     if (pathname === '/dashboard') {
-        //         logger.log('🏠 User is not registered, redirecting to home...');
-        //         router.push('/');
-        //     }
-        // }
+        else {
+            // If user is on dashboard but not registered, redirect to home
+            if (pathname === '/dashboard') {
+                logger.log('🏠 User is not registered, redirecting to home...');
+                router.push('/');
+            }
+        }
     }, [cardanoState.isConnected, midnightState, registrationUtxo, isLoadingRegistrationUtxo, isAutoReconnecting, pathname, router]);
 
     // Auto-redirect to dashboard if user is already registered
@@ -404,7 +404,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     //         pathname,
     //     });
 
-    //     // TODO: cuando funcione indexer, volver a agregar  && !isCheckingRegistration && generationStatus?.isRegistered
+    //     // TODO: When indexer back, add again:  && !isCheckingRegistration && generationStatus?.isRegistered
     //     if (cardanoState.isConnected && !isLoadingRegistrationUtxo && registrationUtxo) {
     //         if (pathname !== '/dashboard') {
     //             logger.log('🎯 User is already registered, redirecting to dashboard...');

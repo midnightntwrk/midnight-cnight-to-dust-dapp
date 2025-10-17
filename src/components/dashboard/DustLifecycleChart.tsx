@@ -16,6 +16,7 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import annotationPlugin from 'chartjs-plugin-annotation';
+import { formatNumber } from '@/lib/utils';
 
 // Register Chart.js components
 ChartJS.register(
@@ -221,18 +222,8 @@ export default function DustLifecycleChart() {
 
     const balancePercent = (mockedCurrentBalance / generationCap) * 100;
 
-    // Format number with K/M suffix
-    const formatNumber = (value: number): string => {
-        if (value >= 1000000) {
-            return (value / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-        } else if (value >= 1000) {
-            return (value / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-        }
-        return value.toFixed(2);
-    };
-
     return (
-        <Card className="p-6 w-full">
+        <Card className="bg-[#70707035] p-6 w-full">
             <div className="flex flex-col gap-4">
                 {/* Header */}
                 <div className="flex flex-row justify-between items-center">
@@ -248,13 +239,22 @@ export default function DustLifecycleChart() {
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="flex flex-col gap-1">
                         <span className="text-gray-400 text-sm">Current Balance</span>
                         <span className="text-green-400 text-xl font-bold">
-                            {formatNumber(mockedCurrentBalance)} DUST
+                            {/* {formatNumber(mockedCurrentBalance)} DUST */}
+                            *** DUST
                         </span>
-                        <span className="text-blue-400 text-xs">(Mocked)</span>
+                        <span className="text-blue-400 text-xs">(Shielded)</span>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <span className="text-gray-400 text-sm">Generation Rate</span>
+                        <span className="text-white text-xl font-bold">
+                            *** DUST/H
+                        </span>
+                        <span className="text-blue-400 text-xs">(Shielded)</span>
                     </div>
 
                     <div className="flex flex-col gap-1">
@@ -262,7 +262,7 @@ export default function DustLifecycleChart() {
                         <span className="text-orange-400 text-xl font-bold">
                             {formatNumber(generationCap)} DUST
                         </span>
-                        <span className="text-blue-400 text-xs">(Mocked)</span>
+                        <span className="text-blue-400 text-xs">(Shielded)</span>
                     </div>
 
                     <div className="flex flex-col gap-1">
