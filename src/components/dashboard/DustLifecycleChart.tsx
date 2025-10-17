@@ -39,6 +39,9 @@ export default function DustLifecycleChart() {
     // Test case selection
     const [selectedCase, setSelectedCase] = React.useState<LifecycleCase>('generating');
 
+    // Fade animation state
+    const [fadeKey, setFadeKey] = React.useState(0);
+
     // Calculate CAP
     const generationCap = 10 * Number(cardano.balanceNight ?? 0);
 
@@ -56,24 +59,36 @@ export default function DustLifecycleChart() {
         return () => clearInterval(interval);
     }, []);
 
+    // Trigger fade animation when case changes
+    React.useEffect(() => {
+        setFadeKey(prev => prev + 1);
+    }, [selectedCase]);
+
     const labels = useCallback(() => {
+        const today = new Date();
+        const formatDate = (daysOffset: number) => {
+            const date = new Date(today);
+            date.setDate(today.getDate() + daysOffset);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        };
+
         if (selectedCase === 'generating') {
-            return ['Oct 15', 'Now', 'Oct 26', ''];
+            return [formatDate(-2), 'Now', formatDate(2), ''];
         } else if (selectedCase === 'capped') {
-            return ['Oct 15', 'Oct 20', 'Now', ''];
+            return [formatDate(-4), formatDate(-2), 'Now', ''];
         } else if (selectedCase === 'decaying') {
-            return ['Oct 15', 'Oct 20', 'Oct 22', 'Oct 26', 'Now', ''];
-        } 
-        
-    }, [selectedCase, mockedCurrentBalance, generationCap]);
+            return [formatDate(-8), formatDate(-6), formatDate(-4), formatDate(-2), 'Now', ''];
+        }
+
+    }, [selectedCase]);
 
     const capLine = useCallback(() => {
         if (selectedCase === 'generating') {
-            return [generationCap, generationCap, generationCap, generationCap];
+            return [generationCap, generationCap, generationCap, null];
         } else if (selectedCase === 'capped') {
             return null;
         } else if (selectedCase === 'decaying') {
-            return [generationCap, generationCap, generationCap, generationCap];
+            return [generationCap, generationCap, generationCap, null];
         }
     }, [selectedCase, mockedCurrentBalance, generationCap]);
 
@@ -121,7 +136,7 @@ export default function DustLifecycleChart() {
                 backgroundColor: 'transparent',
                 borderWidth: 2,
                 borderDash: [5, 5],
-                tension: 0,
+                tension: 0.4,
                 pointRadius: 0,
                 order: 2,
             },
@@ -142,7 +157,7 @@ export default function DustLifecycleChart() {
                 borderColor: '#ffffff',
                 backgroundColor: 'transparent',
                 borderWidth: 3,
-                tension: 0, // Straight lines
+                tension: 0.1, // Straight lines
                 pointRadius: 0,
                 order: 1,
             },
@@ -151,7 +166,11 @@ export default function DustLifecycleChart() {
                 data: yourPositionPoint(),
                 borderColor: `rgba(52, 199, 89, ${pulseOpacity})`, // Green with pulsating opacity
                 backgroundColor: `rgba(52, 199, 89, ${pulseOpacity})`,
-                pointRadius: [0, 5, 0, 0], // Slightly larger point at t_0,5
+                pointRadius: selectedCase === 'generating'
+                    ? [0, 5, 0, 0]
+                    : selectedCase === 'capped'
+                    ? [0, 0, 5, 0]
+                    : [0, 0, 0, 0, 5, 0], // Point at "Now" position for each case
                 pointBorderWidth: 2,
                 pointBorderColor: `rgba(52, 199, 89, ${pulseOpacity})`,
                 showLine: false, // Don't draw a line, just the point
@@ -303,7 +322,10 @@ export default function DustLifecycleChart() {
                 </div>
 
                 {/* Chart */}
-                <div className="rounded-lg p-6">
+                <div
+                    key={fadeKey}
+                    className="rounded-lg p-6 animate-in fade-in duration-500"
+                >
                     <Line data={data} options={options} />
                 </div>
 
@@ -320,8 +342,13 @@ export default function DustLifecycleChart() {
 
                     <div className="flex flex-col gap-1">
                         <span className="text-gray-400 text-sm">Generation Rate</span>
-                        <span className="text-white text-xl font-bold">
-                            *** DUST/H
+                        <span className={`text-xl font-bold ${selectedCase === 'decaying' ? 'text-red-400' : 'text-white'}`}>
+                            {selectedCase === 'generating'
+                                ? '*** DUST/H'
+                                : selectedCase === 'capped'
+                                ? '0 DUST/H'
+                                : '- *** DUST/H'
+                            }
                         </span>
                         <span className="text-blue-400 text-xs">(Shielded)</span>
                     </div>
@@ -336,11 +363,21 @@ export default function DustLifecycleChart() {
 
                     <div className="flex flex-col gap-1">
                         <span className="text-gray-400 text-sm">Progress</span>
-                        <span className="text-white text-xl font-bold">
-                            {balancePercent.toFixed(1)}%
+                        <span className={`text-xl font-bold ${selectedCase === 'decaying' ? 'text-red-400' : 'text-white'}`}>
+                            {selectedCase === 'generating'
+                                ? `${balancePercent.toFixed(1)}%`
+                                : selectedCase === 'capped'
+                                ? '100%'
+                                : '-50%'
+                            }
                         </span>
                         <span className="text-gray-500 text-xs">
-                            {mockedHasReachedCap ? 'CAP Reached ✓' : 'Generating...'}
+                            {selectedCase === 'generating'
+                                ? 'Generating...'
+                                : selectedCase === 'capped'
+                                ? '(Capped)'
+                                : '(Decaying)'
+                            }
                         </span>
                     </div>
                 </div>
