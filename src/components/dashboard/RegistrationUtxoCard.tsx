@@ -1,6 +1,6 @@
-import { Card, Tooltip } from '@heroui/react'
+import { Tooltip } from '@heroui/react'
 import Image from 'next/image'
-import React, { useState } from 'react'
+import React from 'react'
 import InfoIcon from '@/assets/icons/info.svg';
 import CopyIcon from '@/assets/icons/copy.svg';
 import CheckIcon from '@/assets/icons/check.svg';
@@ -45,17 +45,17 @@ const RegistrationUtxoCard = () => {
 
     return (
         <>
-            <Card className='bg-[#70707035] p-[24px] w-full flex flex-col gap-4 relative'>
+            <div className='w-full flex flex-col gap-4 relative'>
                 <div className='flex flex-row gap-2 z-10 relative items-center'>
-                    <span className='text-[18px] font-normal'>Registration UTXO</span>
+                    <span className='text-[16px] font-normal text-gray-400'>On-chain proof of your Cardano-Midnight address registration</span>
                     <Tooltip
-                        content="On-chain proof of your Cardano-Midnight address registration"
+                        content="This UTXO contains your registration data on the Cardano blockchain"
                         placement="top"
                         classNames={{
                             content: "bg-gray-800 text-white text-sm px-2 py-1"
                         }}
                     >
-                        <Image src={InfoIcon} alt='info' width={24} height={24} className="cursor-pointer" />
+                        <Image src={InfoIcon} alt='info' width={20} height={20} className="cursor-pointer" />
                     </Tooltip>
                 </div>
 
@@ -117,7 +117,7 @@ const RegistrationUtxoCard = () => {
                         </div>
                     </div>
                 )}
-            </Card>
+            </div>
 
             {/* Toast Notifications */}
             <ToastContainer toasts={toasts} onRemove={removeToast} />

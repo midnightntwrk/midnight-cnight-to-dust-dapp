@@ -4,6 +4,7 @@ import React from 'react'
 import InfoIcon from '@/assets/icons/info.svg';
 import Image from 'next/image';
 import { useWalletContext } from '@/contexts/WalletContext';
+import { formatNumber } from '@/lib/utils';
 
 
 const GenerationRateCard = () => {
@@ -14,8 +15,9 @@ const GenerationRateCard = () => {
         if (!cardano.balanceNight) return '0';
         const balance = parseFloat(cardano.balanceNight);
         const cap = Math.floor(balance * 10);
-        return cap.toLocaleString();
+        return formatNumber(cap);
     };
+
     return (
         <Card className='bg-[#70707035] p-[24px] w-full lg:w-[20%] gap-4'>
             <div className='flex flex-col gap-1'>
