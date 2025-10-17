@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Card } from '@heroui/react';
 import { useWalletContext } from '@/contexts/WalletContext';
 import {
     Chart as ChartJS,
@@ -223,16 +222,8 @@ export default function DustLifecycleChart() {
     const balancePercent = (mockedCurrentBalance / generationCap) * 100;
 
     return (
-        <Card className="bg-[#70707035] p-6 w-full">
+        <div className="w-full">
             <div className="flex flex-col gap-4">
-                {/* Header */}
-                <div className="flex flex-row justify-between items-center">
-                    <h3 className="text-xl font-bold text-white">DUST Generation Lifecycle</h3>
-                    <span className="px-2 py-1 bg-blue-500/10 border border-blue-500/30 rounded text-blue-400 text-sm">
-                        Mocked Data
-                    </span>
-                </div>
-
                 {/* Chart */}
                 <div className="rounded-lg p-6">
                     <Line data={data} options={options} />
@@ -276,6 +267,6 @@ export default function DustLifecycleChart() {
                     </div>
                 </div>
             </div>
-        </Card>
+        </div>
     );
 }

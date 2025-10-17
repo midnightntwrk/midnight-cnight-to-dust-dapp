@@ -3,6 +3,9 @@
 import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/contexts/WalletContext';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Accordion, AccordionItem, Tooltip } from '@heroui/react';
+import Image from 'next/image';
+import InfoIcon from '@/assets/icons/info.svg';
 import CardanoWalletCard from './dashboard/CardanoWalletCard';
 import GenerationRateCard from './dashboard/GenerationRateCard';
 import MidnightWalletCard from './dashboard/MidnightWalletCard';
@@ -91,14 +94,68 @@ export default function Dashboard() {
                 <MidnightWalletCard />
             </div>
 
-            {/* Registration UTXO Card */}
+            {/* Accordion for Registration UTXO and DUST Lifecycle Chart */}
             <div className="mt-6">
-                <RegistrationUtxoCard />
-            </div>
+                <Accordion
+                    variant="splitted"
+                    selectionMode="multiple"
+                    // defaultExpandedKeys={["utxo", "lifecycle"]}
+                    className='gap-6'
+                >
+                    <AccordionItem
+                        key="utxo"
+                        aria-label="Registration UTXO Details"
+                        title={
+                            <div className="flex flex-row gap-2 items-center">
+                                <span className='text-[18px] font-normal'>Registration UTXO Details</span>
+                                <Tooltip
+                                    content="On-chain proof of your Cardano-Midnight address registration"
+                                    placement="top"
+                                    classNames={{
+                                        content: "bg-gray-800 text-white text-sm px-2 py-1"
+                                    }}
+                                >
+                                    <Image src={InfoIcon} alt='info' width={24} height={24} className="cursor-pointer" />
+                                </Tooltip>
+                            </div>
+                        }
+                        classNames={{
+                            base: "bg-[#70707035]",
+                            title: "text-white",
+                            trigger: "py-4 px-6",
+                            content: "pb-6 px-6",
+                        }}
+                    >
+                        <RegistrationUtxoCard />
+                    </AccordionItem>
 
-            {/* DUST Lifecycle Chart */}
-            <div className="mt-6">
-                <DustLifecycleChart />
+                    <AccordionItem
+                        key="lifecycle"
+                        aria-label="DUST Generation Lifecycle"
+                        title={
+                            <div className="flex flex-row gap-2 items-center">
+                                <span className='text-[18px] font-normal'>DUST Generation Lifecycle</span>
+                                <Tooltip
+                                    content="Visual representation of your DUST generation progress over time"
+                                    placement="top"
+                                    classNames={{
+                                        content: "bg-gray-800 text-white text-sm px-2 py-1"
+                                    }}
+                                >
+                                    <Image src={InfoIcon} alt='info' width={24} height={24} className="cursor-pointer" />
+                                </Tooltip>
+                            </div>
+                        }
+                        classNames={{
+                            base: "bg-[#70707035]",
+                            title: "text-white",
+                            trigger: "py-4 px-6",
+                            content: "pb-6 px-6",
+                        }}
+                    >
+                        <DustLifecycleChart />
+                    </AccordionItem>
+                </Accordion>
             </div>
 
             {/* Wallet Selection Modals */}
