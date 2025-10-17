@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useWalletContext } from '@/contexts/WalletContext';
+import { ButtonGroup, Button } from '@heroui/react';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -29,14 +30,19 @@ ChartJS.register(
     annotationPlugin
 );
 
+type LifecycleCase = 'generating' | 'capped' | 'decaying';
+
 export default function DustLifecycleChart() {
 
     const { cardano } = useWalletContext();
 
+    // Test case selection
+    const [selectedCase, setSelectedCase] = React.useState<LifecycleCase>('generating');
+
     // Calculate CAP
     const generationCap = 10 * Number(cardano.balanceNight ?? 0);
 
-    // MOCKED DATA
+    // MOCKED DATA - will vary based on selected case
     const mockedCurrentBalance = generationCap / 2; // Example: 4500 DUST
     const mockedHasReachedCap = false; // false = generating (case A), true = capped (case B)
 
@@ -50,19 +56,67 @@ export default function DustLifecycleChart() {
         return () => clearInterval(interval);
     }, []);
 
-    // Simple data structure - white line showing growth from origin to current balance, then horizontal
-    const labels = ['0 Days', 'Now', 'Oct 26', ''];
+    const labels = useCallback(() => {
+        if (selectedCase === 'generating') {
+            return ['Oct 15', 'Now', 'Oct 26', ''];
+        } else if (selectedCase === 'capped') {
+            return ['Oct 15', 'Oct 20', 'Now', ''];
+        } else if (selectedCase === 'decaying') {
+            return ['Oct 15', 'Oct 20', 'Oct 22', 'Oct 26', 'Now', ''];
+        } 
+        
+    }, [selectedCase, mockedCurrentBalance, generationCap]);
 
-    // White line: diagonal from (t_0, 0) to (t_1, currentBalance), then horizontal to (t_2, currentBalance)
-    const dataPoints = [0, mockedCurrentBalance, generationCap, generationCap];
+    const capLine = useCallback(() => {
+        if (selectedCase === 'generating') {
+            return [generationCap, generationCap, generationCap, generationCap];
+        } else if (selectedCase === 'capped') {
+            return null;
+        } else if (selectedCase === 'decaying') {
+            return [generationCap, generationCap, generationCap, generationCap];
+        }
+    }, [selectedCase, mockedCurrentBalance, generationCap]);
+
+    const yourPositionPoint = useCallback(() => {
+        if (selectedCase === 'generating') {
+            return [null, mockedCurrentBalance, null, null];
+        } else if (selectedCase === 'capped') {
+            return [null, null, generationCap, null];
+        } else if (selectedCase === 'decaying') {
+            return [null, null, null, null, mockedCurrentBalance];
+        }
+    }, [selectedCase, mockedCurrentBalance, generationCap]);
+
+    const yourPositionLine = useCallback(() => {
+        if (selectedCase === 'generating') {
+            return [mockedCurrentBalance, mockedCurrentBalance, null, null];
+        } else if (selectedCase === 'capped') {
+            return [generationCap, generationCap, generationCap, null];
+        } else if (selectedCase === 'decaying') {
+            return [mockedCurrentBalance, mockedCurrentBalance, mockedCurrentBalance, mockedCurrentBalance, mockedCurrentBalance];
+        }
+    }, [selectedCase, mockedCurrentBalance, generationCap]);
+
+    const chartDataLine = useCallback(() => {
+        if (selectedCase === 'generating') {
+            return [0, mockedCurrentBalance, generationCap, generationCap];
+        } else if (selectedCase === 'capped') {
+            return [0, mockedCurrentBalance, generationCap, generationCap];
+        } else if (selectedCase === 'decaying') {
+            return [0, mockedCurrentBalance, generationCap, generationCap, mockedCurrentBalance, 0];
+        }
+    }, [selectedCase, mockedCurrentBalance, generationCap]);
+
+
+
 
     // Chart data
     const data = {
-        labels,
+        labels: labels(),
         datasets: [
             {
                 label: 'Current Horizontal',
-                data: [mockedCurrentBalance, mockedCurrentBalance, null, null],
+                data: yourPositionLine(),
                 borderColor: '#34c759', // Green
                 backgroundColor: 'transparent',
                 borderWidth: 2,
@@ -73,7 +127,7 @@ export default function DustLifecycleChart() {
             },
             {
                 label: 'Generation Cap',
-                data: [generationCap, generationCap, generationCap, null],
+                data: capLine(),
                 borderColor: '#fb923c', // Orange
                 backgroundColor: 'transparent',
                 borderWidth: 2,
@@ -84,7 +138,7 @@ export default function DustLifecycleChart() {
             },
             {
                 label: 'DUST Balance',
-                data: dataPoints,
+                data: chartDataLine(),
                 borderColor: '#ffffff',
                 backgroundColor: 'transparent',
                 borderWidth: 3,
@@ -94,7 +148,7 @@ export default function DustLifecycleChart() {
             },
             {
                 label: 'Current Position Point',
-                data: [null, mockedCurrentBalance, null, null],
+                data: yourPositionPoint(),
                 borderColor: `rgba(52, 199, 89, ${pulseOpacity})`, // Green with pulsating opacity
                 backgroundColor: `rgba(52, 199, 89, ${pulseOpacity})`,
                 pointRadius: [0, 5, 0, 0], // Slightly larger point at t_0,5
@@ -134,8 +188,8 @@ export default function DustLifecycleChart() {
                         xValue: 0.5,
                         yValue: generationCap,
                         backgroundColor: 'transparent',
-                        content: ['Generation CAP'],
-                        color: '#fb923c',
+                        content: selectedCase === 'generating' || selectedCase === 'decaying' ? ['Generation CAP'] : ['CAP Reached'],
+                        color: selectedCase === 'generating' || selectedCase === 'decaying' ? '#fb923c' : '#34c759',
                         font: {
                             size: 12,
                             weight: 'bold',
@@ -150,7 +204,7 @@ export default function DustLifecycleChart() {
                         xValue: 0.5,
                         yValue: mockedCurrentBalance,
                         backgroundColor: 'transparent',
-                        content: ['Your Position'],
+                        content: selectedCase === 'generating' || selectedCase === 'decaying' ? ['Your Position'] : [''],
                         color: '#34c759',
                         font: {
                             size: 12,
@@ -224,6 +278,30 @@ export default function DustLifecycleChart() {
     return (
         <div className="w-full">
             <div className="flex flex-col gap-4">
+                {/* Test Case Selector */}
+                <div className="flex justify-center">
+                    <ButtonGroup>
+                        <Button
+                            color={selectedCase === 'generating' ? 'primary' : 'default'}
+                            onPress={() => setSelectedCase('generating')}
+                        >
+                            Generating
+                        </Button>
+                        <Button
+                            color={selectedCase === 'capped' ? 'primary' : 'default'}
+                            onPress={() => setSelectedCase('capped')}
+                        >
+                            Capped
+                        </Button>
+                        <Button
+                            color={selectedCase === 'decaying' ? 'primary' : 'default'}
+                            onPress={() => setSelectedCase('decaying')}
+                        >
+                            Decaying
+                        </Button>
+                    </ButtonGroup>
+                </div>
+
                 {/* Chart */}
                 <div className="rounded-lg p-6">
                     <Line data={data} options={options} />
