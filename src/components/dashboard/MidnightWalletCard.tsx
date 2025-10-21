@@ -41,7 +41,8 @@ const MidnightWalletCard = () => {
         connectMidnightWallet,
         getAvailableMidnightWallets,
         disconnectMidnightWallet,
-        disconnectCardanoWallet
+        disconnectCardanoWallet,
+        updateMidnightAddress
     } = useWalletContext();
 
     // Use DUST protocol context
@@ -143,7 +144,7 @@ const MidnightWalletCard = () => {
         }
     };
 
-    const handleUpdateAddress = async () => {
+    const handleUpdateAddress = async (newAddress: string, newCoinPublicKey: string) => {
         if (!cardano.lucid) {
             logger.error('❌ Cardano wallet not connected');
             return;
@@ -156,11 +157,10 @@ const MidnightWalletCard = () => {
             return;
         }
 
-        // Get DUST PKH from midnight wallet
-        const dustPKHValue = midnight.coinPublicKey;
-        if (!dustPKHValue) {
-            logger.error('❌ Midnight wallet coinPublicKey not available');
-            transaction.setError('Midnight wallet coinPublicKey not available. Please reconnect your Midnight wallet.');
+        // Use the new coin public key passed from the modal
+        if (!newCoinPublicKey) {
+            logger.error('❌ New coin public key not provided');
+            transaction.setError('New coin public key not provided. Please enter a valid Midnight address.');
             return;
         }
 
@@ -171,15 +171,30 @@ const MidnightWalletCard = () => {
         }
 
         try {
-            logger.log('🚀 Starting DUST update...');
+            logger.log('🚀 Starting DUST update...', {
+                newAddress,
+                newCoinPublicKey,
+                registrationUtxo: {
+                    txHash: registrationUtxo.txHash,
+                    outputIndex: registrationUtxo.outputIndex
+                }
+            });
 
-            // Create the update executor and execute it
-            const updateExecutor = DustTransactionsUtils.createUpdateExecutor(cardano.lucid as LucidEvolution, contracts, dustPKHValue, registrationUtxo);
+            // Create the update executor with the NEW coin public key
+            const updateExecutor = DustTransactionsUtils.createUpdateExecutor(
+                cardano.lucid as LucidEvolution,
+                contracts,
+                newCoinPublicKey,  // ← Using the NEW coin public key!
+                registrationUtxo
+            );
 
             const transactionState = await transaction.executeTransaction('update', updateExecutor, {}, cardano.lucid as LucidEvolution);
 
             // Only open success modal if transaction actually succeeded
             if (transactionState === 'success') {
+                // Update Midnight wallet state with new address
+                updateMidnightAddress(newAddress, newCoinPublicKey);
+
                 transaction.resetTransaction();
                 refetchGenerationStatus();
                 findRegistrationUtxo();
@@ -334,7 +349,11 @@ const MidnightWalletCard = () => {
             <ToastContainer toasts={toasts} onRemove={removeToast} />
 
             {/* Modals */}
-            <UpdateAddressModal isOpen={isUpdateModalOpen} onOpenChange={handleUpdateModalOpenChange} onAddressUpdate={handleUpdateAddress} />
+            <UpdateAddressModal
+                isOpen={isUpdateModalOpen}
+                onOpenChange={handleUpdateModalOpenChange}
+                onAddressUpdate={handleUpdateAddress}
+            />
 
             <StopGenerationModal
                 isOpen={isStopModalOpen}
