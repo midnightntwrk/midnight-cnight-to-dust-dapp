@@ -71,6 +71,7 @@ interface WalletContextType {
     disconnectMidnightWallet: () => void;
     getAvailableMidnightWallets: () => SupportedMidnightWallet[];
     setManualMidnightAddress: (address: string) => void;
+    updateMidnightAddress: (address: string, coinPublicKey: string) => void;
     // Generation status state
     generationStatus: GenerationStatusData | null;
     isCheckingRegistration: boolean;
@@ -371,6 +372,30 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         });
     };
 
+    /**
+     * Updates the Midnight wallet state with a new address and coin public key.
+     * Used after update transactions to keep app state in sync with on-chain data.
+     */
+    const updateMidnightAddress = (address: string, coinPublicKey: string) => {
+        logger.log('[Wallet]', 'Updating Midnight address in state', {
+            newAddress: address,
+            newCoinPublicKey: coinPublicKey
+        });
+
+        setMidnightState({
+            isConnected: true,
+            address: address,
+            coinPublicKey: coinPublicKey,
+            balance: midnightState.balance, // Preserve existing balance
+            walletName: 'Manual', // Updated addresses are treated as manual
+            api: null,
+            isLoading: false,
+            error: null,
+        });
+
+        logger.log('✅ Midnight wallet state updated successfully');
+    };
+
     // Auto-reconnect on page load (only once per session)
     useEffect(() => {
         // Only auto-reconnect once on initial mount
@@ -474,6 +499,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         disconnectMidnightWallet,
         getAvailableMidnightWallets,
         setManualMidnightAddress,
+        updateMidnightAddress,
         generationStatus,
         isCheckingRegistration,
         registrationError,

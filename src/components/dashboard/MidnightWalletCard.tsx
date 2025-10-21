@@ -41,7 +41,8 @@ const MidnightWalletCard = () => {
         connectMidnightWallet,
         getAvailableMidnightWallets,
         disconnectMidnightWallet,
-        disconnectCardanoWallet
+        disconnectCardanoWallet,
+        updateMidnightAddress
     } = useWalletContext();
 
     // Use DUST protocol context
@@ -191,6 +192,9 @@ const MidnightWalletCard = () => {
 
             // Only open success modal if transaction actually succeeded
             if (transactionState === 'success') {
+                // Update Midnight wallet state with new address
+                updateMidnightAddress(newAddress, newCoinPublicKey);
+
                 transaction.resetTransaction();
                 refetchGenerationStatus();
                 findRegistrationUtxo();

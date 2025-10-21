@@ -12,6 +12,19 @@ export default function WalletsModal({
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
 }) {
+
+    const walletInfo = {
+        nami: { name: 'Nami', icon: '🦎' },
+        eternl: { name: 'Eternl', icon: '♾️' },
+        lace: { name: 'Lace', icon: '🎭' },
+        flint: { name: 'Flint', icon: '🔥' },
+        typhoncip30: { name: 'Typhon', icon: '🌪️' },
+        nufi: { name: 'NuFi', icon: '💎' },
+        gero: { name: 'GeroWallet', icon: '⚡' },
+        ccvault: { name: 'CCVault', icon: '🛡️' },
+        mnLace: { name: 'Lace (Midnight)', icon: '🌙' },
+    };
+
     return (
         <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
             <ModalContent>
@@ -21,15 +34,20 @@ export default function WalletsModal({
                         {wallets.length > 0 ? (
                             <ModalBody>
                                 {wallets.map((wallet, index) => (
-                                    <Button key={index} color="primary" onPress={() => handleWalletSelect(wallet)}>
-                                        {wallet}
+                                    <Button
+                                        key={index}
+                                        className="bg-brand-primary hover:bg-brand-primary-hover text-white font-medium"
+                                        onPress={() => handleWalletSelect(wallet)}
+                                        startContent={<span className="text-2xl">{walletInfo[wallet as SupportedWallet]?.icon}</span>}
+                                    >
+                                        {walletInfo[wallet as SupportedWallet]?.name?.toUpperCase()}
                                     </Button>
                                 ))}
                             </ModalBody>
                         ) : (
                             <ModalBody>
                                 <div>
-                                    <p>No Cardano wallets detected.</p>
+                                    <p>No wallets detected.</p>
                                     <p>Please install a wallet like Nami, Eternl, or Lace first.</p>
                                     <div className="flex flex-col gap-2">
                                         <a href="https://namiwallet.io/" target="_blank" rel="noopener noreferrer">
