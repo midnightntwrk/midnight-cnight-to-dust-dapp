@@ -5,9 +5,8 @@ import { useDustProtocol } from '@/contexts/DustProtocolContext';
 import { useTransaction } from '@/contexts/TransactionContext';
 import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/contexts/WalletContext';
 import { DustTransactionsUtils } from '@/lib/dustTransactionsUtils';
-import { useDisclosure } from '@heroui/react';
 import type { LucidEvolution } from '@lucid-evolution/lucid';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import ConnectCardanoCard from './onboard/ConnectCardanoCard';
 import ConnectMidnightCard from './onboard/ConnectMidnightCard';
 import MatchAddressesCard from './onboard/MatchAddressesCard';
@@ -41,24 +40,6 @@ export default function Onboard() {
 
     // Toast notifications
     const { toasts, showToast, removeToast } = useToast();
-
-    const { isOpen: isTransactionModalOpen, onOpen: onTransactionModalOpen, onOpenChange: onTransactionModalChange } = useDisclosure();
-
-    // Labels for registration transaction - only override specific ones
-    const registrationLabels = {
-        title: 'DUST Registration Transaction',
-        success: 'Registration completed successfully!',
-        error: 'Registration transaction failed',
-        signHelper: '💡 Please check your wallet and approve the registration transaction to continue.',
-        successDescription: 'Your Cardano and Midnight addresses have been successfully registered in the DUST protocol.',
-    };
-
-    // Auto-open modal when transaction starts (not idle)
-    // useEffect(() => {
-    //     if (transaction.transactionState !== 'idle' && !isTransactionModalOpen) {
-    //         onTransactionModalOpen();
-    //     }
-    // }, [transaction.transactionState, isTransactionModalOpen, onTransactionModalOpen]);
 
     const handleCardanoWalletSelect = async (wallet: SupportedWallet | SupportedMidnightWallet) => {
         await connectCardanoWallet(wallet as SupportedWallet);
@@ -96,7 +77,7 @@ export default function Onboard() {
         }
 
         try {
-            logger.log('🚀 Starting DUST registration...');
+            logger.log('Starting DUST registration...');
 
             // Create the registration executor and execute it
             const registrationExecutor = DustTransactionsUtils.createRegistrationExecutor(
@@ -141,7 +122,6 @@ export default function Onboard() {
                     onConnect={() => setIsMidnightModalOpen(true)}
                     onDisconnect={() => {
                         disconnectMidnightWallet();
-                        // setCurrentStep(2);
                     }}
                     isLoading={midnight.isLoading}
                     error={midnight.error}
@@ -209,7 +189,10 @@ export default function Onboard() {
             />
 
             {/* Toast Notifications */}
-            <ToastContainer toasts={toasts} onRemove={removeToast} />
+            <ToastContainer
+                toasts={toasts}
+                onRemove={removeToast}
+            />
         </div>
     );
 }

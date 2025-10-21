@@ -4,8 +4,10 @@ interface DustGenerationStatusResponse {
     dustGenerationStatus: {
         cardanoStakeKey: string;
         dustAddress: string | null;
-        isRegistered: boolean;
-        generationRate: number;
+        registered: boolean; 
+        nightBalance: string;
+        generationRate: string;
+        currentCapacity: string;
     }[];
 }
 
@@ -22,12 +24,14 @@ export class Subgraph {
      */
     public async getDustGenerationStatus(cardanoStakeKeys: string[]): Promise<DustGenerationStatusResponse['dustGenerationStatus']> {
         const query = gql`
-                query GetDustGenerationStatus($cardanoStakeKeys: [String!]!) {
+                query GetDustGenerationStatus($cardanoStakeKeys: [HexEncoded!]!) {
                     dustGenerationStatus(cardanoStakeKeys: $cardanoStakeKeys) {
-                        cardanoStakeKey 
+                        cardanoStakeKey
                         dustAddress
-                        isRegistered
+                        registered
+                        nightBalance
                         generationRate
+                        currentCapacity
                     }
                 }
             `;

@@ -1,12 +1,6 @@
 import { useState, useEffect } from 'react';
 import { logger } from '@/lib/logger';
-
-interface GenerationStatusData {
-    cardanoStakeKey: string;
-    dustAddress: string | null;
-    isRegistered: boolean;
-    generationRate: string;
-}
+import { GenerationStatusData } from '@/contexts/WalletContext';
 
 interface UseGenerationStatusReturn {
     data: GenerationStatusData | null;
@@ -29,7 +23,7 @@ export function useGenerationStatus(cardanoAddress: string | null): UseGeneratio
             // For now, use hardcoded key since indexer is not ready
             // TODO: Replace with actual address when indexer is complete
 
-            const keyToUse = "1234567890abcdef1234567890abcdef"; // VALID
+            const keyToUse = "0x00"; // VALID
             // const keyToUse = '1234567890abcdef1234567890abcdef'; // INVALID
 
             const response = await fetch(`/api/dust/generation-status/${keyToUse}`);
@@ -45,7 +39,7 @@ export function useGenerationStatus(cardanoAddress: string | null): UseGeneratio
 
             const result = await response.json();
 
-            logger.log('[GenerationStatus]','result', result);
+            logger.log('[GenerationStatus]', 'result', result);
 
             if (result.success && result.data && result.data.length > 0) {
                 setData(result.data[0]);
@@ -53,7 +47,7 @@ export function useGenerationStatus(cardanoAddress: string | null): UseGeneratio
                 setData(null);
             }
         } catch (err) {
-            logger.error('[GenerationStatus]','Failed to fetch generation status:', err);
+            logger.error('[GenerationStatus]', 'Failed to fetch generation status:', err);
             setError(err instanceof Error ? err.message : 'Failed to fetch generation status');
             setData(null);
         } finally {

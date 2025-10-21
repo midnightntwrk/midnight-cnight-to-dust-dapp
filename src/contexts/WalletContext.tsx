@@ -25,8 +25,10 @@ export type SupportedMidnightWallet = 'mnLace';
 export interface GenerationStatusData {
     cardanoStakeKey: string;
     dustAddress: string | null;
-    isRegistered: boolean;
+    registered: boolean;
+    nightBalance: string;
     generationRate: string;
+    currentCapacity: string;
 }
 
 // Types

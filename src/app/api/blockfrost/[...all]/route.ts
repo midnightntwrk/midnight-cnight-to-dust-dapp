@@ -27,94 +27,60 @@ async function handleRequest(request: NextRequest) {
 
     const target = BLOCKFROST_URL;
     const PROJECT_ID = BLOCKFROST_KEY;
-    
-    // Declarar variables que necesitamos en el catch block
+
+    // Declare variables needed in the catch block
     const url = request.nextUrl.clone();
     const pathname = url.pathname;
     const search = url.search;
-    
+
     try {
-        // Validación inicial
+        // Initial validation
         if (!target || !PROJECT_ID) {
             logger.error('🚨 Blockfrost Proxy - Missing configuration:', { target: !!target, PROJECT_ID: !!PROJECT_ID });
             throw new Error(`Invalid target: ${target} or project id ${PROJECT_ID}`);
         }
-        
-        // Extraer la ruta que viene después de /api/blockfrost/
+
+        // Extract the path that comes after /api/blockfrost/
         const blockfrostPath = pathname.replace(/^\/api\/blockfrost/, '');
-        
-        // logger.log('🔄 Blockfrost Proxy Request:', {
-        //     method: request.method,
-        //     originalPath: pathname,
-        //     blockfrostPath,
-        //     search,
-        //     target,
-        //     network: process.env.NEXT_PUBLIC_CARDANO_NET
-        // });
 
-        // Proxy normal a Blockfrost usando fetch nativo
+        // Standard proxy to Blockfrost using native fetch
         const targetUrl = `${target}${blockfrostPath}${search}`;
-        
-        // logger.log('🌐 Proxying to Blockfrost:', {
-        //     targetUrl,
-        //     method: request.method,
-        //     hasBody: request.method !== 'GET' && !!request.body
-        // });
 
-        // Preparar headers
+        // Prepare headers
         const headers = new Headers();
         headers.set('project_id', PROJECT_ID);
-        
-        // Copiar headers relevantes del request original
+
+        // Copy relevant headers from original request
         const contentType = request.headers.get('content-type');
         if (contentType) {
             headers.set('Content-Type', contentType);
         }
-        
-        // Copiar otros headers importantes
+
+        // Copy other important headers
         const userAgent = request.headers.get('user-agent');
         if (userAgent) {
             headers.set('User-Agent', userAgent);
         }
 
-        // logger.log('📤 Request headers:', {
-        //     'Content-Type': headers.get('Content-Type'),
-        //     'project_id': PROJECT_ID.substring(0, 8) + '...', // Solo mostrar primeros 8 chars por seguridad
-        //     'User-Agent': headers.get('User-Agent')?.substring(0, 50) + '...'
-        // });
-
-        // Hacer la petición a Blockfrost
+        // Make the request to Blockfrost
         const fetchResponse = await fetch(targetUrl, {
             method: request.method,
             headers,
             body: request.method !== 'GET' ? request.body : undefined,
         });
 
-        // logger.log('📥 Blockfrost response:', {
-        //     status: fetchResponse.status,
-        //     statusText: fetchResponse.statusText,
-        //     contentType: fetchResponse.headers.get('content-type'),
-        //     contentLength: fetchResponse.headers.get('content-length')
-        // });
-
-        // Crear la respuesta manteniendo headers importantes
+        // Create the response while preserving important headers
         const responseHeaders = new Headers();
-        
-        // Copiar headers importantes de la respuesta
+
+        // Copy important headers from the response
         const importantHeaders = ['content-type', 'content-length', 'cache-control', 'etag'];
+
         importantHeaders.forEach(headerName => {
             const value = fetchResponse.headers.get(headerName);
             if (value) {
                 responseHeaders.set(headerName, value);
             }
         });
-
-        // const duration = Date.now() - startTime;
-        // logger.log('✅ Request completed', { 
-        //     status: fetchResponse.status, 
-        //     duration: `${duration}ms`,
-        //     success: fetchResponse.ok 
-        // });
 
         return new Response(fetchResponse.body, {
             status: fetchResponse.status,
@@ -130,10 +96,10 @@ async function handleRequest(request: NextRequest) {
             pathname: pathname,
             method: request.method
         });
-        
-        return Response.json({ 
+
+        return Response.json({
             error: error instanceof Error ? error.message : String(error),
-            timestamp: new Date().toISOString() 
+            timestamp: new Date().toISOString()
         }, { status: 500 });
     }
 }
