@@ -54,7 +54,7 @@ export default function DustLifecycleChart() {
 
     React.useEffect(() => {
         const interval = setInterval(() => {
-            setPulseOpacity((prev) => (prev === 1 ? 0.3 : 1));
+            setPulseOpacity((prev) => (prev === 1 ? 0.6 : 1));
         }, 800);
         return () => clearInterval(interval);
     }, []);
@@ -122,9 +122,6 @@ export default function DustLifecycleChart() {
         }
     }, [selectedCase, mockedCurrentBalance, generationCap]);
 
-
-
-
     // Chart data
     const data = {
         labels: labels(),
@@ -151,16 +148,92 @@ export default function DustLifecycleChart() {
                 pointRadius: 0,
                 order: 2,
             },
+            // Glow effect layers (rendered behind main line)
+            {
+                label: 'Glow Layer 3',
+                data: chartDataLine(),
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                backgroundColor: 'transparent',
+                borderWidth: 16,
+                tension: 0.1,
+                pointRadius: 0,
+                order: 4,
+            },
+            {
+                label: 'Glow Layer 2',
+                data: chartDataLine(),
+                borderColor: 'rgba(255, 255, 255, 0.2)',
+                backgroundColor: 'transparent',
+                borderWidth: 10,
+                tension: 0.1,
+                pointRadius: 0,
+                order: 3,
+            },
+            {
+                label: 'Glow Layer 1',
+                data: chartDataLine(),
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+                backgroundColor: 'transparent',
+                borderWidth: 6,
+                tension: 0.1,
+                pointRadius: 0,
+                order: 2,
+            },
+            // Main DUST Balance line
             {
                 label: 'DUST Balance',
                 data: chartDataLine(),
                 borderColor: '#ffffff',
                 backgroundColor: 'transparent',
-                borderWidth: 3,
+                borderWidth: 4,
                 tension: 0.1, // Straight lines
                 pointRadius: 0,
                 order: 1,
             },
+            // Current Position Point Glow Layers
+            {
+                label: 'Point Glow Layer 3',
+                data: yourPositionPoint(),
+                borderColor: 'transparent',
+                backgroundColor: `rgba(52, 199, 89, ${pulseOpacity * 0.1})`,
+                pointRadius: selectedCase === 'generating'
+                    ? [0, 18, 0, 0]
+                    : selectedCase === 'capped'
+                    ? [0, 0, 18, 0]
+                    : [0, 0, 0, 0, 18, 0],
+                pointBorderWidth: 0,
+                showLine: false,
+                order: 3,
+            },
+            {
+                label: 'Point Glow Layer 2',
+                data: yourPositionPoint(),
+                borderColor: 'transparent',
+                backgroundColor: `rgba(52, 199, 89, ${pulseOpacity * 0.2})`,
+                pointRadius: selectedCase === 'generating'
+                    ? [0, 12, 0, 0]
+                    : selectedCase === 'capped'
+                    ? [0, 0, 12, 0]
+                    : [0, 0, 0, 0, 12, 0],
+                pointBorderWidth: 0,
+                showLine: false,
+                order: 2,
+            },
+            {
+                label: 'Point Glow Layer 1',
+                data: yourPositionPoint(),
+                borderColor: 'transparent',
+                backgroundColor: `rgba(52, 199, 89, ${pulseOpacity * 0.4})`,
+                pointRadius: selectedCase === 'generating'
+                    ? [0, 8, 0, 0]
+                    : selectedCase === 'capped'
+                    ? [0, 0, 8, 0]
+                    : [0, 0, 0, 0, 8, 0],
+                pointBorderWidth: 0,
+                showLine: false,
+                order: 1,
+            },
+            // Main Current Position Point
             {
                 label: 'Current Position Point',
                 data: yourPositionPoint(),
@@ -193,6 +266,11 @@ export default function DustLifecycleChart() {
                 backgroundColor: 'rgba(0, 0, 0, 0.9)',
                 titleColor: '#ffffff',
                 bodyColor: '#9ca3af',
+                filter: (tooltipItem) => {
+                    // Hide glow layers from tooltip
+                    const label = tooltipItem.dataset.label || '';
+                    return !label.startsWith('Glow Layer') && !label.startsWith('Point Glow Layer');
+                },
                 callbacks: {
                     label: (context) => {
                         const value = context.parsed?.y?.toFixed(2) || '0';
