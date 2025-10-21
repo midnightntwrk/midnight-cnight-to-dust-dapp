@@ -28,8 +28,10 @@ export async function GET(
       const mockGenerationStatus = {
         cardanoStakeKey: stakeKey,
         dustAddress: "mn1qg5ks9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mc",
-        isRegistered: true,
-        generationRate: "2.5"
+        registered: true,
+        nightBalance: "1000000",
+        generationRate: "2.5",
+        currentCapacity: "2500000000000000000",
       };
 
       return NextResponse.json({

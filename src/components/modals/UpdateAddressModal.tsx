@@ -10,11 +10,12 @@ import { useRouter } from 'next/navigation';
 import { bech32m } from 'bech32';
 import ToastContainer from '../ui/ToastContainer';
 import { useToast } from '@/hooks/useToast';
+import { extractCoinPublicKeyFromMidnightAddress } from '@/lib/utils';
 
 interface UpdateAddressModalProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
-    onAddressUpdate: () => Promise<void>;
+    onAddressUpdate: (newAddress: string, newCoinPublicKey: string) => Promise<void>;
 }
 
 export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpdate }: UpdateAddressModalProps) {
@@ -44,8 +45,26 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
 
     const handleChangeAddress = async () => {
         if (!newAddress.trim()) return;
+
+        // Extract coin public key from the new Midnight address
+        const newCoinPublicKey = extractCoinPublicKeyFromMidnightAddress(newAddress.trim());
+
+        if (!newCoinPublicKey) {
+            showToast({
+                message: 'Failed to extract coin public key from address. Please check the address format.',
+                type: 'error'
+            });
+            return;
+        }
+
+        console.log('🔄 Update Address:', {
+            newAddress: newAddress.trim(),
+            extractedCoinPublicKey: newCoinPublicKey,
+            coinPublicKeyLength: newCoinPublicKey.length
+        });
+
         try {
-            await onAddressUpdate();
+            await onAddressUpdate(newAddress.trim(), newCoinPublicKey);
         } catch (error) {
             showToast({
                 message: error instanceof Error ? error.message : 'Failed to update address',

@@ -1,8 +1,47 @@
 import { UTxO } from '@lucid-evolution/lucid';
+import { bech32m } from 'bech32';
 
 // Helper function to convert to JSON for logging
 export const toJson = (obj: object): string => {
     return JSON.stringify(obj, (key, value) => (typeof value === 'bigint' ? value.toString() + 'n' : value), 2);
+};
+
+/**
+ * Extract coin public key from a Midnight shielded address
+ * Midnight shielded addresses are Bech32m-encoded and contain:
+ * - First 32 bytes: coin public key
+ * - Remaining bytes: encryption public key (up to 36 bytes)
+ *
+ * @param address - Midnight shielded address (e.g., mn_shield-addr_test1...)
+ * @returns Coin public key as hex string (64 characters) or null if invalid
+ */
+export const extractCoinPublicKeyFromMidnightAddress = (address: string): string | null => {
+    try {
+        // Decode the Bech32m address
+        const { prefix, words } = bech32m.decode(address, 200);
+
+        // Convert from 5-bit words to 8-bit bytes
+        const data = bech32m.fromWords(words);
+
+        // Extract first 32 bytes as coin public key
+        const coinPublicKeyBytes = data.slice(0, 32);
+
+        // Convert to hex string
+        const coinPublicKeyHex = Buffer.from(coinPublicKeyBytes).toString('hex');
+
+        console.log('🔑 Extracted Coin Public Key:', {
+            address: address,
+            prefix: prefix,
+            dataLength: data.length,
+            coinPublicKeyHex: coinPublicKeyHex,
+            coinPublicKeyLength: coinPublicKeyHex.length
+        });
+
+        return coinPublicKeyHex;
+    } catch (error) {
+        console.error('❌ Failed to extract coin public key from address:', error);
+        return null;
+    }
 };
 
 export function splitTokenLucidKey(key: string): [string, string] {

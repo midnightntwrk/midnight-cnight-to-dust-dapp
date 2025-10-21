@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
   try {
     const graph = new Subgraph(process.env.INDEXER_ENDPOINT!);
-    const generationStatus = await graph.getDustGenerationStatus(["1234567890ABCDEF1234567890ABCDEF"]);
+    const generationStatus = await graph.getDustGenerationStatus(["0x00"]);
     
     return NextResponse.json({
       data: {
