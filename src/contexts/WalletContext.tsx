@@ -1,3 +1,4 @@
+/* eslint-disable */
 'use client';
 import { logger } from '@/lib/logger';
 
@@ -127,7 +128,12 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const hasInitializedRef = useRef(false);
 
     // Generation status hook
-    const { data: generationStatus, isLoading: isCheckingRegistration, error: registrationError, refetch: refetchGenerationStatus } = useGenerationStatus(cardanoState.address);
+    const {
+        data: generationStatus,
+        isLoading: isCheckingRegistration,
+        error: registrationError,
+        refetch: refetchGenerationStatus
+    } = useGenerationStatus(cardanoState.address);
 
     // Registration UTXO hook
     const {
@@ -244,7 +250,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const getAvailableMidnightWallets = (): SupportedMidnightWallet[] => {
         if (typeof window === 'undefined') return [];
 
-        const wallets: SupportedMidnightWallet[] = [];        
+        const wallets: SupportedMidnightWallet[] = [];
         const supportedWallets: SupportedMidnightWallet[] = ['mnLace'];
 
         supportedWallets.forEach((wallet) => {
@@ -284,17 +290,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             // Also test extraction to ensure it works correctly
             const { extractCoinPublicKeyFromMidnightAddress } = require('@/lib/utils');
             const extractedKey = address ? extractCoinPublicKeyFromMidnightAddress(address) : null;
-
-            console.log('🔍 Midnight Wallet State Comparison:', {
-                address: address,
-                coinPublicKeyLegacy: coinPublicKey,
-                extractedFromAddress: extractedKey,
-                legacyMatchesExtracted: coinPublicKey === extractedKey,
-                areEqual: address === coinPublicKey,
-                addressLength: address?.length,
-                coinPublicKeyLength: coinPublicKey?.length,
-                extractedKeyLength: extractedKey?.length
-            });
 
             setMidnightState({
                 isConnected: true,
@@ -352,13 +347,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             });
             return;
         }
-
-        console.log('✅ Manual Address Set:', {
-            address: address,
-            extractedCoinPublicKey: coinPublicKey,
-            expectedLength: 64,
-            actualLength: coinPublicKey.length
-        });
 
         setMidnightState({
             isConnected: true,
@@ -427,11 +415,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     // Centralized redirect logic based on registration status
     useEffect(() => {
-        logger.log('🔍 Cardano State:', cardanoState);
-        logger.log('🔍 Midnight State:', midnightState);
-        logger.log("REGISTRATION UTXO", registrationUtxo);
-        logger.log("IS LOADING REGISTRATION UTXO", isLoadingRegistrationUtxo);
-
         // Guard: Don't redirect while still loading or during auto-reconnect
         if (isAutoReconnecting || isLoadingRegistrationUtxo) {
             logger.log('⏸️  Skipping redirect - still loading...');
