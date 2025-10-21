@@ -99,7 +99,6 @@ export default function Dashboard() {
                 <Accordion
                     variant="splitted"
                     selectionMode="multiple"
-                    // defaultExpandedKeys={["utxo", "lifecycle"]}
                     className='gap-6'
                 >
                     <AccordionItem

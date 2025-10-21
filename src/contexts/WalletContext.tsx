@@ -279,6 +279,22 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             const coinPublicKey = walletState?.coinPublicKeyLegacy || null;
             const balance = 'N/A (Shield address)';
 
+            // Verify if coinPublicKeyLegacy matches the address
+            // Also test extraction to ensure it works correctly
+            const { extractCoinPublicKeyFromMidnightAddress } = require('@/lib/utils');
+            const extractedKey = address ? extractCoinPublicKeyFromMidnightAddress(address) : null;
+
+            console.log('🔍 Midnight Wallet State Comparison:', {
+                address: address,
+                coinPublicKeyLegacy: coinPublicKey,
+                extractedFromAddress: extractedKey,
+                legacyMatchesExtracted: coinPublicKey === extractedKey,
+                areEqual: address === coinPublicKey,
+                addressLength: address?.length,
+                coinPublicKeyLength: coinPublicKey?.length,
+                extractedKeyLength: extractedKey?.length
+            });
+
             setMidnightState({
                 isConnected: true,
                 address,
@@ -317,10 +333,36 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     };
 
     const setManualMidnightAddress = (address: string) => {
+        // Extract coin public key from the Midnight address
+        const { extractCoinPublicKeyFromMidnightAddress } = require('@/lib/utils');
+        const coinPublicKey = extractCoinPublicKeyFromMidnightAddress(address);
+
+        if (!coinPublicKey) {
+            logger.error('[Wallet]', 'Failed to extract coin public key from manual address');
+            setMidnightState({
+                isConnected: false,
+                address: null,
+                coinPublicKey: null,
+                balance: null,
+                walletName: null,
+                api: null,
+                isLoading: false,
+                error: 'Invalid Midnight address format',
+            });
+            return;
+        }
+
+        console.log('✅ Manual Address Set:', {
+            address: address,
+            extractedCoinPublicKey: coinPublicKey,
+            expectedLength: 64,
+            actualLength: coinPublicKey.length
+        });
+
         setMidnightState({
             isConnected: true,
             address: address,
-            coinPublicKey: address, // For DUST protocol, use the address as coinPublicKey
+            coinPublicKey: coinPublicKey, // Use extracted coin public key
             balance: 'Manual Address',
             walletName: 'Manual',
             api: null,

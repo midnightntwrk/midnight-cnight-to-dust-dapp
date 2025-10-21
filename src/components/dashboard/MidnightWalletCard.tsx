@@ -334,7 +334,11 @@ const MidnightWalletCard = () => {
             <ToastContainer toasts={toasts} onRemove={removeToast} />
 
             {/* Modals */}
-            <UpdateAddressModal isOpen={isUpdateModalOpen} onOpenChange={handleUpdateModalOpenChange} onAddressUpdate={handleUpdateAddress} />
+            <UpdateAddressModal
+                isOpen={isUpdateModalOpen}
+                onOpenChange={handleUpdateModalOpenChange}
+                onAddressUpdate={handleUpdateAddress}
+            />
 
             <StopGenerationModal
                 isOpen={isStopModalOpen}

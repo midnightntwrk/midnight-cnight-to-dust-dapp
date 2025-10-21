@@ -8,10 +8,19 @@ The registration process creates an on-chain mapping between a user's Cardano ad
 
 Before registration can begin, the following conditions must be met:
 
-- Both Cardano and Midnight wallets connected
+- Both Cardano and Midnight wallets connected (or manual Midnight address entry)
 - Minimum 2.5 ADA balance in Cardano wallet (covers fees and UTXO requirements)
 - DUST protocol contracts deployed and initialized on-chain
 - No other transaction currently executing
+
+### Midnight Wallet Connection Options
+
+Users can provide their Midnight address through two methods:
+
+1. **Wallet Connection** (Recommended): Connect a Midnight wallet extension which provides both the address and coin public key through the wallet API
+2. **Manual Address Entry**: Paste a Midnight shielded address directly into the input field
+
+Both methods produce identical registration results because the coin public key is cryptographically extracted from the address when entered manually.
 
 ## Entry Point
 
@@ -29,7 +38,54 @@ The `handleMatchAddresses` function performs three critical validations:
 
 1. **Cardano wallet connection**: Verifies `cardano.lucid` instance exists for transaction building
 2. **Protocol readiness**: Confirms DUST protocol contracts are deployed via `protocolStatus.isReady`
-3. **Midnight wallet**: Ensures `midnight.coinPublicKey` is available
+3. **Midnight coin public key**: Ensures `midnight.coinPublicKey` is available
+
+The `midnight.coinPublicKey` value is obtained through one of two methods:
+
+### Wallet Connection Method
+
+When a user connects a Midnight wallet extension:
+
+**Location**: `src/contexts/WalletContext.tsx:278-279`
+
+```typescript
+const address = walletState?.address || null;
+const coinPublicKey = walletState?.coinPublicKeyLegacy || null;
+```
+
+The wallet API provides:
+- `address`: Full Midnight shielded address (132 characters, bech32m encoded)
+- `coinPublicKeyLegacy`: 64-character hex string representing the coin public key
+
+### Manual Address Entry Method
+
+When a user manually enters a Midnight address:
+
+**Location**: `src/contexts/WalletContext.tsx:328-365`
+
+The coin public key is extracted from the address using bech32m decoding:
+
+**Location**: `src/lib/utils.ts:extractCoinPublicKeyFromMidnightAddress()`
+
+```typescript
+// Decode the Bech32m address
+const { prefix, words } = bech32m.decode(address, 200);
+
+// Convert from 5-bit words to 8-bit bytes
+const data = bech32m.fromWords(words);
+
+// Extract first 32 bytes as coin public key
+const coinPublicKeyBytes = data.slice(0, 32);
+
+// Convert to hex string (64 characters)
+const coinPublicKeyHex = Buffer.from(coinPublicKeyBytes).toString('hex');
+```
+
+Midnight shielded addresses are structured as:
+- First 32 bytes: Coin public key
+- Remaining bytes: Encryption public key (up to 36 bytes)
+
+Both methods produce identical 64-character hex coin public keys, ensuring consistent registration behavior regardless of input method.
 
 If any validation fails, the process terminates with an appropriate error message.
 
@@ -350,5 +406,60 @@ Datum (inline):
     Field 0: Cardano payment key hash (28 bytes hex string)
     Field 1: Midnight coin public key (hex-encoded bytes)
 ```
+
+### Datum Field Details
+
+**Field 0: Cardano Payment Key Hash**
+
+Extracted from the connected Cardano wallet address:
+
+**Location**: `src/lib/dustTransactionsUtils.ts:68-69`
+
+```typescript
+const cardanoAddress = await lucid.wallet().address();
+const cardanoPKH = getAddressDetails(cardanoAddress)?.paymentCredential?.hash;
+```
+
+Value: 28-byte hex string (56 characters) representing the payment credential hash.
+
+**Field 1: Midnight Coin Public Key**
+
+The Midnight coin public key is encoded as UTF-8 bytes and then converted to hex:
+
+**Location**: `src/lib/dustTransactionsUtils.ts:130-133`
+
+```typescript
+const registrationDatumData = new Constr(0, [
+    cardanoPKH!,
+    toHex(new TextEncoder().encode(dustPKH)), // dustPKH is the coin public key
+]);
+```
+
+The encoding process:
+1. Take coin public key: `"99934362fefa4068d10966e934e9f66003b3c6e2648df3b3f7794adeb8a10a45"` (64 hex chars)
+2. Encode as UTF-8 bytes: `TextEncoder().encode()` converts the string to byte array
+3. Convert to hex: `toHex()` creates hex representation of those bytes
+
+**Important**: Both wallet connection and manual address entry produce the **same coin public key value** (64-character hex string), ensuring identical on-chain datums regardless of input method.
+
+### UTXO Lookup and Matching
+
+When searching for a user's registration UTXO, the process reverses the encoding:
+
+**Location**: `src/hooks/useRegistrationUtxo.ts:199-204`
+
+```typescript
+const datumData = Data.from(utxo.inline_datum);
+const [datumCardanoPKH, dustPKHBytes] = datumData.fields;
+
+// Reverse the encoding: hex bytes → UTF-8 string
+const dustPKHFromDatum = new TextDecoder().decode(
+    new Uint8Array(dustPKHBytes.match(/.{2}/g).map(byte => parseInt(byte, 16)))
+);
+```
+
+The UTXO is matched when both fields match the user's credentials:
+- `datumCardanoPKH === cardanoPKH` (Cardano payment key hash matches)
+- `dustPKHFromDatum === dustPKH` (Midnight coin public key matches)
 
 This UTXO serves as the on-chain proof of registration and enables the Midnight network to generate DUST tokens for the registered Cardano address.
