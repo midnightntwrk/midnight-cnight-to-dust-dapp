@@ -1,54 +1,29 @@
 # Midnight NIGHT to DUST DApp
 
-A sophisticated cross-chain decentralized application that enables seamless generation of DUST tokens on the Midnight network based on cNIGHT token holdings on Cardano.
+A cross-chain decentralized application that enables DUST token generation on the Midnight network based on cNIGHT token holdings on Cardano. The application creates an on-chain mapping between Cardano addresses and Midnight addresses through smart contract transactions.
 
-## Architecture
+## What It Does
 
-### Technology Stack
-- **Frontend**: Next.js 15 with App Router and Turbopack
-- **UI Framework**: HeroUI with Tailwind CSS 4.x
-- **Type Safety**: TypeScript throughout the application
-- **Blockchain Integration**:
-  - Cardano: Lucid Evolution for transaction building
-  - Midnight: Midnight SDK with shielded address support
-- **State Management**: React Context for wallet and registration status
-- **API Integration**: GraphQL subgraph integration with REST endpoints
+The dApp allows users to:
 
-### Dual-Wallet System
-The application manages two distinct wallet ecosystems:
+1. **Register** a mapping between their Cardano wallet address (holding cNIGHT tokens) and their Midnight wallet address
+2. **Generate DUST tokens** on Midnight based on their registered cNIGHT holdings on Cardano
+3. **Update** their registered Midnight address while maintaining the same Cardano address registration
+4. **Deregister** their address mapping to permanently stop DUST token generation
 
-#### Cardano Wallets
-- **Supported**: Nami, Eternl, Lace, Flint, Typhon, Nufi, Gero, CCVault
-- **Purpose**: cNIGHT token holdings and transaction signing
-- **Network**: Cardano Preview testnet with Blockfrost API
-- **Features**: UTXO management, balance calculation, auto-reconnection
+The system uses 8 Plutus smart contracts deployed on Cardano to manage registration UTXOs containing address mappings and authentication tokens.
 
-#### Midnight Wallets
-- **Supported**: mnLace (Midnight Lace extension)
-- **Purpose**: DUST token generation and privacy operations
-- **Features**: Shielded addresses, privacy-preserving transactions
-- **Integration**: Client-side balance calculations, manual address input support
-
-### Smart Registration Flow
-```mermaid
-graph TD
-    A[User Connects Cardano] --> B[Check Registration Status]
-    B --> C{Is Registered?}
-    C -->|Yes| D[Redirect to Dashboard]
-    C -->|No| E[Continue Onboarding]
-    E --> F[Connect Midnight Wallet]
-    F --> G[Register Address Mapping]
-    G --> H[Redirect to Dashboard]
-```
-
-## Development
+## Quick Start
 
 ### Prerequisites
-- Node.js 18+
-- Yarn 1.22.22 (specified in packageManager)
-- Git
 
-### Installation
+- Node.js 18+
+- Yarn 1.22.22
+- Cardano wallet (Nami, Eternl, Lace, etc.)
+- Midnight wallet (mnLace) or Midnight address
+
+### Installation and Execution
+
 ```bash
 # Clone the repository
 git clone <repository-url>
@@ -57,166 +32,225 @@ cd midnight-cnight-to-dust-dapp
 # Install dependencies
 yarn install
 
+# Configure environment variables
+cp .env.local.example .env.local
+# Edit .env.local with your Blockfrost API keys and network settings
+
 # Start development server
 yarn dev
 
 # Build for production
 yarn build
 
-# Run linter
-yarn lint
+# Start production server
+yarn start
 ```
 
-### Environment Setup
-```bash
-# Copy environment template
-cp .env.example .env.local
+The application runs on `http://localhost:3000` by default.
 
-# Configure required variables in .env.local
+### Environment Configuration
+
+Required environment variables in `.env.local`:
+
+```bash
+# Network Selection
 NEXT_PUBLIC_CARDANO_NET="Preview"
 
-# Blockfrost API configuration
-BLOCKFROST_KEY_MAINNET=your_mainnet_key
-BLOCKFROST_KEY_PREVIEW=your_preview_key
-BLOCKFROST_KEY_PREPROD=your_preprod_key
+# Blockfrost API Keys (server-side only)
+BLOCKFROST_KEY_MAINNET=""
+BLOCKFROST_KEY_PREVIEW="your_preview_key_here"
+BLOCKFROST_KEY_PREPROD=""
 
-# Simulation mode (for development/testing)
-SIMULATION_MODE=true
-NEXT_PUBLIC_SIMULATION_MODE=true
+# cNIGHT Token Configuration
+NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_POLICY_ID="fb3cec684bc96575f4ba6ed7f11b1547114d7af41a9f38e552bcfbd2"
+NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME=""
 
-# Server configuration
+# Server Configuration
 NEXT_PUBLIC_REACT_SERVER_BASEURL="http://localhost"
 NEXT_PUBLIC_REACT_SERVER_URL="$NEXT_PUBLIC_REACT_SERVER_BASEURL:3000"
-NEXT_PUBLIC_REACT_SERVER_API_URL="$NEXT_PUBLIC_REACT_SERVER_URL/api"
 
-# cNIGHT token configuration
-NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_POLICY_ID="fb3cec684bc96575f4ba6ed7f11b1547114d7af41a9f38e552bcfbd2"
+# Optional: Simulation Mode (for development without indexer)
+SIMULATION_MODE=false
+NEXT_PUBLIC_SIMULATION_MODE=false
 ```
 
-### Simulation Mode
-The application includes a simulation mode for development and testing without requiring a live indexer:
+## Transaction Processes
 
-```bash
-# Enable simulation mode in .env.local
-SIMULATION_MODE=true
-NEXT_PUBLIC_SIMULATION_MODE=true
-```
+The application supports three main transaction types for managing address mappings:
 
-When simulation mode is enabled:
-- **API Endpoints**: `/api/dust/generation-status/[key]` returns mock data instead of querying the real indexer
-- **Mock Response**: Provides realistic test data including stake key, dust address, registration status, and generation rate
-- **Development Benefits**: Allows UI/UX testing without backend dependencies
-- **QA Testing**: Enables consistent test scenarios for quality assurance
+### Registration Process
 
-**Mock Data Structure**:
+Creates a new on-chain mapping between a Cardano address and a Midnight address.
+
+**Key Steps:**
+1. Connect Cardano wallet
+2. Connect Midnight wallet or enter Midnight address manually
+3. Execute registration transaction (mints authentication token, creates registration UTXO)
+4. Poll for transaction confirmation and UTXO indexing
+5. Automatic redirect to dashboard
+
+**Transaction Structure:**
+- Mints: 2 authentication tokens (minting policy + named token)
+- Output: Registration UTXO with 1.586080 ADA, auth token, and inline datum containing address mapping
+- On-chain result: UTXO at DUST Mapping Validator address proving registration
+
+See [**REGISTRATION.md**](./docs/REGISTRATION.md) for complete technical details.
+
+### Update Process
+
+Modifies the Midnight address in an existing registration while keeping the Cardano address unchanged.
+
+**Key Steps:**
+1. Enter new Midnight address in dashboard
+2. Execute update transaction (consumes old UTXO, creates new one)
+3. Poll for confirmation and new UTXO
+4. Dashboard updates with new address
+
+**Transaction Structure:**
+- Consumes: Existing registration UTXO
+- Mints: 1 spend policy token (Constructor 1 = Update)
+- Output: New registration UTXO with updated datum (same auth token preserved)
+- On-chain result: Updated UTXO with new Midnight address
+
+See [**UPDATE.md**](./docs/UPDATE.md) for complete technical details.
+
+### Deregistration Process
+
+Permanently removes the address mapping and stops DUST generation.
+
+**Key Steps:**
+1. Click "Stop Generation" in dashboard
+2. Confirm deregistration warning
+3. Execute deregistration transaction (consumes UTXO, burns auth token)
+4. Automatic wallet disconnect and redirect to home
+
+**Transaction Structure:**
+- Consumes: Registration UTXO
+- Mints: 2 tokens (burning policy + spend policy Constructor 0 = Deregister)
+- Burns: -1 auth token (negative mint)
+- Outputs: None (UTXO fully consumed, ADA returned as change)
+- On-chain result: No UTXO exists, registration completely removed
+
+See [**DEREGISTRATION.md**](./docs/DEREGISTRATION.md) for complete technical details.
+
+## API Integration
+
+The application provides three API routes for blockchain interaction and registration status queries.
+
+### Blockfrost Proxy
+
+**Endpoint:** `/api/blockfrost/*`
+
+Server-side proxy that forwards requests to Blockfrost API while keeping API keys secure. Supports all HTTP methods and streams responses for optimal performance.
+
+**Purpose:**
+- Hide Blockfrost API keys from client-side code
+- Enable client-side Lucid transaction building
+- Query blockchain data for UTXO searches and transaction confirmation
+
+### DUST Generation Status API
+
+**Endpoints:**
+- `GET /api/dust/generation-status/[key]` - Query single stake key
+- `GET /api/dust/generation-status` - Query multiple stake keys (batch)
+
+GraphQL-based API for querying registration status from the Midnight Indexer.
+
+**Response Format:**
 ```json
 {
   "success": true,
   "data": [{
-    "cardanoStakeKey": "provided_stake_key",
-    "dustAddress": "mn1qg5ks9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mc",
-    "isRegistered": true,
-    "generationRate": "2.5"
+    "cardanoStakeKey": "stake1...",
+    "dustAddress": "mn1q...",
+    "registered": true,
+    "nightBalance": "1000000",
+    "generationRate": "8267000000",
+    "currentCapacity": "2500000000000000000"
   }]
 }
 ```
 
-When disabled (`SIMULATION_MODE=false`), the application queries the real GraphQL indexer endpoint for live data.
+**Simulation Mode:**
+
+For development without live indexer infrastructure, enable simulation mode to return mock data:
+
+```bash
+SIMULATION_MODE=true
+NEXT_PUBLIC_SIMULATION_MODE=true
+```
+
+### Migration Strategy
+
+The application currently uses Blockfrost for UTXO searches and transaction confirmation. The indexer API integration is prepared but not yet active, pending indexer deployment. Once ready, the system will switch to faster indexer-based registration status queries.
+
+See [**API.md**](./docs/API.md) for complete API documentation, error handling, security considerations, and migration plans.
 
 ## Smart Contract Integration
 
-The application integrates with the MIDNIGHT DUST smart contract system on Cardano, enabling users to link their Cardano wallets with Midnight addresses for DUST token generation. The system consists of 8 parameterized smart contracts that handle registration, versioning, and governance.
+The application integrates with 8 Plutus smart contracts deployed on Cardano that manage the DUST generation system.
 
-**Key Features:**
-- **Dual-Chain Architecture**: Links Cardano wallet addresses to Midnight addresses
-- **Parameterized Contracts**: Genesis UTxO ensures deployment uniqueness
-- **User Registration**: Secure wallet-to-address mapping with auth tokens
-- **Governance System**: Multi-signature governance for system upgrades
-- **Version Oracle**: Upgradeable contract logic with versioning support
+### Contract System Overview
 
-For complete smart contract integration details, transaction structures, and deployment steps, see the [**DAPP Integration Guide**](./DAPP_INTEGRATION_GUIDE.md).
+1. **Version Oracle Validator** - Stores reference scripts for other contracts
+2. **DUST Mapping Validator** - Holds registration UTXOs with address mappings
+3. **DUST Auth Token Minting Policy** - Mints initial auth token during registration
+4. **DUST Auth Token Policy** - Main authentication token policy
+5. **DUST Auth Token Burning Policy** - Enables auth token burning during deregistration
+6. **DUST Mapping Validator Spend Policy** - Controls spending from mapping validator
+7. **Versioning Policy** - Manages contract version upgrades
+8. **Multi-Sig Governance Policy** - Governance for system administration
 
-## API Integration
+### Key Features
 
-### GraphQL Subgraph
-The application integrates with a GraphQL subgraph for registration status queries:
+- **Parameterized Contracts:** All contracts reference a genesis UTXO to ensure deployment uniqueness
+- **Version Oracle Pattern:** Upgradeable contract logic using reference scripts stored in version oracle UTXOs
+- **Authentication Tokens:** Each registration mints a unique auth token proving ownership
+- **Reference Scripts:** Contracts use reference inputs to reduce transaction size and costs
 
-```graphql
-query GetDustGenerationStatus($cardanoStakeKeys: [String!]!) {
-  dustGenerationStatus(cardanoStakeKeys: $cardanoStakeKeys) {
-    cardanoStakeKey
-    dustAddress
-    isRegistered
-    generationRate
-  }
-}
+### Integration Approach
+
+The dApp loads contract bytecode from the `/public` directory, parses addresses and policy IDs, and uses Lucid Evolution to build transactions that interact with the smart contracts. The `DustProtocolContext` manages contract loading and provides a registry to transaction builders.
+
+See [**DAPP_INTEGRATION_GUIDE.md**](./DAPP_INTEGRATION_GUIDE.md) for complete smart contract specifications, deployment procedures, transaction structures, and integration patterns.
+
+## Technology Stack
+
+- **Framework:** Next.js 15 with App Router and Turbopack
+- **UI:** HeroUI component library with Tailwind CSS 4.x
+- **Type Safety:** TypeScript with strict mode
+- **Blockchain:**
+  - Cardano: Lucid Evolution v0.4.29 for transaction building
+  - Midnight: Wallet API v5.0.0 for shielded address support
+- **State Management:** React Context API
+- **Data Fetching:** GraphQL via graphql-request, REST endpoints
+
+## Development Guidelines
+
+### Project Structure
+
+```
+src/
+├── app/              # Next.js App Router pages
+├── components/       # React components (onboard, dashboard, modals, ui)
+├── contexts/         # React Context providers (wallet, protocol, transaction)
+├── hooks/            # Custom hooks (useToast, useGenerationStatus, useRegistrationUtxo)
+├── lib/              # Utilities (transaction builders, contract utils, logger)
+├── config/           # Configuration (network, protocol parameters, contracts)
+└── types/            # TypeScript type definitions
 ```
 
-### REST Endpoints
-- `GET /api/dust/generation-status/[key]` - Query specific stake key status
+### Commands
 
-## Design System
-
-### Custom Theme
-The application uses a custom theme built on Tailwind CSS 4.x:
-
-```css
-@theme {
-  --color-brand-primary: #0000FE;
-  --color-brand-primary-hover: #0000CC;
-}
+```bash
+yarn dev      # Start development server with Turbopack
+yarn build    # Build production application
+yarn start    # Start production server
+yarn lint     # Run ESLint
 ```
-
-Usage:
-```jsx
-<Button className="bg-brand-primary hover:bg-brand-primary-hover">
-  Primary Action
-</Button>
-```
-
-### Component Architecture
-- **Reusable UI Components**: Toast notifications, loading backdrops, wallet cards
-- **Context Providers**: Centralized wallet state and registration status management
-- **Custom Hooks**: `useGenerationStatus`, `useToast` for business logic encapsulation
-
-## Security & Privacy
-
-### Privacy Considerations
-- **Shielded Addresses**: Midnight integration uses privacy-preserving shielded addresses
-- **Client-Side Operations**: Sensitive calculations performed client-side
-- **No Server Storage**: No sensitive data stored on application servers
-- **Wallet Security**: Standard CIP-30 and Midnight wallet security practices
-
-### Network Configuration
-- **Cardano**: Preview testnet for development and testing
-- **Midnight**: Testnet integration with privacy features
-- **WebAssembly**: Configured for cryptographic operations
-
-## User Flows
-
-### Registration Flow
-1. **Landing Page**: User views application overview
-2. **Cardano Connection**: Connect CIP-30 compatible wallet
-3. **Registration Check**: Automatic query for existing registration
-4. **Midnight Setup**: Connect Midnight wallet or input address manually
-5. **Address Mapping**: Register mapping via smart contract
-6. **Dashboard Access**: View generation status and manage settings
-
-### Dashboard Features
-- **Wallet Cards**: Display connected wallet information with copy functionality
-- **Generation Metrics**: Real-time DUST generation rates and totals
-- **Address Management**: Update or disconnect wallet connections
-- **Action Buttons**: Change addresses, stop generation, manage settings
-
-## Contributing
-
-### Development Guidelines
-- **Code Style**: ESLint with Next.js configuration
-- **Type Safety**: Strict TypeScript enforcement
-- **Component Structure**: Follow established patterns in `/src/components`
-- **State Management**: Use provided contexts for wallet and registration state
 
 ### Commit Convention
+
 - `feat:` New features
 - `fix:` Bug fixes
 - `docs:` Documentation updates
@@ -224,8 +258,17 @@ Usage:
 - `refactor:` Code refactoring
 - `test:` Test additions or updates
 
+## Additional Documentation
+
+- **[CLAUDE.md](./CLAUDE.md)** - AI assistant guidance with deep architecture details and implementation specifics
+- **[Tech-spec.md](./docs/Tech-spec.md)** - Functional and technical specifications with user workflows
+- **[REGISTRATION.md](./docs/REGISTRATION.md)** - Complete registration process documentation
+- **[UPDATE.md](./docs/UPDATE.md)** - Address update process documentation
+- **[DEREGISTRATION.md](./docs/DEREGISTRATION.md)** - Deregistration process documentation
+- **[API.md](./docs/API.md)** - API routes documentation with examples
+- **[DAPP_INTEGRATION_GUIDE.md](./DAPP_INTEGRATION_GUIDE.md)** - Smart contract integration guide
+
 ---
 
-**Status**: 🚧 Active Development
-
-This application is under continuous development with regular updates and improvements.
+**Network:** Cardano Preview Testnet
+**Status:** Active Development
