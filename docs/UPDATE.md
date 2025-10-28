@@ -21,7 +21,6 @@ User clicks "CHANGE ADDRESS" button in the dashboard's Midnight Wallet Card.
 **Location**: `src/components/dashboard/MidnightWalletCard.tsx:276-295`
 
 The button is disabled if:
-- Protocol is not ready (`!protocolStatus?.isReady`)
 - Registration UTXO is still loading
 - No registration UTXO found
 - Another transaction is currently running

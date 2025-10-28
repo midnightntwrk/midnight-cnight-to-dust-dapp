@@ -21,7 +21,6 @@ User clicks "STOP GENERATION" button in the dashboard's Midnight Wallet Card.
 **Location**: `src/components/dashboard/MidnightWalletCard.tsx:315`
 
 The button is disabled if:
-- Protocol is not ready (`!protocolStatus?.isReady`)
 - Registration UTXO is still loading
 - No registration UTXO found
 - Another transaction is currently running

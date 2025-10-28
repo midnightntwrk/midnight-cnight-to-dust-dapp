@@ -28,7 +28,7 @@ User clicks "MATCH ADDRESSES" button in the onboarding interface.
 
 **Location**: `src/components/onboard/MatchAddressesCard.tsx`
 
-The button is disabled until all prerequisites are satisfied. UI validation checks protocol readiness, balance requirements, and transaction state before allowing interaction.
+The button is disabled until all prerequisites are satisfied. UI validation checks balance requirements and transaction state before allowing interaction.
 
 ## Step 1: Validation
 
