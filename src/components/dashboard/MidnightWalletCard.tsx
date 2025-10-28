@@ -12,7 +12,6 @@ import { useWalletContext } from '@/contexts/WalletContext';
 import ToastContainer from '../ui/ToastContainer';
 import { useToast } from '@/hooks/useToast';
 import { useTransaction } from '@/contexts/TransactionContext';
-// import { useDustProtocol } from '@/contexts/DustProtocolContext';
 import { LucidEvolution } from '@lucid-evolution/lucid';
 import DustTransactionsUtils from '@/lib/dustTransactionsUtils';
 import UpdateAddressModal from '../modals/UpdateAddressModal';
@@ -45,9 +44,6 @@ const MidnightWalletCard = () => {
         updateMidnightAddress
     } = useWalletContext();
 
-    // Use DUST protocol context
-    // TODO: deleted
-    // const { contracts, isContractsLoaded, isContractsLoading, contractsError } = useDustProtocol();
 
     const [isDisconnecting, setIsDisconnecting] = useState(false);
 
@@ -88,14 +84,6 @@ const MidnightWalletCard = () => {
             logger.error('❌ Cardano wallet not connected');
             return;
         }
-
-        // Check if Dust Smart Contract are loaded
-        // TODO: deleted
-        // if (!isContractsLoaded) {
-        //     logger.error('❌ Dust Smart Contract not loaded');
-        //     transaction.setError('Dust Smart Contract is not loaded. Please load the contracts first.');
-        //     return;
-        // }
 
         // Get DUST PKH from midnight wallet
         const dustPKHValue = midnight.coinPublicKey;
@@ -150,14 +138,6 @@ const MidnightWalletCard = () => {
             logger.error('❌ Cardano wallet not connected');
             return;
         }
-
-        // Check if Dust Smart Contract are loaded
-        // TODO: deleted
-        // if (!isContractsLoaded) {
-        //     logger.error('❌ Dust Smart Contract not loaded');
-        //     transaction.setError('Dust Smart Contract is not loaded. Please load the contracts first.');
-        //     return;
-        // }
 
         // Use the new coin public key passed from the modal
         if (!newCoinPublicKey) {

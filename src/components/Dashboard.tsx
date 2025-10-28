@@ -1,32 +1,21 @@
 'use client';
 
+import InfoIcon from '@/assets/icons/info.svg';
 import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/contexts/WalletContext';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { Accordion, AccordionItem, Tooltip } from '@heroui/react';
 import Image from 'next/image';
-import InfoIcon from '@/assets/icons/info.svg';
+import { useState } from 'react';
 import CardanoWalletCard from './dashboard/CardanoWalletCard';
+import DustLifecycleChart from './dashboard/DustLifecycleChart';
 import GenerationRateCard from './dashboard/GenerationRateCard';
 import MidnightWalletCard from './dashboard/MidnightWalletCard';
 import RegistrationUtxoCard from './dashboard/RegistrationUtxoCard';
-import DustLifecycleChart from './dashboard/DustLifecycleChart';
-import WalletsModal from './wallet-connect/WalletsModal';
 import LoadingBackdrop from './ui/LoadingBackdrop';
+import WalletsModal from './wallet-connect/WalletsModal';
 
 export default function Dashboard() {
-    // const router = useRouter();
-    const {
-        cardano,
-        isAutoReconnecting,
-        connectCardanoWallet,
-        connectMidnightWallet,
-        getAvailableCardanoWallets,
-        getAvailableMidnightWallets,
-        // midnight,
-        // registrationUtxo,
-        isLoadingRegistrationUtxo,
-    } = useWalletContext();
+    const { cardano, isAutoReconnecting, connectCardanoWallet, connectMidnightWallet, getAvailableCardanoWallets, getAvailableMidnightWallets, isLoadingRegistrationUtxo } =
+        useWalletContext();
 
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
     const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);
@@ -41,11 +30,7 @@ export default function Dashboard() {
     if (isAutoReconnecting) {
         return (
             <div className="max-w-6xl mx-auto p-6">
-                <LoadingBackdrop
-                    isVisible={true}
-                    title="Connecting to saved wallets..."
-                    subtitle="Please wait while we restore your wallet connections"
-                />
+                <LoadingBackdrop isVisible={true} title="Connecting to saved wallets..." subtitle="Please wait while we restore your wallet connections" />
             </div>
         );
     }
@@ -53,11 +38,7 @@ export default function Dashboard() {
     if (isLoadingRegistrationUtxo) {
         return (
             <div className="max-w-6xl mx-auto p-6">
-                <LoadingBackdrop
-                    isVisible={true}
-                    title="Loading registration UTXO..."
-                    subtitle="Please wait while we load your registration UTXO"
-                />
+                <LoadingBackdrop isVisible={true} title="Loading registration UTXO..." subtitle="Please wait while we load your registration UTXO" />
             </div>
         );
     }
@@ -96,33 +77,29 @@ export default function Dashboard() {
 
             {/* Accordion for Registration UTXO and DUST Lifecycle Chart */}
             <div className="mt-6">
-                <Accordion
-                    variant="splitted"
-                    selectionMode="multiple"
-                    className='gap-6'
-                >
+                <Accordion variant="splitted" selectionMode="multiple" className="gap-6">
                     <AccordionItem
                         key="utxo"
                         aria-label="Registration UTXO Details"
                         title={
                             <div className="flex flex-row gap-2 items-center">
-                                <span className='text-[18px] font-normal'>Registration UTXO Details</span>
+                                <span className="text-[18px] font-normal">Registration UTXO Details</span>
                                 <Tooltip
                                     content="On-chain proof of your Cardano-Midnight address registration"
                                     placement="top"
                                     classNames={{
-                                        content: "bg-gray-800 text-white text-sm px-2 py-1"
+                                        content: 'bg-gray-800 text-white text-sm px-2 py-1',
                                     }}
                                 >
-                                    <Image src={InfoIcon} alt='info' width={24} height={24} className="cursor-pointer" />
+                                    <Image src={InfoIcon} alt="info" width={24} height={24} className="cursor-pointer" />
                                 </Tooltip>
                             </div>
                         }
                         classNames={{
-                            base: "bg-[#70707035]",
-                            title: "text-white",
-                            trigger: "py-4 px-6",
-                            content: "pb-6 px-6",
+                            base: 'bg-[#70707035]',
+                            title: 'text-white',
+                            trigger: 'py-4 px-6',
+                            content: 'pb-6 px-6',
                         }}
                     >
                         <RegistrationUtxoCard />
@@ -133,23 +110,23 @@ export default function Dashboard() {
                         aria-label="DUST Generation Lifecycle"
                         title={
                             <div className="flex flex-row gap-2 items-center">
-                                <span className='text-[18px] font-normal'>DUST Generation Lifecycle</span>
+                                <span className="text-[18px] font-normal">DUST Generation Lifecycle</span>
                                 <Tooltip
                                     content="Visual representation of your DUST generation progress over time"
                                     placement="top"
                                     classNames={{
-                                        content: "bg-gray-800 text-white text-sm px-2 py-1"
+                                        content: 'bg-gray-800 text-white text-sm px-2 py-1',
                                     }}
                                 >
-                                    <Image src={InfoIcon} alt='info' width={24} height={24} className="cursor-pointer" />
+                                    <Image src={InfoIcon} alt="info" width={24} height={24} className="cursor-pointer" />
                                 </Tooltip>
                             </div>
                         }
                         classNames={{
-                            base: "bg-[#70707035]",
-                            title: "text-white",
-                            trigger: "py-4 px-6",
-                            content: "pb-6 px-6",
+                            base: 'bg-[#70707035]',
+                            title: 'text-white',
+                            trigger: 'py-4 px-6',
+                            content: 'pb-6 px-6',
                         }}
                     >
                         <DustLifecycleChart />
@@ -158,12 +135,7 @@ export default function Dashboard() {
             </div>
 
             {/* Wallet Selection Modals */}
-            <WalletsModal
-                isOpen={isCardanoModalOpen}
-                onOpenChange={setIsCardanoModalOpen}
-                wallets={getAvailableCardanoWallets()}
-                handleWalletSelect={handleCardanoWalletSelect}
-            />
+            <WalletsModal isOpen={isCardanoModalOpen} onOpenChange={setIsCardanoModalOpen} wallets={getAvailableCardanoWallets()} handleWalletSelect={handleCardanoWalletSelect} />
 
             <WalletsModal
                 isOpen={isMidnightModalOpen}

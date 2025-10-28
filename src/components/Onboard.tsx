@@ -1,7 +1,5 @@
 'use client';
 import { logger } from '@/lib/logger';
-
-// import { useDustProtocol } from '@/contexts/DustProtocolContext';
 import { useTransaction } from '@/contexts/TransactionContext';
 import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/contexts/WalletContext';
 import { DustTransactionsUtils } from '@/lib/dustTransactionsUtils';
@@ -32,10 +30,6 @@ export default function Onboard() {
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
     const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);
 
-    // // Use DUST protocol context
-    // TODO: deleted
-    // const { contracts, isContractsLoaded } = useDustProtocol();
-
     // Transaction management
     const transaction = useTransaction();
 
@@ -61,14 +55,6 @@ export default function Onboard() {
             logger.error('❌ Cardano wallet not connected');
             return;
         }
-
-        // // Check if dust protocol is ready first
-        // TODO: deleted
-        // if (!isContractsLoaded) {
-        //     logger.error('❌ Dust Smart Contract not loaded');
-        //     transaction.setError('Dust Smart Contract is not loaded. Please load the contracts first.');
-        //     return;
-        // }
 
         // Get DUST PKH from midnight wallet
         const dustPKHValue = midnight.coinPublicKey;

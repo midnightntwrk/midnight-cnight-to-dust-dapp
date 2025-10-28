@@ -8,7 +8,7 @@ import CheckIcon from '@/assets/icons/check.svg';
 import InfoIcon from '@/assets/icons/info.svg';
 import { useTransaction } from '@/contexts/TransactionContext';
 // import { useDustProtocol } from '@/contexts/DustProtocolContext';
-import { hasMinimumBalance, MIN_ADA_FOR_REGISTRATION } from '@/config/transactionLimits';
+import { hasMinimumBalance, MIN_ADA_FOR_REGISTRATION } from '@/config/transactionConstants';
 
 interface MatchAddressesCardProps {
     // Cardano wallet info
