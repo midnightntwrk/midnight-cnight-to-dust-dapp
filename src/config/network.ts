@@ -165,14 +165,16 @@ const initializeLucidWithBlockfrostClientSide = async () => {
 
 export const CARDANO_NET = process.env.NEXT_PUBLIC_CARDANO_NET!;
 
-export const LUCID_NETWORK_MAINNET_ID = 1;
-export const LUCID_NETWORK_TESTNET_ID = 0;
-
 export const LUCID_NETWORK_MAINNET_NAME = 'Mainnet';
 export const LUCID_NETWORK_PREVIEW_NAME = 'Preview';
 export const LUCID_NETWORK_PREPROD_NAME = 'Preprod';
 export const LUCID_NETWORK_CUSTOM_NAME = 'Custom';
 export const LUCID_NETWORK_EMULATOR_NAME_MOCK_NO_EXISTE_EN_LUCID = 'Emulator';
+
+export const NETWORK_MAINNET_ID = 1;
+export const NETWORK_TESTNET_ID = 0;
+
+export const NETWORK_ID = CARDANO_NET === LUCID_NETWORK_MAINNET_NAME ? NETWORK_MAINNET_ID : NETWORK_TESTNET_ID;
 
 export const isEmulator = CARDANO_NET === LUCID_NETWORK_EMULATOR_NAME_MOCK_NO_EXISTE_EN_LUCID;
 export const isTestnet =
@@ -183,6 +185,8 @@ export const isTestnet =
 export const isPreview = CARDANO_NET === LUCID_NETWORK_PREVIEW_NAME;
 export const isPreprod = CARDANO_NET === LUCID_NETWORK_PREPROD_NAME;
 export const isMainnet = CARDANO_NET === LUCID_NETWORK_MAINNET_NAME;
+
+
 
 //---------------------------------------------------
 // Export current network constants
