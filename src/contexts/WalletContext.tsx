@@ -9,8 +9,8 @@ import {
     initializeLucidWithBlockfrostClientSide,
     isMainnet,
     isTestnet,
-    LUCID_NETWORK_MAINNET_ID,
-    LUCID_NETWORK_TESTNET_ID,
+    NETWORK_MAINNET_ID,
+    NETWORK_TESTNET_ID,
 } from '@/config/network';
 import { useGenerationStatus } from '@/hooks/useGenerationStatus';
 import { useRegistrationUtxo } from '@/hooks/useRegistrationUtxo';
@@ -179,10 +179,10 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             const api = await window.cardano[walletName].enable();
             const networkId = await api.getNetworkId();
 
-            if (isMainnet && networkId !== LUCID_NETWORK_MAINNET_ID) {
+            if (isMainnet && networkId !== NETWORK_MAINNET_ID) {
                 throw new Error(`Must connect with a ${getCurrentNetwork()} Cardano Wallet`);
             }
-            if (isTestnet && networkId !== LUCID_NETWORK_TESTNET_ID) {
+            if (isTestnet && networkId !== NETWORK_TESTNET_ID) {
                 throw new Error(`Must connect with a ${getCurrentNetwork()} Testnet Cardano Wallet`);
             }
 

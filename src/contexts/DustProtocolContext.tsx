@@ -1,155 +1,161 @@
-'use client';
-import { logger } from '@/lib/logger';
+// 'use client';
+// import { logger } from '@/lib/logger';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { LucidEvolution } from '@lucid-evolution/lucid';
-import { ContractUtils, ContractsRegistry } from '@/lib/contractUtils';
-import { DustProtocolUtils, DustProtocolStatus } from '@/lib/dustProtocolUtils';
-import { DUST_PROTOCOL_CONTRACTS } from '@/config/dustProtocol';
+// import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+// // import { LucidEvolution } from '@lucid-evolution/lucid';
+// import { AikenContractUtils, AikenContractsRegistry } from '@/lib/aikenContractUtils';
+// // import { DustProtocolUtils, DustProtocolStatus } from '@/lib/dustProtocolUtils';
+// import { AIKEN_CONTRACT_TITLES, AIKEN_BLUEPRINT_PATH } from '@/config/aikenDustProtocol';
 
-// Types
-interface DustProtocolContextType {
-    // Contract loading state
-    contracts: ContractsRegistry;
-    isContractsLoaded: boolean;
-    isContractsLoading: boolean;
-    contractsError: string | null;
+// // Types
+// interface DustProtocolContextType {
+//     // Contract loading state
+//     contracts: AikenContractsRegistry;
+//     isContractsLoaded: boolean;
+//     isContractsLoading: boolean;
+//     contractsError: string | null;
 
-    // Protocol status state
-    protocolStatus: DustProtocolStatus | null;
-    isProtocolStatusLoaded: boolean;
-    isProtocolStatusLoading: boolean;
+//     // TODO: deleted - new smart cotnracts does not have initial setup
+//     // // Protocol status state
+//     // protocolStatus: DustProtocolStatus | null;
+//     // isProtocolStatusLoaded: boolean;
+//     // isProtocolStatusLoading: boolean;
 
-    // Methods
-    loadContracts: () => Promise<void>;
-    checkProtocolStatus: (lucid: LucidEvolution) => Promise<void>;
-    refreshProtocolStatus: (lucid: LucidEvolution) => Promise<void>;
-}
+//     // Methods
+//     loadContracts: () => Promise<void>;
+//     // TODO: deleted - new smart cotnracts does not have initial setup
+//     // checkProtocolStatus: (lucid: LucidEvolution) => Promise<void>;
+//     // refreshProtocolStatus: (lucid: LucidEvolution) => Promise<void>;
+// }
 
-// Create context
-const DustProtocolContext = createContext<DustProtocolContextType | undefined>(undefined);
+// // Create context
+// const DustProtocolContext = createContext<DustProtocolContextType | undefined>(undefined);
 
-// Provider component
-export const DustProtocolProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    // Contract loading state
-    const [contracts, setContracts] = useState<ContractsRegistry>({});
-    const [isContractsLoaded, setIsContractsLoaded] = useState(false);
-    const [isContractsLoading, setIsContractsLoading] = useState(false);
-    const [contractsError, setContractsError] = useState<string | null>(null);
+// // Provider component
+// export const DustProtocolProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+//     // Contract loading state
+//     const [contracts, setContracts] = useState<AikenContractsRegistry>({});
+//     const [isContractsLoaded, setIsContractsLoaded] = useState(false);
+//     const [isContractsLoading, setIsContractsLoading] = useState(false);
+//     const [contractsError, setContractsError] = useState<string | null>(null);
 
-    // Protocol status state
-    const [protocolStatus, setProtocolStatus] = useState<DustProtocolStatus | null>(null);
-    const [isProtocolStatusLoaded, setIsProtocolStatusLoaded] = useState(false);
-    const [isProtocolStatusLoading, setIsProtocolStatusLoading] = useState(false);
+//     // TODO: deleted - new smart cotnracts does not have initial setup
 
-    // Load contracts method
-    const loadContracts = useCallback(async () => {
-        if (isContractsLoading || isContractsLoaded) return;
+//     // // Protocol status state
+//     // const [protocolStatus, setProtocolStatus] = useState<DustProtocolStatus | null>(null);
+//     // const [isProtocolStatusLoaded, setIsProtocolStatusLoaded] = useState(false);
+//     // const [isProtocolStatusLoading, setIsProtocolStatusLoading] = useState(false);
 
-        try {
-            setIsContractsLoading(true);
-            setContractsError(null);
+//     // Load contracts method
+//     const loadContracts = useCallback(async () => {
+//         if (isContractsLoading || isContractsLoaded) return;
 
-            logger.log('[DustProtocol]','🔄 Loading DUST protocol contracts...');
-            const loadedContracts = await ContractUtils.loadContracts(DUST_PROTOCOL_CONTRACTS);
+//         try {
+//             setIsContractsLoading(true);
+//             setContractsError(null);
 
-            setContracts(loadedContracts);
-            setIsContractsLoaded(true);
-            logger.log('[DustProtocol]','✅ DUST protocol contracts loaded successfully');
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to load contracts';
-            logger.error('[DustProtocol]','❌ Failed to load contracts:', errorMessage);
-            setContractsError(errorMessage);
-        } finally {
-            setIsContractsLoading(false);
-        }
-    }, [isContractsLoading, isContractsLoaded]);
+//             logger.log('[DustProtocol]', '🔄 Loading DUST protocol contracts...');
+//             const loadedContracts = await AikenContractUtils.loadAikenContracts(AIKEN_BLUEPRINT_PATH, AIKEN_CONTRACT_TITLES);
 
-    // Check protocol status method
-    const checkProtocolStatus = useCallback(async () => {
-        if (!isContractsLoaded) {
-            logger.warn('[DustProtocol]','⚠️ Contracts not loaded yet, cannot check protocol status');
-            return;
-        }
+//             setContracts(loadedContracts);
+//             setIsContractsLoaded(true);
+//             logger.log('[DustProtocol]', '✅ DUST protocol contracts loaded successfully');
+//         } catch (error) {
+//             const errorMessage = error instanceof Error ? error.message : 'Failed to load contracts';
+//             logger.error('[DustProtocol]', '❌ Failed to load contracts:', errorMessage);
+//             setContractsError(errorMessage);
+//         } finally {
+//             setIsContractsLoading(false);
+//         }
+//     }, [isContractsLoading, isContractsLoaded]);
 
-        try {
-            setIsProtocolStatusLoading(true);
+//     // TODO: deleted - new smart cotnracts does not have initial setup
+//     // // Check protocol status method
+//     // const checkProtocolStatus = useCallback(async () => {
+//     //     if (!isContractsLoaded) {
+//     //         logger.warn('[DustProtocol]','⚠️ Contracts not loaded yet, cannot check protocol status');
+//     //         return;
+//     //     }
 
-            logger.log('[DustProtocol]','🔄 Checking DUST protocol status...');
-            const status = await DustProtocolUtils.checkSetupStatus(contracts);
+//     //     try {
+//     //         setIsProtocolStatusLoading(true);
 
-            setProtocolStatus(status);
-            setIsProtocolStatusLoaded(true);
-            logger.log('[DustProtocol]','✅ DUST protocol status checked:', status);
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to check protocol status';
-            logger.error('[DustProtocol]','❌ Failed to check protocol status:', errorMessage);
+//     //         logger.log('[DustProtocol]','🔄 Checking DUST protocol status...');
+//     //         const status = await DustProtocolUtils.checkSetupStatus(contracts);
 
-            // Set protocol status with error
-            setProtocolStatus({
-                isReady: false,
-                currentStep: 1,
-                InitVersioningCommand: false,
-                InitDustProductionCommand: false,
-                error: errorMessage,
-            });
-            setIsProtocolStatusLoaded(true);
-        } finally {
-            setIsProtocolStatusLoading(false);
-        }
-    }, [isContractsLoaded, contracts]);
+//     //         setProtocolStatus(status);
+//     //         setIsProtocolStatusLoaded(true);
+//     //         logger.log('[DustProtocol]','✅ DUST protocol status checked:', status);
+//     //     } catch (error) {
+//     //         const errorMessage = error instanceof Error ? error.message : 'Failed to check protocol status';
+//     //         logger.error('[DustProtocol]','❌ Failed to check protocol status:', errorMessage);
 
-    // Refresh protocol status (force reload)
-    const refreshProtocolStatus = async () => {
-        setIsProtocolStatusLoaded(false);
-        setProtocolStatus(null);
-        await checkProtocolStatus();
-    };
+//     //         // Set protocol status with error
+//     //         setProtocolStatus({
+//     //             isReady: false,
+//     //             currentStep: 1,
+//     //             InitVersioningCommand: false,
+//     //             InitDustProductionCommand: false,
+//     //             error: errorMessage,
+//     //         });
+//     //         setIsProtocolStatusLoaded(true);
+//     //     } finally {
+//     //         setIsProtocolStatusLoading(false);
+//     //     }
+//     // }, [isContractsLoaded, contracts]);
 
-    // Auto-load contracts on mount
-    useEffect(() => {
-        loadContracts();
-    }, [loadContracts]);
+//     // // Refresh protocol status (force reload)
+//     // const refreshProtocolStatus = async () => {
+//     //     setIsProtocolStatusLoaded(false);
+//     //     setProtocolStatus(null);
+//     //     await checkProtocolStatus();
+//     // };
 
-    // Auto-check protocol status when Cardano wallet connects and contracts are loaded
-    // This logic was moved from Onboard.tsx to DustProtocolContext to follow separation of concerns
-    // The context is now responsible for automatically managing protocol status checks
-    useEffect(() => {
-        if (isContractsLoaded && !isProtocolStatusLoaded) {
-            logger.log('[DustProtocol]','🔄 Auto-checking protocol status after contracts are loaded...');
-            checkProtocolStatus();
-        }
-    }, [isContractsLoaded, isProtocolStatusLoaded, checkProtocolStatus]);
+//     // Auto-load contracts on mount
+//     useEffect(() => {
+//         loadContracts();
+//     }, [loadContracts]);
 
-    const contextValue: DustProtocolContextType = {
-        // Contract state
-        contracts,
-        isContractsLoaded,
-        isContractsLoading,
-        contractsError,
+//     // Auto-check protocol status when Cardano wallet connects and contracts are loaded
+//     // This logic was moved from Onboard.tsx to DustProtocolContext to follow separation of concerns
+//     // The context is now responsible for automatically managing protocol status checks
+//     // useEffect(() => {
+//     // TODO: deleted - new smart cotnracts does not have initial setup
+//     // if (isContractsLoaded && !isProtocolStatusLoaded) {
+//     //     logger.log('[DustProtocol]','🔄 Auto-checking protocol status after contracts are loaded...');
+//     //     checkProtocolStatus();
+//     // }
+//     // }, [isContractsLoaded, isProtocolStatusLoaded, checkProtocolStatus]);
 
-        // Protocol status state
-        protocolStatus,
-        isProtocolStatusLoaded,
-        isProtocolStatusLoading,
+//     const contextValue: DustProtocolContextType = {
+//         // Contract state
+//         contracts,
+//         isContractsLoaded,
+//         isContractsLoading,
+//         contractsError,
 
-        // Methods
-        loadContracts,
-        checkProtocolStatus,
-        refreshProtocolStatus,
-    };
+//         // Protocol status state
+//         // protocolStatus,
+//         // isProtocolStatusLoaded,
+//         // isProtocolStatusLoading,
 
-    return <DustProtocolContext.Provider value={contextValue}>{children}</DustProtocolContext.Provider>;
-};
+//         // Methods
+//         loadContracts,
+//         // checkProtocolStatus,
+//         // refreshProtocolStatus,
+//     };
 
-// Custom hook to use the context
-export const useDustProtocol = () => {
-    const context = useContext(DustProtocolContext);
-    if (context === undefined) {
-        throw new Error('useDustProtocol must be used within a DustProtocolProvider');
-    }
-    return context;
-};
+//     return <DustProtocolContext.Provider value={contextValue}>{children}</DustProtocolContext.Provider>;
+// };
 
-// Export types for external use
-export type { DustProtocolContextType };
+// // Custom hook to use the context
+// export const useDustProtocol = () => {
+//     const context = useContext(DustProtocolContext);
+//     if (context === undefined) {
+//         throw new Error('useDustProtocol must be used within a DustProtocolProvider');
+//     }
+//     return context;
+// };
+
+// // Export types for external use
+// export type { DustProtocolContextType };
