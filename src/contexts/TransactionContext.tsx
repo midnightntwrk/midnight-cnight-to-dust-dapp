@@ -1,17 +1,14 @@
-'use client'
+'use client';
 import { logger } from '@/lib/logger';
 
-import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 import { LucidEvolution } from '@lucid-evolution/lucid';
+import React, { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 
 // Transaction states
 export type TransactionState = 'idle' | 'preparing' | 'signing' | 'submitting' | 'confirming' | 'success' | 'error';
 
 // Transaction executor function type
-export type TransactionExecutor<T = Record<string, unknown>> = (
-    params: T, 
-    onProgress?: (step: string, progress: number) => void
-) => Promise<string>; // Returns transaction hash
+export type TransactionExecutor<T = Record<string, unknown>> = (params: T, onProgress?: (step: string, progress: number) => void) => Promise<string>; // Returns transaction hash
 
 // Transaction context type
 interface TransactionContextType {
@@ -22,7 +19,7 @@ interface TransactionContextType {
     transactionError: string | null;
     isExecuting: boolean;
     currentTransactionId: string | null;
-    
+
     // Methods
     executeTransaction: <T>(transactionId: string, executor: TransactionExecutor<T>, params: T, lucid?: LucidEvolution) => Promise<TransactionState>;
     pollTransactionConfirmation: (lucid: LucidEvolution, txHash: string) => Promise<void>;
@@ -48,9 +45,9 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
 
     const isExecuting = transactionState !== 'idle' && transactionState !== 'success' && transactionState !== 'error';
 
-     // Poll for transaction confirmation using dual strategy from SetupActions
-     const pollTransactionConfirmation = useCallback(async (lucid: LucidEvolution, txHash: string): Promise<void> => {
-        logger.log('[Transaction]','🔍 PollTransactionConfirmation STARTED for txHash:', txHash);
+    // Poll for transaction confirmation using dual strategy from SetupActions
+    const pollTransactionConfirmation = useCallback(async (lucid: LucidEvolution, txHash: string): Promise<void> => {
+        logger.log('[Transaction]', '🔍 PollTransactionConfirmation STARTED for txHash:', txHash);
         const maxAttempts = 60; // 15 minutes max (15s intervals)
         let attempts = 0;
 
@@ -60,16 +57,16 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
             const pollInterval = setInterval(async () => {
                 try {
                     attempts++;
-                    const progress = 60 + ((attempts / maxAttempts) * 40); // 60% to 100%
+                    const progress = 60 + (attempts / maxAttempts) * 40; // 60% to 100%
                     setTransactionProgress(progress);
 
-                    logger.log('[Transaction]',`⏳ Checking transaction confirmation and UTxOs... [${attempts}/${maxAttempts}]`);
+                    logger.log('[Transaction]', `⏳ Checking transaction confirmation and UTxOs... [${attempts}/${maxAttempts}]`);
 
                     // Strategy 1: Try awaitTx but don't rely on it alone
                     try {
                         const txInfo = await lucid.awaitTx(txHash, 3000);
                         if (txInfo) {
-                            logger.log('[Transaction]','📋 lucid.awaitTx() reports transaction confirmed');
+                            logger.log('[Transaction]', '📋 lucid.awaitTx() reports transaction confirmed');
 
                             clearInterval(pollInterval);
                             setTransactionProgress(100);
@@ -78,19 +75,19 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
                             return;
                         }
                     } catch {
-                        logger.log('[Transaction]','⏳ lucid.awaitTx() still waiting...');
+                        logger.log('[Transaction]', '⏳ lucid.awaitTx() still waiting...');
                     }
 
                     // Continue polling if neither confirmation method succeeded
                     if (attempts >= maxAttempts) {
-                        logger.log('[Transaction]','⚠️ Transaction confirmation timeout reached');
+                        logger.log('[Transaction]', '⚠️ Transaction confirmation timeout reached');
                         clearInterval(pollInterval);
                         setTransactionError('Transaction confirmation timeout. UTxOs not detected after 15 minutes.');
                         setTransactionState('error');
                         reject(new Error('Transaction confirmation timeout. UTxOs not detected after 15 minutes.'));
                     }
                 } catch (err) {
-                    logger.log('[Transaction]','⚠️ Error during polling:', err);
+                    logger.log('[Transaction]', '⚠️ Error during polling:', err);
                     if (attempts >= maxAttempts) {
                         clearInterval(pollInterval);
                         setTransactionError('Polling error occurred during confirmation.');
@@ -102,57 +99,59 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
         });
     }, []);
 
-    const executeTransaction = useCallback(async <T,>(transactionId: string, executor: TransactionExecutor<T>, params: T, lucid?: LucidEvolution): Promise<TransactionState> => {
-        try {
-            // Reset state and set current transaction ID
-            setTransactionState('preparing');
-            setTransactionProgress(0);
-            setTxHash(null);
-            setTransactionError(null);
-            setCurrentTransactionId(transactionId);
+    const executeTransaction = useCallback(
+        async <T,>(transactionId: string, executor: TransactionExecutor<T>, params: T, lucid?: LucidEvolution): Promise<TransactionState> => {
+            try {
+                // Reset state and set current transaction ID
+                setTransactionState('preparing');
+                setTransactionProgress(0);
+                setTxHash(null);
+                setTransactionError(null);
+                setCurrentTransactionId(transactionId);
 
-            logger.log('[Transaction]',`🔄 Starting transaction execution for ID: ${transactionId}...`);
+                logger.log('[Transaction]', `🔄 Starting transaction execution for ID: ${transactionId}...`);
 
-            // Execute the transaction with progress callback
-            const resultTxHash = await executor(params, (step: string, progress: number) => {
-                logger.log('[Transaction]',`📋 Transaction step: ${step} (${progress}%)`);
-                setTransactionProgress(progress);
-                
-                // Update state based on step
-                if (step.toLowerCase().includes('sign')) {
-                    setTransactionState('signing');
-                } else if (step.toLowerCase().includes('submit')) {
-                    setTransactionState('submitting');
-                } else if (step.toLowerCase().includes('confirm')) {
-                    setTransactionState('confirming');
+                // Execute the transaction with progress callback
+                const resultTxHash = await executor(params, (step: string, progress: number) => {
+                    logger.log('[Transaction]', `📋 Transaction step: ${step} (${progress}%)`);
+                    setTransactionProgress(progress);
+
+                    // Update state based on step
+                    if (step.toLowerCase().includes('sign')) {
+                        setTransactionState('signing');
+                    } else if (step.toLowerCase().includes('submit')) {
+                        setTransactionState('submitting');
+                    } else if (step.toLowerCase().includes('confirm')) {
+                        setTransactionState('confirming');
+                    }
+                });
+
+                // Set transaction hash and start confirmation polling
+                setTxHash(resultTxHash);
+                logger.log('[Transaction]', '🎯 Transaction submitted, starting confirmation polling:', resultTxHash);
+
+                // Use the existing pollTransactionConfirmation method if lucid is provided
+                if (lucid) {
+                    await pollTransactionConfirmation(lucid, resultTxHash);
+                } else {
+                    // Fallback: set success immediately if no lucid instance
+                    setTransactionState('success');
+                    setTransactionProgress(100);
                 }
-            });
 
-            // Set transaction hash and start confirmation polling
-            setTxHash(resultTxHash);
-            logger.log('[Transaction]','🎯 Transaction submitted, starting confirmation polling:', resultTxHash);
-            
-            // Use the existing pollTransactionConfirmation method if lucid is provided
-            if (lucid) {
-                await pollTransactionConfirmation(lucid, resultTxHash);
-            } else {
-                // Fallback: set success immediately if no lucid instance
-                setTransactionState('success');
-                setTransactionProgress(100);
+                logger.log('[Transaction]', '✅ Transaction completed successfully:', resultTxHash);
+                return 'success';
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
+                logger.error('[Transaction]', '❌ Transaction failed:', errorMessage);
+                setTransactionError(errorMessage);
+                setTransactionState('error');
+                // Propagate error so callers (e.g., Onboard) can handle it
+                throw error;
             }
-
-            logger.log('[Transaction]','✅ Transaction completed successfully:', resultTxHash);
-            return 'success';
-
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
-            logger.error('[Transaction]','❌ Transaction failed:', errorMessage);
-            setTransactionError(errorMessage);
-            setTransactionState('error');
-            // Propagate error so callers (e.g., Onboard) can handle it
-            throw error;
-        }
-    }, [pollTransactionConfirmation]);
+        },
+        [pollTransactionConfirmation]
+    );
 
     const setError = useCallback((error: string) => {
         setTransactionError(error);
@@ -160,7 +159,7 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
     }, []);
 
     const resetTransaction = useCallback(() => {
-        logger.log('[Transaction]','🔄 Resetting transaction state...');
+        logger.log('[Transaction]', '🔄 Resetting transaction state...');
         setTransactionState('idle');
         setTransactionProgress(0);
         setTxHash(null);
@@ -177,56 +176,56 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
     }, []);
 
     // Helper methods for transaction ID management
-    const isCurrentTransaction = useCallback((transactionId: string) => {
-        return currentTransactionId === transactionId;
-    }, [currentTransactionId]);
+    const isCurrentTransaction = useCallback(
+        (transactionId: string) => {
+            return currentTransactionId === transactionId;
+        },
+        [currentTransactionId]
+    );
 
     const isAnyTransactionRunning = useCallback(() => {
         return isExecuting;
     }, [isExecuting]);
 
-   
+    const contextValue: TransactionContextType = useMemo(
+        () => ({
+            // State
+            transactionState,
+            transactionProgress,
+            txHash,
+            transactionError,
+            isExecuting,
+            currentTransactionId,
 
-    const contextValue: TransactionContextType = useMemo(() => ({
-        // State
-        transactionState,
-        transactionProgress,
-        txHash,
-        transactionError,
-        isExecuting,
-        currentTransactionId,
-        
-        // Methods
-        executeTransaction,
-        pollTransactionConfirmation,
-        setError,
-        resetTransaction,
-        setProgress,
-        setState,
-        isCurrentTransaction,
-        isAnyTransactionRunning,
-    }), [
-        transactionState,
-        transactionProgress,
-        txHash,
-        transactionError,
-        isExecuting,
-        currentTransactionId,
-        executeTransaction,
-        pollTransactionConfirmation,
-        setError,
-        resetTransaction,
-        setProgress,
-        setState,
-        isCurrentTransaction,
-        isAnyTransactionRunning,
-    ]);
-
-    return (
-        <TransactionContext.Provider value={contextValue}>
-            {children}
-        </TransactionContext.Provider>
+            // Methods
+            executeTransaction,
+            pollTransactionConfirmation,
+            setError,
+            resetTransaction,
+            setProgress,
+            setState,
+            isCurrentTransaction,
+            isAnyTransactionRunning,
+        }),
+        [
+            transactionState,
+            transactionProgress,
+            txHash,
+            transactionError,
+            isExecuting,
+            currentTransactionId,
+            executeTransaction,
+            pollTransactionConfirmation,
+            setError,
+            resetTransaction,
+            setProgress,
+            setState,
+            isCurrentTransaction,
+            isAnyTransactionRunning,
+        ]
     );
+
+    return <TransactionContext.Provider value={contextValue}>{children}</TransactionContext.Provider>;
 };
 
 // Custom hook to use the context

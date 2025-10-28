@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { logger } from '@/lib/logger';
 import { GenerationStatusData } from '@/contexts/WalletContext';
+import { logger } from '@/lib/logger';
+import { useEffect, useState } from 'react';
 
 interface UseGenerationStatusReturn {
     data: GenerationStatusData | null;
@@ -14,7 +14,6 @@ export function useGenerationStatus(cardanoAddress: string | null): UseGeneratio
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-
     const fetchGenerationStatus = async () => {
         setIsLoading(true);
         setError(null);
@@ -23,7 +22,7 @@ export function useGenerationStatus(cardanoAddress: string | null): UseGeneratio
             // For now, use hardcoded key since indexer is not ready
             // TODO: Replace with actual address when indexer is complete
 
-            const keyToUse = "0x00"; // VALID
+            const keyToUse = '0x00'; // VALID
             // const keyToUse = '1234567890abcdef1234567890abcdef'; // INVALID
 
             const response = await fetch(`/api/dust/generation-status/${keyToUse}`);

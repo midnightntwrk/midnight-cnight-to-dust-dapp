@@ -1,14 +1,10 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
-import { logger } from '@/lib/logger';
-// TODO: deleted - new smart cotnracts
-// import { AikenContractUtils } from '@/lib/aikenContractUtils';
-// import { useDustProtocol } from '@/contexts/DustProtocolContext';
-import { getAddressDetails, OutRef, toHex, UTxO, Constr } from '@lucid-evolution/lucid';
-import { toJson } from '@/lib/utils';
-import { initializeLucidWithBlockfrostClientSide, NETWORK_ID } from '@/config/network';
-// import { Contracts } from '@/config/aikenDustProtocol';
 import * as Contracts from '@/config/contract_blueprint';
-import { addressFromValidator, PolicyId } from '@blaze-cardano/core';
+import { initializeLucidWithBlockfrostClientSide } from '@/config/network';
+import { getPolicyId, getValidatorAddress } from '@/lib/contractUtils';
+import { logger } from '@/lib/logger';
+import { toJson } from '@/lib/utils';
+import { Constr, OutRef, UTxO } from '@lucid-evolution/lucid';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 // Blockfrost UTXO response type
 interface BlockfrostUtxo {
@@ -34,10 +30,6 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
     // Track if we've already fetched for current params to avoid unnecessary re-fetches
     const lastFetchedRef = useRef<string>('');
 
-    // Get contracts from DUST protocol context
-    // TODO: deleted - new smart cotnracts
-    // const { contracts, isContractsLoaded } = useDustProtocol();
-
     // Internal method to find registration UTXO - returns the UTXO or null
     const searchRegistrationUtxo = useCallback(async (): Promise<UTxO | null> => {
         try {
@@ -47,36 +39,28 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
                 throw new Error('Missing cardanoAddress or dustPKH');
             }
 
-            // Check if contracts are loaded
-            // TODO: deleted - new smart cotnracts
-            // if (!isContractsLoaded) {
-            //     throw new Error('Dust Smart Contract not loaded');
-            // }
-
-            // const dustMappingValidatorContract = AikenContractUtils.getContract(contracts, 'cnight_generates_dust.cnight_generates_dust.else');
-            // const dustAuthTokenPolicyContract = AikenContractUtils.getContract(contracts, 'cnight_generates_dust.cnight_generates_dust.else');
-
+            // Get DUST Generator contract
             const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
+            const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
 
-            const dustGeneratorAddress = addressFromValidator(NETWORK_ID, dustGenerator.Script).toBech32();
-
-            // if (!dustMappingValidatorContract?.address) {
-            //     throw new Error('DUST Mapping Validator contract not found or invalid');
-            // }
-
-            // if (!dustAuthTokenPolicyContract?.policyId) {
-            //     throw new Error('DUST Auth Token Policy contract not found or invalid');
-            // }
-
-            // Get environment variables for registration
+            logger.log(
+                '[DustTransactions]',
+                '📋 DUST Generator Address:',
+                toJson({
+                    dustGeneratorAddress,
+                })
+            );
+            
+            // Get current user's Cardano PKH
+            const { getAddressDetails } = await import('@lucid-evolution/lucid');
             const cardanoPKH = getAddressDetails(cardanoAddress)?.paymentCredential?.hash;
 
             // Construct the expected NFT asset name
             const dustNFTTokenName = '';
-            const dustNFTAssetName = PolicyId(dustGenerator.Script.hash()) + dustNFTTokenName;
+            const dustNFTAssetName = getPolicyId(dustGenerator.Script) + dustNFTTokenName;
 
             logger.log('[RegistrationUtxo]', '🪙 Looking for NFT:', {
-                policyId: PolicyId(dustGenerator.Script.hash()),
+                policyId: getPolicyId(dustGenerator.Script),
                 tokenName: dustNFTTokenName,
                 assetName: dustNFTAssetName,
             });
