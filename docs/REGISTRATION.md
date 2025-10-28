@@ -2,15 +2,15 @@
 
 ## Overview
 
-The registration process creates an on-chain mapping between a user's Cardano address and their Midnight address. This mapping is stored as a UTXO at the DUST Mapping Validator address with an inline datum containing both addresses and an authentication token proving ownership.
+The registration process creates an on-chain mapping between a user's Cardano address and their Midnight address. This creates a UTXO at the DUST Generator address with an inline datum containing the Cardano payment key hash and Midnight dust address, along with a minted DUST NFT as authentication.
 
 ## Prerequisites
 
 Before registration can begin, the following conditions must be met:
 
 - Both Cardano and Midnight wallets connected (or manual Midnight address entry)
-- Minimum 2.5 ADA balance in Cardano wallet (covers fees and UTXO requirements)
-- DUST protocol contracts deployed and initialized on-chain
+- Minimum ADA balance in Cardano wallet for fees and UTXO requirements
+- DUST Generator contract
 - No other transaction currently executing
 
 ### Midnight Wallet Connection Options
@@ -96,12 +96,11 @@ If any validation fails, the process terminates with an appropriate error messag
 ```typescript
 const registrationExecutor = DustTransactionsUtils.createRegistrationExecutor(
     cardano.lucid as LucidEvolution,
-    contracts,
     dustPKHValue
 );
 ```
 
-This factory method returns a function (not executed yet) that will build, sign, and submit the transaction. The executor pattern allows `TransactionContext` to control timing and progress tracking independently of transaction construction logic.
+This factory method returns a function that will build, sign, and submit the transaction.
 
 ## Step 3: Execute Transaction
 
@@ -116,73 +115,74 @@ const transactionState = await transaction.executeTransaction(
 );
 ```
 
-The `TransactionContext` manages the transaction lifecycle through several states:
+The `TransactionContext` manages the transaction lifecycle:
 - `preparing` - Building transaction
 - `signing` - Awaiting user approval
 - `submitting` - Broadcasting to network
 - `confirming` - Polling for confirmation
 - `success` or `error` - Final states
 
-Progress callbacks update the UI from 0-100% throughout execution.
-
 ## Step 4: Build Registration Transaction
 
-**Location**: `src/lib/dustTransactionsUtils.ts:11-174`
+**Location**: `src/lib/dustTransactionsUtils.ts:11-125`
 
 The transaction builder constructs a Cardano transaction with the following structure:
 
-### Reference Inputs
-- Version Oracle UTXO containing the auth token minting policy reference script
+### Contract Instantiation
+- DUST Generator contract: `new Contracts.CnightGeneratesDustCnightGeneratesDustElse()`
+- Validator address derived from contract script
 
-### Mints
-1. DUST Auth Token Minting Policy - 1 token with empty asset name
-   - Redeemer: `Constructor 0 []`
-2. DUST Auth Token Policy - 1 token named "DUST production auth token"
-   - Redeemer: `Constructor 0 []`
+### Mint DUST NFT
+- Mints 1 NFT token with empty asset name
+- Uses policy ID from DUST Generator contract
+- Redeemer: `DustAction.Create` (serialized to CBOR)
 
-### Output to DUST Mapping Validator
-- Assets: 1.586080 ADA + 1 DUST Auth Token
-- Inline Datum: `Constructor 0 [cardanoPKH, dustPKH]`
-  - `cardanoPKH`: User's payment key hash (28 bytes)
-  - `dustPKH`: Midnight coin public key encoded as hex bytes
+### Output to DUST Generator
+- Assets: `LOVELACE_FOR_REGISTRATION` ADA + 1 DUST NFT
+- Inline Datum: `DustMappingDatum` with structure:
+  ```
+  {
+    c_wallet: {
+      VerificationKey: [cardanoPKH]  // Cardano PKH (28 bytes hex string)
+    },
+    dust_address: newDustPKH         // DUST PKH (32 bytes hex string)
+  }
+  ```
 
 ### Scripts Attached
-- DUST Auth Token Minting Policy script
-- DUST Auth Token Policy script
-
-The transaction is completed by Lucid, which calculates fees and adds a change output back to the user's wallet.
+- DUST Generator minting policy script
 
 ## Step 5: Sign Transaction
 
-**Location**: `src/lib/dustTransactionsUtils.ts:189`
+**Location**: `src/lib/dustTransactionsUtils.ts:140`
 
 ```typescript
 const signedTx = await completedTx.sign.withWallet().complete();
 ```
 
 The user's Cardano wallet extension displays a popup showing transaction details:
-- Fee estimate (typically 0.3-0.5 ADA)
-- Tokens to be minted (2 auth tokens)
-- Output to script address (1.586080 ADA)
+- Fee estimate
+- Mint: 1 DUST NFT token
+- Output to DUST Generator validator address (ADA + NFT)
 - Change output back to user
 
 User must approve to proceed. Rejection throws an error caught by the try/catch block.
 
 ## Step 6: Submit to Blockchain
 
-**Location**: `src/lib/dustTransactionsUtils.ts:193`
+**Location**: `src/lib/dustTransactionsUtils.ts:144`
 
 ```typescript
 const txHash = await signedTx.submit();
 ```
 
-The signed transaction is broadcast to the Cardano mempool. The function returns immediately with a transaction hash. At this point, the transaction is submitted but not yet confirmed.
+The signed transaction is broadcast to the Cardano network and returns immediately with a transaction hash.
 
 ## Step 7: Poll for Confirmation
 
 **Location**: `src/contexts/TransactionContext.tsx:52-103`
 
-The system polls Blockfrost every 15 seconds to check transaction confirmation status. This step uses Blockfrost and will continue to do so as it monitors blockchain transaction confirmation, which is independent of registration status indexing.
+The system polls Blockfrost every 15 seconds to check transaction confirmation status:
 
 ```typescript
 const pollTransactionConfirmation = async (lucid, txHash) => {
@@ -210,7 +210,7 @@ const pollTransactionConfirmation = async (lucid, txHash) => {
 };
 ```
 
-Progress updates from 60% to 100% during this phase. Confirmation typically takes 20-60 seconds depending on network conditions. Maximum timeout is 15 minutes (60 attempts at 15-second intervals).
+Progress updates from 60% to 100% during this phase. Confirmation typically takes 20-60 seconds. Maximum timeout is 15 minutes.
 
 ## Step 8: Poll for Registration UTXO
 
@@ -228,38 +228,31 @@ if (transactionState === 'success') {
 
 ### Current Implementation: Blockfrost API
 
-This step currently uses Blockfrost to search for the registration UTXO. The additional polling is necessary because Blockfrost requires a few seconds to index the new UTXO after transaction confirmation.
+This step currently uses Blockfrost to search for the registration UTXO.
 
 **Location**: `src/hooks/useRegistrationUtxo.ts:37-158`
 
 The search process:
 
-1. Query Blockfrost for all UTXOs at the DUST Mapping Validator address containing the auth token
-2. Filter UTXOs that have both the auth token asset and an inline datum
-3. Deserialize each datum and extract the Cardano PKH and DUST PKH
-4. Match against the user's credentials to find the correct registration
+1. Query Blockfrost for all UTXOs at the DUST Generator address
+2. Filter UTXOs that have inline datums
+3. Deserialize each datum using Aiken data types
+4. Match against the user's Cardano PKH and DUST PKH
 
 ```typescript
 const searchRegistrationUtxo = async () => {
     const response = await fetch(
-        `/api/blockfrost/addresses/${dustMappingValidator.address}/utxos/${dustAuthTokenAssetName}`
+        `/api/blockfrost/addresses/${dustGeneratorAddress}/utxos`
     );
     const utxos = await response.json();
 
-    const validUtxos = utxos.filter(utxo =>
-        utxo.amount.some(asset => asset.unit === dustAuthTokenAssetName) &&
-        utxo.inline_datum !== null
-    );
+    const validUtxos = utxos.filter(utxo => utxo.inline_datum !== null);
 
     for (const utxo of validUtxos) {
-        const datumData = Data.from(utxo.inline_datum);
-        const [datumCardanoPKH, dustPKHBytes] = datumData.fields;
-
-        const dustPKHFromDatum = new TextDecoder().decode(
-            new Uint8Array(dustPKHBytes.match(/.{2}/g).map(byte => parseInt(byte, 16)))
-        );
-
-        if (datumCardanoPKH === cardanoPKH && dustPKHFromDatum === dustPKH) {
+        const datumData = deserialize(Contracts.DustMappingDatum, utxo.inline_datum);
+        
+        if (datumData.c_wallet.VerificationKey[0] === cardanoPKH && 
+            datumData.dust_address === dustPKH) {
             return utxo;
         }
     }
@@ -268,45 +261,7 @@ const searchRegistrationUtxo = async () => {
 };
 ```
 
-The system polls every 3 seconds with a maximum of 20 attempts (60 seconds total). The UTXO is typically found within 3-15 seconds.
-
-### Future Implementation: Midnight Indexer
-
-The application is prepared to migrate from Blockfrost to the Midnight Indexer for registration status queries. The indexer integration is already implemented but not yet active.
-
-**Implementation Status**:
-- GraphQL client: `src/lib/subgraph/query.ts` (ready)
-- API route: `src/app/api/dust/generation-status/[key]/route.ts` (ready)
-- Hook: `src/hooks/useGenerationStatus.ts` (ready, currently uses hardcoded stake key)
-
-**When the indexer becomes available**, the process will query the `dustGenerationStatus` GraphQL endpoint:
-
-```graphql
-query GetDustGenerationStatus($cardanoStakeKeys: [HexEncoded!]!) {
-    dustGenerationStatus(cardanoStakeKeys: $cardanoStakeKeys) {
-        cardanoStakeKey
-        dustAddress
-        registered
-        nightBalance
-        generationRate
-        currentCapacity
-    }
-}
-```
-
-**Indexer Benefits**:
-- Faster confirmation (typically 3-15 seconds vs 3-60 seconds)
-- No manual datum deserialization required
-- Additional metadata available (generation rate, capacity, balance)
-- Native Midnight infrastructure
-- Pre-indexed data optimized for queries
-
-The migration will require:
-1. Setting `INDEXER_ENDPOINT` environment variable
-2. Updating `useGenerationStatus` hook to extract actual stake key from wallet address
-3. Optional feature flag to switch between Blockfrost and Indexer approaches
-
-Both implementations will coexist to allow gradual migration and fallback mechanisms.
+The system polls every 3 seconds with a maximum of 20 attempts (60 seconds total).
 
 ## Step 9: Automatic Redirect
 
@@ -350,7 +305,7 @@ Validation (prerequisites check)
 Create executor function
     |
     v
-Build transaction (construct inputs, outputs, mints)
+Build transaction (mint NFT, create UTXO with datum)
     |
     v
 Sign transaction (user approves in wallet)
@@ -383,33 +338,34 @@ Automatic redirect to dashboard
 
 ## Error Handling
 
-Errors at any stage are caught and displayed to the user via toast notifications. Common failure points:
+Errors are caught and displayed to the user via toast notifications. Common failure points:
 
 - User rejects wallet signature
 - Insufficient ADA balance for fees
 - Network timeout during confirmation
 - Blockfrost API errors during UTXO search
 
-All errors are logged via the application logger for debugging purposes.
+All errors are logged for debugging purposes.
 
 ## Registration UTXO Structure
 
-The registration creates a UTXO at the DUST Mapping Validator address with:
+The registration creates a UTXO at the DUST Generator validator address with:
 
 ```
-Address: DUST Mapping Validator script address
+Address: DUST Generator script address
 Assets:
-  - 1.586080 ADA (minimum UTXO requirement)
-  - 1 DUST Auth Token (policyId + "DUST production auth token")
+  - LOVELACE_FOR_REGISTRATION ADA (minimum UTXO requirement)
+  - 1 DUST NFT (policyId + "") - authentication token
 Datum (inline):
-  Constructor 0
-    Field 0: Cardano payment key hash (28 bytes hex string)
-    Field 1: Midnight coin public key (hex-encoded bytes)
+  DustMappingDatum:
+    c_wallet:
+      VerificationKey: [cardanoPKH]     // Cardano PKH (28 bytes hex string)
+    dust_address: dustPKH               // DUST PKH (32 bytes hex string)
 ```
 
 ### Datum Field Details
 
-**Field 0: Cardano Payment Key Hash**
+**Field 0: Cardano Payment Key Hash (c_wallet.VerificationKey)**
 
 Extracted from the connected Cardano wallet address:
 
@@ -422,44 +378,39 @@ const cardanoPKH = getAddressDetails(cardanoAddress)?.paymentCredential?.hash;
 
 Value: 28-byte hex string (56 characters) representing the payment credential hash.
 
-**Field 1: Midnight Coin Public Key**
+**Field 1: Midnight Dust Address (dust_address)**
 
-The Midnight coin public key is encoded as UTF-8 bytes and then converted to hex:
+The Midnight dust address is stored directly as a 32-byte hex string:
 
-**Location**: `src/lib/dustTransactionsUtils.ts:130-133`
+**Location**: `src/lib/dustTransactionsUtils.ts:84-89`
 
 ```typescript
-const registrationDatumData = new Constr(0, [
-    cardanoPKH!,
-    toHex(new TextEncoder().encode(dustPKH)), // dustPKH is the coin public key
-]);
+const dustMappingDatum: Contracts.DustMappingDatum = {
+    c_wallet: {
+        VerificationKey: [cardanoPKH!], // Cardano PKH (28 bytes hex string)
+    },
+    dust_address: dustPKH,              // DUST PKH (32 bytes hex string)
+};
 ```
 
-The encoding process:
-1. Take coin public key: `"99934362fefa4068d10966e934e9f66003b3c6e2648df3b3f7794adeb8a10a45"` (64 hex chars)
-2. Encode as UTF-8 bytes: `TextEncoder().encode()` converts the string to byte array
-3. Convert to hex: `toHex()` creates hex representation of those bytes
-
-**Important**: Both wallet connection and manual address entry produce the **same coin public key value** (64-character hex string), ensuring identical on-chain datums regardless of input method.
+The dust address is stored directly as the 32-byte hex string coin public key.
 
 ### UTXO Lookup and Matching
 
-When searching for a user's registration UTXO, the process reverses the encoding:
+When searching for a user's registration UTXO, the process deserializes the datum using Aiken data types:
 
 **Location**: `src/hooks/useRegistrationUtxo.ts:199-204`
 
 ```typescript
-const datumData = Data.from(utxo.inline_datum);
-const [datumCardanoPKH, dustPKHBytes] = datumData.fields;
+const datumData = deserialize(Contracts.DustMappingDatum, utxo.inline_datum);
 
-// Reverse the encoding: hex bytes → UTF-8 string
-const dustPKHFromDatum = new TextDecoder().decode(
-    new Uint8Array(dustPKHBytes.match(/.{2}/g).map(byte => parseInt(byte, 16)))
-);
+// Extract Cardano PKH and dust address
+dustPKHFromDatum = datumData.dust_address;
+datumCardanoPKH = datumData.c_wallet.VerificationKey[0];
 ```
 
 The UTXO is matched when both fields match the user's credentials:
 - `datumCardanoPKH === cardanoPKH` (Cardano payment key hash matches)
-- `dustPKHFromDatum === dustPKH` (Midnight coin public key matches)
+- `dustPKHFromDatum === dustPKH` (Midnight dust address matches)
 
 This UTXO serves as the on-chain proof of registration and enables the Midnight network to generate DUST tokens for the registered Cardano address.
