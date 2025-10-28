@@ -41,16 +41,12 @@ export default function MatchAddressesCard({
     // Transaction management
     const transaction = useTransaction();
 
-    // Use DUST protocol context
-    // const { protocolStatus } = useDustProtocol();
-
     // Check if user has minimum balance
     const hasEnoughBalance = hasMinimumBalance(cardanoBalanceADA);
 
     const isMatching = transaction.isCurrentTransaction('register') && transaction.isAnyTransactionRunning();
-    const disabled = // Disable if protocol not ready
-        // !protocolStatus?.isReady ||
-        // // Disable if insufficient balance
+    const disabled = 
+        // Disable if insufficient balance
         !hasEnoughBalance ||
         // Disable during any transaction execution
         transaction.isAnyTransactionRunning() ||
@@ -176,10 +172,7 @@ export default function MatchAddressesCard({
                             ? 'REGISTRATION COMPLETED ✅'
                             : !hasEnoughBalance
                             ? `INSUFFICIENT BALANCE (Min. ${MIN_ADA_FOR_REGISTRATION} ADA)`
-                            // : protocolStatus?.isReady
-                            // ? 
                             : 'MATCH ADDRESSES'
-                            // : 'DUST PROTOCOL NOT READY'
                             }
                     </Button>
                 </CardBody>
