@@ -12,7 +12,7 @@ import { useWalletContext } from '@/contexts/WalletContext';
 import ToastContainer from '../ui/ToastContainer';
 import { useToast } from '@/hooks/useToast';
 import { useTransaction } from '@/contexts/TransactionContext';
-import { useDustProtocol } from '@/contexts/DustProtocolContext';
+// import { useDustProtocol } from '@/contexts/DustProtocolContext';
 import { LucidEvolution } from '@lucid-evolution/lucid';
 import DustTransactionsUtils from '@/lib/dustTransactionsUtils';
 import UpdateAddressModal from '../modals/UpdateAddressModal';
@@ -46,7 +46,8 @@ const MidnightWalletCard = () => {
     } = useWalletContext();
 
     // Use DUST protocol context
-    const { contracts, protocolStatus } = useDustProtocol();
+    // TODO: deleted
+    // const { contracts, isContractsLoaded, isContractsLoading, contractsError } = useDustProtocol();
 
     const [isDisconnecting, setIsDisconnecting] = useState(false);
 
@@ -88,12 +89,13 @@ const MidnightWalletCard = () => {
             return;
         }
 
-        // Check if dust protocol is ready first
-        if (!protocolStatus?.isReady) {
-            logger.error('❌ Dust protocol not ready for unregistration');
-            transaction.setError('Dust protocol is not ready. Please ensure InitVersioningCommand & InitDustProductionCommand are completed.');
-            return;
-        }
+        // Check if Dust Smart Contract are loaded
+        // TODO: deleted
+        // if (!isContractsLoaded) {
+        //     logger.error('❌ Dust Smart Contract not loaded');
+        //     transaction.setError('Dust Smart Contract is not loaded. Please load the contracts first.');
+        //     return;
+        // }
 
         // Get DUST PKH from midnight wallet
         const dustPKHValue = midnight.coinPublicKey;
@@ -115,7 +117,6 @@ const MidnightWalletCard = () => {
             // Create the unregistration executor and execute it
             const unregistrationExecutor = DustTransactionsUtils.createUnregistrationExecutor(
                 cardano.lucid as LucidEvolution,
-                contracts,
                 dustPKHValue,
                 registrationUtxo
             );
@@ -150,12 +151,13 @@ const MidnightWalletCard = () => {
             return;
         }
 
-        // Check if dust protocol is ready first
-        if (!protocolStatus?.isReady) {
-            logger.error('❌ Dust protocol not ready for update');
-            transaction.setError('Dust protocol is not ready. Please ensure InitVersioningCommand & InitDustProductionCommand are completed.');
-            return;
-        }
+        // Check if Dust Smart Contract are loaded
+        // TODO: deleted
+        // if (!isContractsLoaded) {
+        //     logger.error('❌ Dust Smart Contract not loaded');
+        //     transaction.setError('Dust Smart Contract is not loaded. Please load the contracts first.');
+        //     return;
+        // }
 
         // Use the new coin public key passed from the modal
         if (!newCoinPublicKey) {
@@ -183,7 +185,6 @@ const MidnightWalletCard = () => {
             // Create the update executor with the NEW coin public key
             const updateExecutor = DustTransactionsUtils.createUpdateExecutor(
                 cardano.lucid as LucidEvolution,
-                contracts,
                 newCoinPublicKey,  // ← Using the NEW coin public key!
                 registrationUtxo
             );
@@ -278,7 +279,7 @@ const MidnightWalletCard = () => {
                 </div>
                 <div className="flex flex-row gap-2 items-center z-10">
                     <Image src={CheckIcon} alt="check" width={18} height={18} />
-                    <span>{handleFormatWalletAddress(midnight.address || '')}</span>
+                    <span>{handleFormatWalletAddress(generationStatus?.dustAddress || midnight.address || '')}</span>
                     <Image src={CopyIcon} alt="copy" width={18} height={18} className="cursor-pointer hover:opacity-70" onClick={handleCopyAddress} />
                 </div>
             </div>
@@ -294,15 +295,17 @@ const MidnightWalletCard = () => {
                             onPress={() => setIsUpdateModalOpen(true)}
                             isLoading={isLoadingRegistrationUtxo}
                             isDisabled={
-                                !protocolStatus?.isReady ||
+                                // !isContractsLoaded ||
                                 isLoadingRegistrationUtxo ||
                                 !registrationUtxo ||
                                 (!transaction.isCurrentTransaction('update') && transaction.isAnyTransactionRunning())
                             }
                         >
-                            {!protocolStatus?.isReady
-                                ? 'DUST PROTOCOL NOT READY'
-                                : isLoadingRegistrationUtxo
+                            {
+                            // !isContractsLoaded
+                            //     ? 'DUST SMART CONTRACT NOT LOADED'
+                            //     : 
+                                isLoadingRegistrationUtxo
                                     ? 'LOADING REGISTRATION UTXO...'
                                     : !registrationUtxo
                                         ? 'NO REGISTRATION FOUND'
@@ -315,15 +318,17 @@ const MidnightWalletCard = () => {
                             onPress={() => setIsStopModalOpen(true)}
                             isLoading={isLoadingRegistrationUtxo}
                             isDisabled={
-                                !protocolStatus?.isReady ||
+                                // !isContractsLoaded ||
                                 isLoadingRegistrationUtxo ||
                                 !registrationUtxo ||
                                 (transaction.isCurrentTransaction('unregister') && transaction.isAnyTransactionRunning())
                             }
                         >
-                            {!protocolStatus?.isReady
-                                ? 'DUST PROTOCOL NOT READY'
-                                : isLoadingRegistrationUtxo
+                            {
+                            // !isContractsLoaded
+                            //     ? 'DUST SMART CONTRACT NOT LOADED'
+                            //     : 
+                                isLoadingRegistrationUtxo
                                     ? 'LOADING REGISTRATION UTXO...'
                                     : !registrationUtxo
                                         ? 'NO REGISTRATION FOUND'

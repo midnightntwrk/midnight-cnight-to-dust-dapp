@@ -1,7 +1,7 @@
 'use client';
 import { logger } from '@/lib/logger';
 
-import { useDustProtocol } from '@/contexts/DustProtocolContext';
+// import { useDustProtocol } from '@/contexts/DustProtocolContext';
 import { useTransaction } from '@/contexts/TransactionContext';
 import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/contexts/WalletContext';
 import { DustTransactionsUtils } from '@/lib/dustTransactionsUtils';
@@ -32,8 +32,9 @@ export default function Onboard() {
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
     const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);
 
-    // Use DUST protocol context
-    const { contracts, protocolStatus } = useDustProtocol();
+    // // Use DUST protocol context
+    // TODO: deleted
+    // const { contracts, isContractsLoaded } = useDustProtocol();
 
     // Transaction management
     const transaction = useTransaction();
@@ -61,12 +62,13 @@ export default function Onboard() {
             return;
         }
 
-        // Check if dust protocol is ready first
-        if (!protocolStatus?.isReady) {
-            logger.error('❌ Dust protocol not ready for registration');
-            transaction.setError('Dust protocol is not ready. Please ensure InitVersioningCommand & InitDustProductionCommand are completed.');
-            return;
-        }
+        // // Check if dust protocol is ready first
+        // TODO: deleted
+        // if (!isContractsLoaded) {
+        //     logger.error('❌ Dust Smart Contract not loaded');
+        //     transaction.setError('Dust Smart Contract is not loaded. Please load the contracts first.');
+        //     return;
+        // }
 
         // Get DUST PKH from midnight wallet
         const dustPKHValue = midnight.coinPublicKey;
@@ -80,18 +82,9 @@ export default function Onboard() {
             logger.log('Starting DUST registration...');
 
             // Create the registration executor and execute it
-            const registrationExecutor = DustTransactionsUtils.createRegistrationExecutor(
-                cardano.lucid as LucidEvolution,
-                contracts,
-                dustPKHValue
-            );
+            const registrationExecutor = DustTransactionsUtils.createRegistrationExecutor(cardano.lucid as LucidEvolution, dustPKHValue);
 
-            const transactionState = await transaction.executeTransaction(
-                'register',
-                registrationExecutor,
-                {},
-                cardano.lucid as LucidEvolution
-            );
+            const transactionState = await transaction.executeTransaction('register', registrationExecutor, {}, cardano.lucid as LucidEvolution);
 
             // Only open success modal if transaction actually succeeded
             if (transactionState === 'success') {
@@ -108,7 +101,7 @@ export default function Onboard() {
             showToast({
                 message: error instanceof Error ? error.message : 'Registration failed',
                 type: 'error',
-                duration: 5000
+                duration: 5000,
             });
         }
     };
@@ -173,12 +166,7 @@ export default function Onboard() {
             )}
 
             {/* Cardano Wallet Selection Modal */}
-            <WalletsModal
-                isOpen={isCardanoModalOpen}
-                onOpenChange={setIsCardanoModalOpen}
-                wallets={getAvailableCardanoWallets()}
-                handleWalletSelect={handleCardanoWalletSelect}
-            />
+            <WalletsModal isOpen={isCardanoModalOpen} onOpenChange={setIsCardanoModalOpen} wallets={getAvailableCardanoWallets()} handleWalletSelect={handleCardanoWalletSelect} />
 
             {/* Midnight Wallet Selection Modal */}
             <WalletsModal
@@ -189,10 +177,7 @@ export default function Onboard() {
             />
 
             {/* Toast Notifications */}
-            <ToastContainer
-                toasts={toasts}
-                onRemove={removeToast}
-            />
+            <ToastContainer toasts={toasts} onRemove={removeToast} />
         </div>
     );
 }

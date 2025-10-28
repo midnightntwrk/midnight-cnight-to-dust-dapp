@@ -15,7 +15,7 @@ import WalletsModal from './wallet-connect/WalletsModal';
 import LoadingBackdrop from './ui/LoadingBackdrop';
 
 export default function Dashboard() {
-    const router = useRouter();
+    // const router = useRouter();
     const {
         cardano,
         isAutoReconnecting,
@@ -23,8 +23,8 @@ export default function Dashboard() {
         connectMidnightWallet,
         getAvailableCardanoWallets,
         getAvailableMidnightWallets,
-        midnight,
-        registrationUtxo,
+        // midnight,
+        // registrationUtxo,
         isLoadingRegistrationUtxo,
     } = useWalletContext();
 
