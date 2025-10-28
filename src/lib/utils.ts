@@ -34,7 +34,7 @@ export const extractCoinPublicKeyFromMidnightAddress = (address: string): string
             prefix: prefix,
             dataLength: data.length,
             coinPublicKeyHex: coinPublicKeyHex,
-            coinPublicKeyLength: coinPublicKeyHex.length
+            coinPublicKeyLength: coinPublicKeyHex.length,
         });
 
         return coinPublicKeyHex;

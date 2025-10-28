@@ -1,12 +1,9 @@
-import { LucidEvolution, getAddressDetails, mintingPolicyToId, toHex, TxSignBuilder, UTxO } from '@lucid-evolution/lucid';
-// import { ContractUtils, ContractsRegistry } from './contractUtils';
-import { toJson } from '@/lib/utils';
-import { logger } from '@/lib/logger';
 import * as Contracts from '@/config/contract_blueprint';
-import { addressFromValidator, AssetId, CredentialType, PolicyId, RewardAddress } from '@blaze-cardano/core';
-import { NETWORK_ID } from '@/config/network';
-import { serialize } from '@blaze-cardano/data';
-import { blazeToLucidScript } from './contractUtils';
+import { LOVELACE_FOR_REGISTRATION } from '@/config/transactionConstants';
+import { logger } from '@/lib/logger';
+import { toJson } from '@/lib/utils';
+import { getAddressDetails, LucidEvolution, TxSignBuilder, UTxO } from '@lucid-evolution/lucid';
+import { blazeToLucidScript, getPolicyId, getStakeAddress, getValidatorAddress, serializeToCbor } from './contractUtils';
 
 export class DustTransactionsUtils {
     /**
@@ -15,60 +12,14 @@ export class DustTransactionsUtils {
     static async buildRegistrationTransaction(lucid: LucidEvolution, dustPKH: string): Promise<TxSignBuilder> {
         logger.log('[DustTransactions]', '🔧 Building DUST Address Registration Transaction...');
 
-        // Get contracts from registry
-        // logger.log('[DustTransactions]', '🔍 Getting contracts from registry...');
-        // const versionOracleValidatorContract = ContractUtils.getContract(contracts, 'version-oracle-validator.plutus');
-        // const dustAuthTokenMintingPolicyContract = ContractUtils.getContract(contracts, 'dust-auth-token-minting-policy.plutus');
-        // const dustAuthTokenPolicyContract = ContractUtils.getContract(contracts, 'dust-auth-token-policy.plutus');
-        // const dustMappingValidatorContract = ContractUtils.getContract(contracts, 'dust-mapping-validator.plutus');
-
-        // if (!versionOracleValidatorContract || !dustAuthTokenMintingPolicyContract || !dustAuthTokenPolicyContract || !dustMappingValidatorContract) {
-        //     logger.error('[DustTransactions]', '❌ Required contracts not found in registry');
-        //     throw new Error('Required contracts not found in registry');
-        // }
-
-        // Find Version Oracle UTxO (reference input)
-        // logger.log('[DustTransactions]', '🔍 Querying Version Oracle UTxOs for reference...');
-        // const versionOracleUtxos = await lucid.utxosAt(versionOracleValidatorContract.address!);
-
-        // logger.log(
-        //     '[DustTransactions]',
-        //     '💰 Version Oracle UTxO Query Result:',
-        //     toJson({
-        //         utxosFound: versionOracleUtxos.length,
-        //         utxos: versionOracleUtxos.map((utxo) => ({
-        //             txHash: utxo.txHash,
-        //             outputIndex: utxo.outputIndex,
-        //             assets: Object.keys(utxo.assets),
-        //             lovelace: utxo.assets.lovelace,
-        //             datum: utxo.datum,
-        //             datumHash: utxo.datumHash,
-        //             scriptRef: utxo.scriptRef?.script.slice(0, 10) + '...',
-        //         })),
-        //     })
-        // );
-
-        // if (versionOracleUtxos.length === 0) {
-        //     logger.error('[DustTransactions]', '❌ Version Oracle UTxOs not found');
-        //     throw new Error('Version Oracle UTxOs from previous steps not found - run Steps 01 & 02 first');
-        // }
-
-        // // Find the UTxO with the DUST Auth Token Minting Policy reference script
-        // const dustAuthTokenMintingUtxo = versionOracleUtxos.find((utxo) => {
-        //     if (!utxo.scriptRef) {
-        //         return false;
-        //     }
-        //     return mintingPolicyToId(utxo.scriptRef) === dustAuthTokenMintingPolicyContract.policyId;
-        // });
-
-        // if (!dustAuthTokenMintingUtxo) {
-        //     logger.error('[DustTransactions]', '❌ DUST Auth Token Minting Policy UTxO not found');
-        //     throw new Error('DUST Auth Token Minting Policy UTxO not found');
-        // }
-
-        // Get environment variables for registration
+        // Get current user's Cardano address and PKH
         const cardanoAddress = await lucid.wallet().address();
         const cardanoPKH = getAddressDetails(cardanoAddress)?.paymentCredential?.hash;
+
+        if (!cardanoPKH) {
+            logger.error('[DustTransactions]', '❌ Cardano PKH not found');
+            throw new Error('Cardano PKH not found');
+        }
 
         if (!dustPKH) {
             logger.error('[DustTransactions]', '❌ DUST PKH not configured');
@@ -84,32 +35,37 @@ export class DustTransactionsUtils {
             })
         );
 
+        // Get DUST Generator contract
         const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
-
-        const dustGeneratorAddress = addressFromValidator(NETWORK_ID, dustGenerator.Script).toBech32();
-
-        // Build the transaction according to Step 03 specification
-        logger.log('[DustTransactions]', '🔨 Building registration transaction...');
-        const txBuilder = lucid.newTx();
-
-        // // REFERENCE INPUT: Version Oracle UTxO with DUST Auth Token Minting Policy
-        // logger.log('[DustTransactions]', '📥 Adding reference input (Version Oracle UTxO with minting policy)...');
-        // txBuilder.readFrom([dustAuthTokenMintingUtxo]);
-
-        // MINT 1: DUST Auth Token Minting Policy - 1 token with EMPTY asset name
-        // const dustAuthTokenMintingRedeemer = Data.to(new Constr(0, [])); // Constructor 0, empty fields
-
-        // Construct the expected NFT asset name
-        const dustNFTTokenName = '';
-        const dustNFTAssetName = PolicyId(dustGenerator.Script.hash()) + dustNFTTokenName;
-
-        const dustNFTMintingRedeemer = serialize(Contracts.DustAction, 'Create').toCbor();
+        const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
 
         logger.log(
             '[DustTransactions]',
-            '🪙 Minting DUST Auth Token (Minting Policy):',
+            '📋 DUST Generator Address:',
             toJson({
-                policyId: PolicyId(dustGenerator.Script.hash()),
+                dustGeneratorAddress,
+            })
+        );
+
+        // Build the transaction
+
+        logger.log('[DustTransactions]', '🔨 Building registration transaction...');
+        const txBuilder = lucid.newTx();
+
+        // MINT NFT
+
+        // Construct the NFT asset name
+        const dustNFTTokenName = '';
+        const dustNFTAssetName = getPolicyId(dustGenerator.Script) + dustNFTTokenName;
+
+        // Redeemer
+        const dustNFTMintingRedeemer = serializeToCbor(Contracts.DustAction, 'Create');
+
+        logger.log(
+            '[DustTransactions]',
+            '🪙 Minting DUST NFT:',
+            toJson({
+                policyId: getPolicyId(dustGenerator.Script),
                 assetName: dustNFTAssetName,
                 amount: 1n,
                 redeemerCBORHEX: dustNFTMintingRedeemer,
@@ -118,43 +74,21 @@ export class DustTransactionsUtils {
 
         txBuilder.mintAssets({ [dustNFTAssetName]: 1n }, dustNFTMintingRedeemer);
 
-        // // MINT 2: DUST Auth Token Policy - 1 token with specific token name
-        // const dustAuthTokenRedeemer = Data.to(new Constr(0, [])); // Constructor 0, empty fields
-        // const dustTokenName = toHex(new TextEncoder().encode('DUST production auth token'));
-        // const dustAuthTokenAssetName = dustAuthTokenPolicyContract.policyId! + dustTokenName;
-
-        // logger.log(
-        //     '[DustTransactions]',
-        //     '🪙 Minting DUST Auth Token (Main Policy):',
-        //     toJson({
-        //         policyId: dustAuthTokenPolicyContract.policyId!,
-        //         tokenName: 'DUST production auth token',
-        //         assetName: dustAuthTokenAssetName,
-        //         amount: 1n,
-        //     })
-        // );
-
-        // txBuilder.mintAssets({ [dustAuthTokenAssetName]: 1n }, dustAuthTokenRedeemer);
+        // Attach the required script
+        logger.log('[DustTransactions]', '📎 Attaching DUST NFT Policy Script...');
+        txBuilder.attach.MintingPolicy(blazeToLucidScript(dustGenerator.Script));
 
         // OUTPUT: DUST Mapping Validator with Registration Datum
-        // The DUST PKH is encoded as the bytes of the hex string representation
-        // const registrationDatumData = new Constr(0, [
-        //     cardanoPKH!, // Cardano PKH (28 bytes hex string)
-        //     toHex(new TextEncoder().encode(dustPKH)), // DUST PKH encoded as bytes of the string representation
-        // ]);
-
-        // const serializedRegistrationDatum = Data.to(registrationDatumData);
 
         // Create dust mapping datum with user's credential and dust address
         const dustMappingDatum: Contracts.DustMappingDatum = {
             c_wallet: {
                 VerificationKey: [cardanoPKH!], // Cardano PKH (28 bytes hex string)
             },
-            dust_address: dustPKH, // DUST PKH encoded as bytes of the string representation
-            // dust_address: toHex(new TextEncoder().encode(dustPKH)), // DUST PKH encoded as bytes of the string representation
+            dust_address: dustPKH, // DUST PKH (32 bytes hex string)
         };
 
-        const serializedRegistrationDatum = serialize(Contracts.DustMappingDatum, dustMappingDatum).toCbor();
+        const serializedRegistrationDatum = serializeToCbor(Contracts.DustMappingDatum, dustMappingDatum);
 
         logger.log(
             '[DustTransactions]',
@@ -162,8 +96,8 @@ export class DustTransactionsUtils {
             toJson({
                 address: dustGeneratorAddress,
                 assets: {
-                    lovelace: 1586080n, // ADA amount
-                    [dustNFTAssetName]: 1n, // Using minting policy token
+                    lovelace: LOVELACE_FOR_REGISTRATION, // Minimum ADA for UTxO
+                    [dustNFTAssetName]: 1n, // DUST NFT Token
                 },
                 datumData: dustMappingDatum,
                 datumCBORHEX: serializedRegistrationDatum,
@@ -174,20 +108,15 @@ export class DustTransactionsUtils {
             dustGeneratorAddress, // DUST Mapping Validator Address
             { kind: 'inline', value: serializedRegistrationDatum }, // Registration Datum (INLINE)
             {
-                lovelace: 1586080n, // Minimum ADA for UTxO
-                [dustNFTAssetName]: 1n, // DUST Auth Token (from main policy)
+                lovelace: LOVELACE_FOR_REGISTRATION, // Minimum ADA for UTxO
+                [dustNFTAssetName]: 1n, // DUST NFT Token
             }
         );
-
-        logger.log('[DustTransactions]', '📎 Attaching DUST Auth Token Minting Policy script...');
-        txBuilder.attach.MintingPolicy(blazeToLucidScript(dustGenerator.Script));
-
-        // logger.log('[DustTransactions]', '📎 Attaching DUST Auth Token Policy script...');
-        // txBuilder.attach.MintingPolicy(dustAuthTokenPolicyContract.scriptObject!);
 
         // Add signer
         txBuilder.addSigner(await lucid.wallet().address());
 
+        // Complete transaction
         logger.log('[DustTransactions]', '🔧 Completing registration transaction...');
         const completedTx = await txBuilder.complete();
 
@@ -225,81 +154,56 @@ export class DustTransactionsUtils {
      * Consumes existing registration UTXO without creating a new one
      */
     static async buildUnregistrationTransaction(lucid: LucidEvolution, dustPKH: string, registrationUtxo: UTxO): Promise<TxSignBuilder> {
-        const { Data, Constr } = await import('@lucid-evolution/lucid');
-
         logger.log('[DustTransactions]', '🔧 Building DUST Address Unregistration Transaction...');
 
-        // Get contracts from registry
-        // logger.log('[DustTransactions]', '🔍 Getting contracts from registry...');
-        // const versionOracleValidatorContract = ContractUtils.getContract(contracts, 'version-oracle-validator.plutus');
-        // const dustAuthTokenBurningPolicyContract = ContractUtils.getContract(contracts, 'dust-auth-token-burning-policy.plutus');
-        // const dustMappingValidatorSpendPolicyContract = ContractUtils.getContract(contracts, 'dust-mapping-validator-spend-policy.plutus');
-        // const dustMappingValidatorContract = ContractUtils.getContract(contracts, 'dust-mapping-validator.plutus');
-        // const dustAuthTokenPolicyContract = ContractUtils.getContract(contracts, 'dust-auth-token-policy.plutus');
-
-        // if (
-        //     !versionOracleValidatorContract ||
-        //     !dustAuthTokenBurningPolicyContract ||
-        //     !dustMappingValidatorSpendPolicyContract ||
-        //     !dustMappingValidatorContract ||
-        //     !dustAuthTokenPolicyContract
-        // ) {
-        //     logger.error('[DustTransactions]', '❌ Required contracts not found in registry');
-        //     throw new Error('Required contracts not found in registry for unregistration');
-        // }
-
-        // // Find Version Oracle UTxOs for reference inputs
-        // logger.log('[DustTransactions]', '🔍 Querying Version Oracle UTxOs for reference inputs...');
-        // const versionOracleUtxos = await lucid.utxosAt(versionOracleValidatorContract.address!);
-
-        // if (versionOracleUtxos.length === 0) {
-        //     logger.error('[DustTransactions]', '❌ Version Oracle UTxOs not found');
-        //     throw new Error('Version Oracle UTxOs from previous steps not found - run Steps 01 & 02 first');
-        // }
-
-        // // Find the UTxO with the DUST Auth Token Burning Policy reference script
-        // const dustAuthTokenBurningUtxo = versionOracleUtxos.find((utxo) => {
-        //     if (!utxo.scriptRef) {
-        //         return false;
-        //     }
-        //     return mintingPolicyToId(utxo.scriptRef) === dustAuthTokenBurningPolicyContract.policyId;
-        // });
-
-        // if (!dustAuthTokenBurningUtxo) {
-        //     logger.error('[DustTransactions]', '❌ DUST Auth Token Burning Policy UTxO not found');
-        //     throw new Error('DUST Auth Token Burning Policy UTxO not found');
-        // }
-
-        // // Find the UTxO with the DUST Mapping Validator Spend Policy reference script
-        // const dustMappingValidatorSpendUtxo = versionOracleUtxos.find((utxo) => {
-        //     if (!utxo.scriptRef) {
-        //         return false;
-        //     }
-        //     return mintingPolicyToId(utxo.scriptRef) === dustMappingValidatorSpendPolicyContract.policyId;
-        // });
-
-        // if (!dustMappingValidatorSpendUtxo) {
-        //     logger.error('[DustTransactions]', '❌ DUST Mapping Validator Spend Policy UTxO not found');
-        //     throw new Error('DUST Mapping Validator Spend Policy UTxO not found');
-        // }
-
+        // Get DUST Generator contract
         const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
+        const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
 
-        const dustGeneratorAddress = addressFromValidator(NETWORK_ID, dustGenerator.Script).toBech32();
+        logger.log(
+            '[DustTransactions]',
+            '📋 DUST Generator Address:',
+            toJson({
+                dustGeneratorAddress,
+            })
+        );
 
-        // Build the unregistration transaction
+        // Build the transaction
+
         logger.log('[DustTransactions]', '🔨 Building unregistration transaction...');
         const txBuilder = lucid.newTx();
 
-        // REFERENCE INPUTS: Version Oracle UTxOs with required policies
-        // logger.log('[DustTransactions]', '📥 Adding reference inputs (Version Oracle UTxOs with policies)...');
-        // txBuilder.readFrom([dustAuthTokenBurningUtxo, dustMappingValidatorSpendUtxo]);
+        // BURN NFT
+
+        // Construct the NFT asset name
+        const dustNFTTokenName = '';
+        const dustNFTAssetName = getPolicyId(dustGenerator.Script) + dustNFTTokenName;
+
+        // Redeemer
+        const dustNFTBurningRedeemer = serializeToCbor(Contracts.DustAction, 'Burn');
+
+        logger.log(
+            '[DustTransactions]',
+            '🪙 Burning DUST NFT:',
+            toJson({
+                policyId: getPolicyId(dustGenerator.Script),
+                assetName: dustNFTAssetName,
+                amount: -1n,
+                redeemerCBORHEX: dustNFTBurningRedeemer,
+            })
+        );
+
+        txBuilder.mintAssets({ [dustNFTAssetName]: -1n }, dustNFTBurningRedeemer);
+
+        // Attach the required script
+        logger.log('[DustTransactions]', '📎 Attaching DUST NFT Policy Script...');
+        txBuilder.attach.MintingPolicy(blazeToLucidScript(dustGenerator.Script));
 
         // CONSUME INPUT: Existing registration UTXO from DUST Mapping Validator
-        // Redeemer for unregistration (empty constructor)
-        // const unregistrationRedeemer = Data.to(new Constr(0, [])); // Empty constructor for unregister
 
-        const unregistrationRedeemer = Data.to(new Constr(0, [])); // Empty constructor for unregister
+        // Redeemer for unregistration (empty constructor)
+        const { Data } = await import('@lucid-evolution/lucid');
+        const unregistrationRedeemer = Data.void(); // Empty constructor for unregister
 
         logger.log(
             '[DustTransactions]',
@@ -314,76 +218,14 @@ export class DustTransactionsUtils {
 
         txBuilder.collectFrom([registrationUtxo], unregistrationRedeemer);
 
-        // MINT 1: DUST Auth Token Burning Policy - 1 token with EMPTY asset name
-        // This permits burning the authentication token
-        // const dustAuthTokenBurningRedeemer = Data.to(new Constr(0, [])); // Constructor 0, empty fields
-        // Construct the expected NFT asset name
-        const dustNFTTokenName = '';
-        const dustNFTAssetName = PolicyId(dustGenerator.Script.hash()) + dustNFTTokenName;
-        const dustNFTMintingRedeemer = serialize(Contracts.DustAction, 'Burn').toCbor();
-
-        logger.log(
-            '[DustTransactions]',
-            '🪙 Minting DUST Auth Token (Burning Policy):',
-            toJson({
-                policyId: PolicyId(dustGenerator.Script.hash()),
-                assetName: dustNFTAssetName,
-                amount: -1n,
-                redeemerCBORHEX: dustNFTMintingRedeemer,
-            })
-        );
-
-        txBuilder.mintAssets({ [dustNFTAssetName]: -1n }, dustNFTMintingRedeemer);
-
-        // // MINT 2: DUST Mapping Validator Spend Policy - 1 token for Deregister action
-        // // This permits spending from the mapping validator
-        // const dustMappingValidatorSpendRedeemer = Data.to(new Constr(0, [])); // Constructor 0 for Deregister
-        // const dustMappingValidatorSpendAssetName = dustMappingValidatorSpendPolicyContract.policyId! + '';
-
-        // logger.log(
-        //     '[DustTransactions]',
-        //     '🪙 Minting DUST Mapping Validator Spend Policy (Deregister):',
-        //     toJson({
-        //         policyId: dustMappingValidatorSpendPolicyContract.policyId!,
-        //         assetName: dustMappingValidatorSpendAssetName,
-        //         amount: 1n,
-        //         redeemer: 'Constructor 0 (Deregister)',
-        //         redeemerCBORHEX: dustMappingValidatorSpendRedeemer,
-        //     })
-        // );
-
-        // txBuilder.mintAssets({ [dustMappingValidatorSpendAssetName]: 1n }, dustMappingValidatorSpendRedeemer);
-
-        // // BURN: DUST Auth Token Policy - burn the actual authentication token (-1)
-        // const dustTokenName = toHex(new TextEncoder().encode('DUST production auth token'));
-        // const dustAuthTokenAssetName = dustAuthTokenPolicyContract.policyId! + dustTokenName;
-        // const dustAuthTokenBurnRedeemer = Data.to(new Constr(1, [])); // Constructor 1 for Burn
-
-        // logger.log(
-        //     '[DustTransactions]',
-        //     '🔥 Burning DUST Auth Token (Main Policy):',
-        //     toJson({
-        //         policyId: dustAuthTokenPolicyContract.policyId!,
-        //         tokenName: 'DUST production auth token',
-        //         assetName: dustAuthTokenAssetName,
-        //         amount: -1n, // Burning (negative amount)
-        //         redeemer: 'Constructor 1 (Burn)',
-        //         redeemerCBORHEX: dustAuthTokenBurnRedeemer,
-        //     })
-        // );
-
-        // txBuilder.mintAssets({ [dustAuthTokenAssetName]: -1n }, dustAuthTokenBurnRedeemer);
-
-        // Attach the required scripts
-        logger.log('[DustTransactions]', '📎 Attaching required scripts...');
+        // Attach the required script
+        logger.log('[DustTransactions]', '📎 Attaching DUST Mapping Validator Script...');
         txBuilder.attach.SpendingValidator(blazeToLucidScript(dustGenerator.Script));
-        // txBuilder.attach.MintingPolicy(dustAuthTokenBurningPolicyContract.scriptObject!);
-        // txBuilder.attach.MintingPolicy(dustMappingValidatorSpendPolicyContract.scriptObject!);
-        // txBuilder.attach.MintingPolicy(dustAuthTokenPolicyContract.scriptObject!);
 
         // Add signer
         txBuilder.addSigner(await lucid.wallet().address());
 
+        // Complete transaction
         logger.log('[DustTransactions]', '🔧 Completing unregistration transaction...');
         const completedTx = await txBuilder.complete();
 
@@ -415,30 +257,122 @@ export class DustTransactionsUtils {
     }
 
     /**
+     * Check if stake address is registered using Blockfrost API (backend proxy)
+     */
+    private static async checkStakeAddressRegistration(stakeAddress: string): Promise<boolean> {
+        try {
+            // Use backend Blockfrost proxy - same pattern as useRegistrationUtxo
+            const response = await fetch(`/api/blockfrost/accounts/${stakeAddress}`);
+            
+            if (response.status === 200) {
+                const accountData = await response.json();
+                // Stake address is registered if it has EVER been active (has active_epoch) 
+                // OR currently has a pool delegation
+                const isRegistered = accountData.active_epoch !== null || accountData.pool_id !== null;
+                logger.log('[DustTransactions]', `📊 Stake address registration status: ${isRegistered}`, {
+                    active: accountData.active,
+                    active_epoch: accountData.active_epoch,
+                    pool_id: accountData.pool_id
+                });
+                return isRegistered;
+            } else if (response.status === 404) {
+                logger.log('[DustTransactions]', '❌ Stake address not found (not registered)');
+                return false;
+            } else {
+                logger.error('[DustTransactions]', `⚠️ Unexpected response from Blockfrost: ${response.status}`);
+                return false;
+            }
+        } catch (error) {
+            logger.error('[DustTransactions]', '❌ Error checking stake address registration:', error);
+            return false;
+        }
+    }
+
+    /**
      * Build DUST update transaction - Pure function
      * Based on Haskell buildUpdateTx implementation
      * Consumes existing registration UTXO and creates a new one with updated datum
+     * First checks if stake address is registered, registers if needed, then updates
      */
     static async buildUpdateTransaction(lucid: LucidEvolution, newDustPKH: string, registrationUtxo: UTxO): Promise<TxSignBuilder> {
-        const { Data, Constr } = await import('@lucid-evolution/lucid');
-
         logger.log('[DustTransactions]', '🔧 Building DUST Address Update Transaction...');
 
-        // // Get contracts from registry
-        // logger.log('[DustTransactions]', '🔍 Getting contracts from registry...');
-        // const versionOracleValidatorContract = ContractUtils.getContract(contracts, 'version-oracle-validator.plutus');
-        // const dustMappingValidatorSpendPolicyContract = ContractUtils.getContract(contracts, 'dust-mapping-validator-spend-policy.plutus');
-        // const dustMappingValidatorContract = ContractUtils.getContract(contracts, 'dust-mapping-validator.plutus');
-        // const dustAuthTokenPolicyContract = ContractUtils.getContract(contracts, 'dust-auth-token-policy.plutus');
+        // Get DUST Generator contract
+        const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
+        const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
+        const dustGeneratorStakeAddress = getStakeAddress(dustGenerator.Script);
 
-        // if (!versionOracleValidatorContract || !dustMappingValidatorSpendPolicyContract || !dustMappingValidatorContract || !dustAuthTokenPolicyContract) {
-        //     logger.error('[DustTransactions]', '❌ Required contracts not found in registry');
-        //     throw new Error('Required contracts not found in registry for update');
-        // }
+        logger.log(
+            '[DustTransactions]',
+            '📋 DUST Generator Address:',
+            toJson({
+                dustGeneratorAddress,
+            })
+        );
+        logger.log(
+            '[DustTransactions]',
+            '📋 DUST Generator Stake Address:',
+            toJson({
+                dustGeneratorStakeAddress,
+            })
+        );
+
+        // Check if stake address is registered
+        logger.log('[DustTransactions]', '🔍 Checking stake address registration...');
+        const isStakeRegistered = await this.checkStakeAddressRegistration(dustGeneratorStakeAddress);
+
+        if (!isStakeRegistered) {
+            logger.log('[DustTransactions]', '❌ Stake address not registered - doing registration transaction...');
+            return this.buildStakeRegistrationOnlyTransaction(lucid);
+        } else {
+            logger.log('[DustTransactions]', '✅ Stake address already registered - doing update transaction...');
+            return this.buildUpdateOnlyTransaction(lucid, newDustPKH, registrationUtxo);
+        }
+    }
+
+    /**
+     * Build stake registration ONLY transaction
+     */
+    private static async buildStakeRegistrationOnlyTransaction(lucid: LucidEvolution): Promise<TxSignBuilder> {
+        logger.log('[DustTransactions]', '🔧 Building Stake Registration ONLY Transaction...');
+
+        // Get DUST Generator contract
+        const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
+        const dustGeneratorStakeAddress = getStakeAddress(dustGenerator.Script);
+
+        // Build the transaction
+        logger.log('[DustTransactions]', '🔨 Building stake registration transaction...');
+        const txBuilder = lucid.newTx();
+
+        // Register stake address ONLY
+        logger.log('[DustTransactions]', '📝 Registering stake address...');
+        txBuilder.registerStake(dustGeneratorStakeAddress);
+
+        // Add signer
+        txBuilder.addSigner(await lucid.wallet().address());
+
+        // Complete transaction
+        logger.log('[DustTransactions]', '🔧 Completing stake registration transaction...');
+        const completedTx = await txBuilder.complete();
+
+        logger.log('[DustTransactions]', '✅ Stake registration transaction completed successfully');
+        return completedTx;
+    }
+
+    /**
+     * Build update ONLY transaction (when stake is already registered)
+     */
+    private static async buildUpdateOnlyTransaction(lucid: LucidEvolution, newDustPKH: string, registrationUtxo: UTxO): Promise<TxSignBuilder> {
+        logger.log('[DustTransactions]', '🔧 Building Update ONLY Transaction...');
 
         // Get current user's Cardano address and PKH
         const cardanoAddress = await lucid.wallet().address();
         const cardanoPKH = getAddressDetails(cardanoAddress)?.paymentCredential?.hash;
+
+        if (!cardanoPKH) {
+            logger.error('[DustTransactions]', '❌ Cardano PKH not found');
+            throw new Error('Cardano PKH not found');
+        }
 
         if (!newDustPKH) {
             logger.error('[DustTransactions]', '❌ New DUST PKH not provided');
@@ -454,60 +388,20 @@ export class DustTransactionsUtils {
             })
         );
 
-        // // Find Version Oracle UTxOs for reference inputs
-        // logger.log('[DustTransactions]', '🔍 Querying Version Oracle UTxOs for reference inputs...');
-        // const versionOracleUtxos = await lucid.utxosAt(versionOracleValidatorContract.address!);
-
-        // if (versionOracleUtxos.length === 0) {
-        //     logger.error('[DustTransactions]', '❌ Version Oracle UTxOs not found');
-        //     throw new Error('Version Oracle UTxOs from previous steps not found - run Steps 01 & 02 first');
-        // }
-
-        // // Find the UTxO with the DUST Mapping Validator Spend Policy reference script
-        // const dustMappingValidatorSpendUtxo = versionOracleUtxos.find((utxo) => {
-        //     if (!utxo.scriptRef) {
-        //         return false;
-        //     }
-        //     return mintingPolicyToId(utxo.scriptRef) === dustMappingValidatorSpendPolicyContract.policyId;
-        // });
-
-        // if (!dustMappingValidatorSpendUtxo) {
-        //     logger.error('[DustTransactions]', '❌ DUST Mapping Validator Spend Policy UTxO not found');
-        //     throw new Error('DUST Mapping Validator Spend Policy UTxO not found');
-        // }
-
+        // Get DUST Generator contract
         const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
+        const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
+        const dustGeneratorStakeAddress = getStakeAddress(dustGenerator.Script);
 
-        const dustGeneratorAddress = addressFromValidator(NETWORK_ID, dustGenerator.Script).toBech32();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-
-
-        // Build the update transaction
+        // Build the transaction
         logger.log('[DustTransactions]', '🔨 Building update transaction...');
         const txBuilder = lucid.newTx();
 
-        // // REFERENCE INPUT: Version Oracle UTxO with required policy
-        // logger.log('[DustTransactions]', '📥 Adding reference input (Version Oracle UTxO with spend policy)...');
-        // txBuilder.readFrom([dustMappingValidatorSpendUtxo]);
-
         // CONSUME INPUT: Existing registration UTXO from DUST Mapping Validator
+
         // Redeemer for update (empty constructor)
-        const updateRedeemer = Data.to(new Constr(0, [])); // Empty constructor for update
+        const { Data } = await import('@lucid-evolution/lucid');
+        const updateRedeemer = Data.void(); // Empty constructor for update
 
         logger.log(
             '[DustTransactions]',
@@ -521,47 +415,36 @@ export class DustTransactionsUtils {
 
         txBuilder.collectFrom([registrationUtxo], updateRedeemer);
 
-        // // MINT: DUST Mapping Validator Spend Policy - 1 token for Update action
-        // // This permits spending from the mapping validator
-        // const dustMappingValidatorSpendRedeemer = Data.to(new Constr(1, [])); // Constructor 1 for Update
-        // const dustMappingValidatorSpendAssetName = dustMappingValidatorSpendPolicyContract.policyId! + '';
+        // Attach the required script
+        logger.log('[DustTransactions]', '📎 Attaching DUST Mapping Validator Script...');
+        txBuilder.attach.SpendingValidator(blazeToLucidScript(dustGenerator.Script));
 
+        // OUTPUT: New registration UTXO with updated datum
+
+        // Get the DUST Auth Token from the existing UTXO to preserve it
+        // Construct the NFT asset name
         const dustNFTTokenName = '';
-        const dustNFTAssetName = PolicyId(dustGenerator.Script.hash()) + dustNFTTokenName;
+        const dustNFTAssetName = getPolicyId(dustGenerator.Script) + dustNFTTokenName;
 
         logger.log(
             '[DustTransactions]',
             '🪙 Re Using DUST NFT:',
             toJson({
-                policyId: PolicyId(dustGenerator.Script.hash()),
+                policyId: getPolicyId(dustGenerator.Script),
                 assetName: dustNFTAssetName,
                 amount: 1n,
             })
         );
-
-        // txBuilder.mintAssets({ [dustMappingValidatorSpendAssetName]: 1n }, dustMappingValidatorSpendRedeemer);
-
-        // CREATE OUTPUT: New registration UTXO with updated datum
-        // The new DUST PKH is encoded as the bytes of the hex string representation
-        // const updatedRegistrationDatumData = new Constr(0, [
-        //     cardanoPKH!, // Cardano PKH (28 bytes hex string) - same as before
-        //     toHex(new TextEncoder().encode(newDustPKH)), // New DUST PKH encoded as bytes of the string representation
-        // ]);
 
         // Create dust mapping datum with user's credential and dust address
         const updatedRegistrationDatumData: Contracts.DustMappingDatum = {
             c_wallet: {
                 VerificationKey: [cardanoPKH!], // Cardano PKH (28 bytes hex string)
             },
-            dust_address: newDustPKH, // DUST PKH encoded as bytes of the string representation
-            // dust_address: toHex(new TextEncoder().encode(dustPKH)), // DUST PKH encoded as bytes of the string representation
+            dust_address: newDustPKH, // DUST PKH (32 bytes hex string)
         };
 
-        const serializedUpdatedRegistrationDatum = serialize(Contracts.DustMappingDatum, updatedRegistrationDatumData).toCbor();
-
-        // // Get the DUST Auth Token from the existing UTXO to preserve it
-        // const dustTokenName = toHex(new TextEncoder().encode('DUST production auth token'));
-        // const dustAuthTokenAssetName = dustAuthTokenPolicyContract.policyId! + dustTokenName;
+        const serializedUpdatedRegistrationDatum = serializeToCbor(Contracts.DustMappingDatum, updatedRegistrationDatumData);
 
         logger.log(
             '[DustTransactions]',
@@ -569,8 +452,8 @@ export class DustTransactionsUtils {
             toJson({
                 address: dustGeneratorAddress,
                 assets: {
-                    lovelace: 1586080n, // Minimum ADA for UTxO
-                    [dustNFTAssetName]: 1n, // DUST Auth Token (preserved)
+                    lovelace: LOVELACE_FOR_REGISTRATION, // Minimum ADA for UTxO
+                    [dustNFTAssetName]: 1n, // DUST NFT Token (preserved)
                 },
                 datumData: updatedRegistrationDatumData,
                 datumCBORHEX: serializedUpdatedRegistrationDatum,
@@ -581,43 +464,27 @@ export class DustTransactionsUtils {
             dustGeneratorAddress, // DUST Mapping Validator Address (same as before)
             { kind: 'inline', value: serializedUpdatedRegistrationDatum }, // Updated Registration Datum (INLINE)
             {
-                lovelace: 1586080n, // Minimum ADA for UTxO
-                [dustNFTAssetName]: 1n, // DUST NFT Token (preserved from original UTXO)
+                lovelace: LOVELACE_FOR_REGISTRATION, // Minimum ADA for UTxO
+                [dustNFTAssetName]: 1n, // DUST NFT Token (preserved)
             }
         );
 
-        // Attach the required scripts
-        logger.log('[DustTransactions]', '📎 Attaching required scripts...');
-        txBuilder.attach.SpendingValidator(blazeToLucidScript(dustGenerator.Script));
-        // txBuilder.attach.MintingPolicy(dustMappingValidatorSpendPolicyContract.scriptObject!);
-
-        // 3. CRÍTICO: Añade el withdrawal del script validator
-
-        // 1. Obtén el script hash
-        const scriptHash = dustGenerator.Script.hash();
-
-        // 2. Crea la Reward Address (stake address) desde el script
-
-        const stakeAddress = RewardAddress.fromCredentials(NETWORK_ID, {
-            type: CredentialType.ScriptHash,
-            hash: scriptHash,
-        }).toAddress().toBech32();
-
-        // 3. Usa esta dirección para el withdrawal
-        // txBuilder.registerStake(stakeAddress);
+        // WITHDRAWAL from script validator
 
         txBuilder.withdraw(
-            stakeAddress, // ← Reward address, no payment address
+            dustGeneratorStakeAddress, // ← Reward address, no payment address
             0n,
             Data.void()
         );
 
+        // Attach the required script
+        logger.log('[DustTransactions]', '📎 Attaching DUST Withdrawal Script...');
         txBuilder.attach.WithdrawalValidator(blazeToLucidScript(dustGenerator.Script));
-
 
         // Add signer
         txBuilder.addSigner(await lucid.wallet().address());
 
+        // Complete transaction
         logger.log('[DustTransactions]', '🔧 Completing update transaction...');
         const completedTx = await txBuilder.complete();
 

@@ -1,11 +1,10 @@
 import { logger } from '@/lib/logger';
 
+import { toJson } from '@/lib/utils';
 import { Network, ProtocolParameters } from '@lucid-evolution/lucid';
 import { protocolParametersForLucid } from './protocolParameters';
-import { toJson } from '@/lib/utils';
 
 export type CardanoNetwork = 'Mainnet' | 'Preview' | 'Preprod' | 'Emulator' | 'Custom';
-
 interface NetworkConfig {
     BLOCKFROST_URL: string;
     BLOCKCHAIN_EXPLORER_URL: string;
@@ -148,12 +147,9 @@ const initializeLucidWithBlockfrostClientSide = async () => {
 
         const apiServerUrl = process.env.NEXT_PUBLIC_REACT_SERVER_API_URL || '';
 
-        const lucid = await Lucid(
-            new Blockfrost(apiServerUrl + '/blockfrost', 'xxxx'),
-            getLucidNetwork(), {
+        const lucid = await Lucid(new Blockfrost(apiServerUrl + '/blockfrost', 'xxxx'), getLucidNetwork(), {
             presetProtocolParameters: protocolParameters,
-        }
-        );
+        });
         return lucid;
     } catch (error) {
         logger.log('[Network]', `initializeLucidWithBlockfrostClientSide - Error: ${error}`);
@@ -185,8 +181,6 @@ export const isTestnet =
 export const isPreview = CARDANO_NET === LUCID_NETWORK_PREVIEW_NAME;
 export const isPreprod = CARDANO_NET === LUCID_NETWORK_PREPROD_NAME;
 export const isMainnet = CARDANO_NET === LUCID_NETWORK_MAINNET_NAME;
-
-
 
 //---------------------------------------------------
 // Export current network constants
