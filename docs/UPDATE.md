@@ -99,14 +99,13 @@ await onAddressUpdate(newAddress.trim(), newCoinPublicKey);
 
 ## Step 4: Validation and Preparation
 
-**Location**: `src/components/dashboard/MidnightWalletCard.tsx:146-206`
+**Location**: `src/components/dashboard/MidnightWalletCard.tsx:136-153`
 
 The `handleUpdateAddress` function performs validation:
 
 1. **Cardano wallet connection**: Verifies `cardano.lucid` instance exists
-2. **Protocol readiness**: Confirms contracts are ready via `protocolStatus.isReady`
-3. **New coin public key**: Validates the extracted key is not null
-4. **Registration UTXO**: Ensures existing registration UTXO is available
+2. **New coin public key**: Validates the extracted key is not null
+3. **Registration UTXO**: Ensures existing registration UTXO is available
 
 The handler receives the new address parameters rather than using the currently connected Midnight wallet, allowing users to update to any valid Midnight address without needing to connect that wallet.
 
@@ -219,7 +218,7 @@ Progress updates from 60% to 100% during this phase.
 
 ## Step 9: Post-Update Actions
 
-**Location**: `src/components/dashboard/MidnightWalletCard.tsx:192-196`
+**Location**: `src/components/dashboard/MidnightWalletCard.tsx:175-181`
 
 Once the transaction succeeds:
 

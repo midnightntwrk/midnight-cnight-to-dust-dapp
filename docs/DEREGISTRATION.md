@@ -71,20 +71,19 @@ The button shows loading state during execution and displays "UNREGISTERING..." 
 
 ## Step 3: Validation and Preparation
 
-**Location**: `src/components/dashboard/MidnightWalletCard.tsx:85-145`
+**Location**: `src/components/dashboard/MidnightWalletCard.tsx:82-100`
 
 The `handleUnregisterAddress` function performs validation:
 
 1. **Cardano wallet connection**: Verifies `cardano.lucid` instance exists
-2. **Protocol readiness**: Confirms contracts are ready via `protocolStatus.isReady`
-3. **Midnight coin public key**: Validates `midnight.coinPublicKey` is available
-4. **Registration UTXO**: Ensures existing registration UTXO is present
+2. **Midnight coin public key**: Validates `midnight.coinPublicKey` is available
+3. **Registration UTXO**: Ensures existing registration UTXO is present
 
 If any validation fails, the process terminates with an appropriate error message displayed via `transaction.setError()`.
 
 ## Step 4: Create Deregistration Executor
 
-**Location**: `src/components/dashboard/MidnightWalletCard.tsx:116-121`
+**Location**: `src/components/dashboard/MidnightWalletCard.tsx:106-110`
 
 ```typescript
 const unregistrationExecutor = DustTransactionsUtils.createUnregistrationExecutor(
@@ -98,7 +97,7 @@ This factory method returns a function that will build, sign, and submit the tra
 
 ## Step 5: Execute Transaction
 
-**Location**: `src/components/dashboard/MidnightWalletCard.tsx:123-128`
+**Location**: `src/components/dashboard/MidnightWalletCard.tsx:112-117`
 
 ```typescript
 const transactionState = await transaction.executeTransaction(

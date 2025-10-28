@@ -32,13 +32,12 @@ The button is disabled until all prerequisites are satisfied. UI validation chec
 
 ## Step 1: Validation
 
-**Location**: `src/components/Onboard.tsx:59-78`
+**Location**: `src/components/Onboard.tsx:53-65`
 
-The `handleMatchAddresses` function performs three critical validations:
+The `handleMatchAddresses` function performs validations:
 
-1. **Cardano wallet connection**: Verifies `cardano.lucid` instance exists for transaction building
-2. **Protocol readiness**: Confirms DUST protocol contracts are deployed via `protocolStatus.isReady`
-3. **Midnight coin public key**: Ensures `midnight.coinPublicKey` is available
+1. **Cardano wallet connection**: Verifies `cardano.lucid` instance exists
+2. **Midnight coin public key**: Ensures `midnight.coinPublicKey` is available
 
 The `midnight.coinPublicKey` value is obtained through one of two methods:
 
@@ -46,7 +45,7 @@ The `midnight.coinPublicKey` value is obtained through one of two methods:
 
 When a user connects a Midnight wallet extension:
 
-**Location**: `src/contexts/WalletContext.tsx:278-279`
+**Location**: `src/contexts/WalletContext.tsx:282-283`
 
 ```typescript
 const address = walletState?.address || null;
@@ -91,7 +90,7 @@ If any validation fails, the process terminates with an appropriate error messag
 
 ## Step 2: Create Registration Executor
 
-**Location**: `src/components/Onboard.tsx:84-88`
+**Location**: `src/components/Onboard.tsx:71`
 
 ```typescript
 const registrationExecutor = DustTransactionsUtils.createRegistrationExecutor(
@@ -104,7 +103,7 @@ This factory method returns a function that will build, sign, and submit the tra
 
 ## Step 3: Execute Transaction
 
-**Location**: `src/components/Onboard.tsx:90-95`
+**Location**: `src/components/Onboard.tsx:73`
 
 ```typescript
 const transactionState = await transaction.executeTransaction(
@@ -214,7 +213,7 @@ Progress updates from 60% to 100% during this phase. Confirmation typically take
 
 ## Step 8: Poll for Registration UTXO
 
-**Location**: `src/components/Onboard.tsx:102`
+**Location**: `src/components/Onboard.tsx:76-80`
 
 After transaction confirmation, the system polls for the newly created registration UTXO:
 
@@ -234,29 +233,62 @@ This step currently uses Blockfrost to search for the registration UTXO.
 
 The search process:
 
-1. Query Blockfrost for all UTXOs at the DUST Generator address
-2. Filter UTXOs that have inline datums
-3. Deserialize each datum using Aiken data types
-4. Match against the user's Cardano PKH and DUST PKH
+1. Get DUST Generator contract and address
+2. Get Cardano PKH from user's address
+3. Construct NFT asset name (policyId + empty string)
+4. Query Blockfrost for UTXOs at DUST Generator address filtered by NFT asset
+5. Filter UTXOs that have the NFT token and inline datum
+6. Deserialize datum and match against user's credentials
 
 ```typescript
 const searchRegistrationUtxo = async () => {
+    // Get DUST Generator contract
+    const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
+    const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
+    
+    // Get current user's Cardano PKH
+    const cardanoPKH = getAddressDetails(cardanoAddress)?.paymentCredential?.hash;
+    
+    // Construct the expected NFT asset name
+    const dustNFTTokenName = '';
+    const dustNFTAssetName = getPolicyId(dustGenerator.Script) + dustNFTTokenName;
+    
+    // Query UTXOs at the mapping validator address using Blockfrost proxy
     const response = await fetch(
-        `/api/blockfrost/addresses/${dustGeneratorAddress}/utxos`
+        `/api/blockfrost/addresses/${dustGeneratorAddress}/utxos/${dustNFTAssetName}`
     );
     const utxos = await response.json();
-
-    const validUtxos = utxos.filter(utxo => utxo.inline_datum !== null);
-
+    
+    // Filter UTXOs that contain the DUST Auth Token
+    const validUtxos = utxos.filter((utxo) => {
+        const hasAuthToken = utxo.amount?.some((asset) => 
+            asset.unit === dustNFTAssetName && asset.quantity === '1'
+        );
+        const hasInlineDatum = utxo.inline_datum !== null;
+        return hasAuthToken && hasInlineDatum;
+    });
+    
+    // Check each valid UTXO's datum to find matching registration
     for (const utxo of validUtxos) {
-        const datumData = deserialize(Contracts.DustMappingDatum, utxo.inline_datum);
+        // Deserialize the inline datum
+        const datumData = Data.from(utxo.inline_datum);
         
-        if (datumData.c_wallet.VerificationKey[0] === cardanoPKH && 
-            datumData.dust_address === dustPKH) {
-            return utxo;
+        // Check if datumData is a Constr with the expected structure
+        if (datumData instanceof Constr && datumData.index === 0 && datumData.fields.length === 2) {
+            const [datumCardanoPKHConstr, dustPKHFromDatum] = datumData.fields;
+            
+            if (datumCardanoPKHConstr instanceof Constr && 
+                datumCardanoPKHConstr.index === 0 && 
+                datumCardanoPKHConstr.fields.length === 1) {
+                const datumCardanoPKH = datumCardanoPKHConstr.fields[0];
+                
+                if (datumCardanoPKH === cardanoPKH && dustPKHFromDatum === dustPKH) {
+                    return utxo;
+                }
+            }
         }
     }
-
+    
     return null;
 };
 ```
@@ -397,16 +429,28 @@ The dust address is stored directly as the 32-byte hex string coin public key.
 
 ### UTXO Lookup and Matching
 
-When searching for a user's registration UTXO, the process deserializes the datum using Aiken data types:
+When searching for a user's registration UTXO, the process deserializes the datum:
 
-**Location**: `src/hooks/useRegistrationUtxo.ts:199-204`
+**Location**: `src/hooks/useRegistrationUtxo.ts:98-113`
 
 ```typescript
-const datumData = deserialize(Contracts.DustMappingDatum, utxo.inline_datum);
+const datumData = Data.from(utxo.inline_datum);
 
-// Extract Cardano PKH and dust address
-dustPKHFromDatum = datumData.dust_address;
-datumCardanoPKH = datumData.c_wallet.VerificationKey[0];
+// Check if datumData is a Constr with the expected structure
+if (datumData instanceof Constr && datumData.index === 0 && datumData.fields.length === 2) {
+    const [datumCardanoPKHConstr, dustPKHFromDatum] = datumData.fields;
+    
+    if (datumCardanoPKHConstr instanceof Constr && 
+        datumCardanoPKHConstr.index === 0 && 
+        datumCardanoPKHConstr.fields.length === 1) {
+        const datumCardanoPKH = datumCardanoPKHConstr.fields[0];
+        
+        // Match credentials
+        if (datumCardanoPKH === cardanoPKH && dustPKHFromDatum === dustPKH) {
+            return utxo;
+        }
+    }
+}
 ```
 
 The UTXO is matched when both fields match the user's credentials:
