@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { logger } from '@/lib/logger';
-import { ContractUtils } from '@/lib/contractUtils';
-import { useDustProtocol } from '@/contexts/DustProtocolContext';
-import { getAddressDetails, OutRef, toHex, UTxO } from '@lucid-evolution/lucid';
+// TODO: deleted - new smart cotnracts
+// import { AikenContractUtils } from '@/lib/aikenContractUtils';
+// import { useDustProtocol } from '@/contexts/DustProtocolContext';
+import { getAddressDetails, OutRef, toHex, UTxO, Constr } from '@lucid-evolution/lucid';
 import { toJson } from '@/lib/utils';
-import { initializeLucidWithBlockfrostClientSide } from '@/config/network';
+import { initializeLucidWithBlockfrostClientSide, NETWORK_ID } from '@/config/network';
+// import { Contracts } from '@/config/aikenDustProtocol';
+import * as Contracts from '@/config/contract_blueprint';
+import { addressFromValidator, PolicyId } from '@blaze-cardano/core';
 
 // Blockfrost UTXO response type
 interface BlockfrostUtxo {
@@ -31,7 +35,8 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
     const lastFetchedRef = useRef<string>('');
 
     // Get contracts from DUST protocol context
-    const { contracts, isContractsLoaded } = useDustProtocol();
+    // TODO: deleted - new smart cotnracts
+    // const { contracts, isContractsLoaded } = useDustProtocol();
 
     // Internal method to find registration UTXO - returns the UTXO or null
     const searchRegistrationUtxo = useCallback(async (): Promise<UTxO | null> => {
@@ -43,36 +48,41 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
             }
 
             // Check if contracts are loaded
-            if (!isContractsLoaded) {
-                throw new Error('DUST protocol contracts not loaded yet');
-            }
+            // TODO: deleted - new smart cotnracts
+            // if (!isContractsLoaded) {
+            //     throw new Error('Dust Smart Contract not loaded');
+            // }
 
-            const dustMappingValidatorContract = ContractUtils.getContract(contracts, 'dust-mapping-validator.plutus');
-            const dustAuthTokenPolicyContract = ContractUtils.getContract(contracts, 'dust-auth-token-policy.plutus');
+            // const dustMappingValidatorContract = AikenContractUtils.getContract(contracts, 'cnight_generates_dust.cnight_generates_dust.else');
+            // const dustAuthTokenPolicyContract = AikenContractUtils.getContract(contracts, 'cnight_generates_dust.cnight_generates_dust.else');
 
-            if (!dustMappingValidatorContract?.address) {
-                throw new Error('DUST Mapping Validator contract not found or invalid');
-            }
+            const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
 
-            if (!dustAuthTokenPolicyContract?.policyId) {
-                throw new Error('DUST Auth Token Policy contract not found or invalid');
-            }
+            const dustGeneratorAddress = addressFromValidator(NETWORK_ID, dustGenerator.Script).toBech32();
+
+            // if (!dustMappingValidatorContract?.address) {
+            //     throw new Error('DUST Mapping Validator contract not found or invalid');
+            // }
+
+            // if (!dustAuthTokenPolicyContract?.policyId) {
+            //     throw new Error('DUST Auth Token Policy contract not found or invalid');
+            // }
 
             // Get environment variables for registration
             const cardanoPKH = getAddressDetails(cardanoAddress)?.paymentCredential?.hash;
 
-            // Construct the expected auth token asset name
-            const dustTokenName = toHex(new TextEncoder().encode('DUST production auth token'));
-            const dustAuthTokenAssetName = dustAuthTokenPolicyContract.policyId! + dustTokenName;
+            // Construct the expected NFT asset name
+            const dustNFTTokenName = '';
+            const dustNFTAssetName = PolicyId(dustGenerator.Script.hash()) + dustNFTTokenName;
 
-            logger.log('[RegistrationUtxo]', '🪙 Looking for auth token:', {
-                policyId: dustAuthTokenPolicyContract.policyId,
-                tokenName: 'DUST production auth token',
-                assetName: dustAuthTokenAssetName,
+            logger.log('[RegistrationUtxo]', '🪙 Looking for NFT:', {
+                policyId: PolicyId(dustGenerator.Script.hash()),
+                tokenName: dustNFTTokenName,
+                assetName: dustNFTAssetName,
             });
 
             // Query UTXOs at the mapping validator address using Blockfrost proxy
-            const response = await fetch(`/api/blockfrost/addresses/${dustMappingValidatorContract.address}/utxos/${dustAuthTokenAssetName}`);
+            const response = await fetch(`/api/blockfrost/addresses/${dustGeneratorAddress}/utxos/${dustNFTAssetName}`);
 
             if (!response.ok) {
                 throw new Error(`Blockfrost API error: ${response.status} ${response.statusText}`);
@@ -83,7 +93,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
 
             // Filter UTXOs that contain the DUST Auth Token
             const validUtxos: BlockfrostUtxo[] = utxos.filter((utxo: BlockfrostUtxo) => {
-                const hasAuthToken = utxo.amount?.some((asset: { unit: string; quantity: string }) => asset.unit === dustAuthTokenAssetName && asset.quantity === '1');
+                const hasAuthToken = utxo.amount?.some((asset: { unit: string; quantity: string }) => asset.unit === dustNFTAssetName && asset.quantity === '1');
                 const hasInlineDatum = utxo.inline_datum !== null;
                 return hasAuthToken && hasInlineDatum;
             });
@@ -105,10 +115,21 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
 
                     // Check if datumData is a Constr with the expected structure
                     if (datumData instanceof Constr && datumData.index === 0 && datumData.fields && datumData.fields.length === 2) {
-                        const [datumCardanoPKH, dustPKHBytes] = datumData.fields as [string, string];
-
+                        const [datumCardanoPKHConstr, dustPKHFromDatum] = datumData.fields as [Constr<string>, string];
+                        let datumCardanoPKH: string;
+                        if (
+                            datumCardanoPKHConstr instanceof Constr &&
+                            datumCardanoPKHConstr.index === 0 &&
+                            datumCardanoPKHConstr.fields &&
+                            datumCardanoPKHConstr.fields.length === 1
+                        ) {
+                            datumCardanoPKH = datumCardanoPKHConstr.fields[0];
+                        } else {
+                            logger.log('[RegistrationUtxo]', '❌ No matching registration UTXO found');
+                            return null;
+                        }
                         // Convert DUST PKH bytes back to string
-                        const dustPKHFromDatum = new TextDecoder().decode(new Uint8Array(dustPKHBytes.match(/.{2}/g)?.map((byte: string) => parseInt(byte, 16)) || []));
+                        // const dustPKHFromDatum = new TextDecoder().decode(new Uint8Array(dustPKH.match(/.{2}/g)?.map((byte: string) => parseInt(byte, 16)) || []));
 
                         logger.log(
                             '[RegistrationUtxo]',
@@ -155,7 +176,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
             logger.error('[RegistrationUtxo]', '❌ Error finding registration UTXO:', error);
             throw error;
         }
-    }, [cardanoAddress, dustPKH, isContractsLoaded, contracts]);
+    }, [cardanoAddress, dustPKH]);
 
     // Method to find registration UTXO (single attempt, updates state)
     const findRegistrationUtxo = useCallback(async () => {
@@ -175,7 +196,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
     }, [searchRegistrationUtxo]);
 
     const refetch = async () => {
-        if (cardanoAddress && dustPKH && isContractsLoaded) {
+        if (cardanoAddress && dustPKH) {
             await findRegistrationUtxo();
         }
     };
@@ -206,15 +227,15 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
 
                 // Wait before next attempt (except on last attempt)
                 if (attempt < MAX_ATTEMPTS) {
-                    logger.log('[RegistrationUtxo]', `⏳ Waiting ${POLL_INTERVAL/1000}s before next attempt...`);
-                    await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+                    logger.log('[RegistrationUtxo]', `⏳ Waiting ${POLL_INTERVAL / 1000}s before next attempt...`);
+                    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
                 }
             } catch (error) {
                 logger.error('[RegistrationUtxo]', '❌ Error during polling attempt', attempt, error);
 
                 // Continue trying unless it's the last attempt
                 if (attempt < MAX_ATTEMPTS) {
-                    await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+                    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
                 }
             }
         }
@@ -226,9 +247,9 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
     }, [searchRegistrationUtxo]);
 
     useEffect(() => {
-        const fetchKey = `${cardanoAddress}-${dustPKH}-${isContractsLoaded}`;
+        const fetchKey = `${cardanoAddress}-${dustPKH}`;
 
-        if (cardanoAddress && dustPKH && isContractsLoaded) {
+        if (cardanoAddress && dustPKH) {
             // Only fetch if params actually changed
             if (lastFetchedRef.current !== fetchKey) {
                 lastFetchedRef.current = fetchKey;
@@ -240,7 +261,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
             setRegistrationUtxoError(null);
             setIsLoadingRegistrationUtxo(false);
         }
-    }, [cardanoAddress, dustPKH, isContractsLoaded, findRegistrationUtxo]);
+    }, [cardanoAddress, dustPKH, findRegistrationUtxo]);
 
     return {
         registrationUtxo,
