@@ -71,7 +71,6 @@ NEXT_PUBLIC_REACT_SERVER_URL="$NEXT_PUBLIC_REACT_SERVER_BASEURL:3000"
 
 # Optional: Simulation Mode (for development without indexer)
 SIMULATION_MODE=false
-NEXT_PUBLIC_SIMULATION_MODE=false
 ```
 
 ## Transaction Processes
@@ -177,7 +176,6 @@ For development without live indexer infrastructure, enable simulation mode to r
 
 ```bash
 SIMULATION_MODE=true
-NEXT_PUBLIC_SIMULATION_MODE=true
 ```
 
 ### Migration Strategy
