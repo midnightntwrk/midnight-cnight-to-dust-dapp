@@ -10,7 +10,6 @@ import {
   NavbarMenu,
   NavbarMenuItem,
   Link,
-  Button,
 } from "@heroui/react";
 import { useWalletContext } from '@/contexts/WalletContext';
 import Image from "next/image";

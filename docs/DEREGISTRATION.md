@@ -2,15 +2,15 @@
 
 ## Overview
 
-The deregistration process allows users to permanently remove their Cardano-to-Midnight address mapping and stop DUST token generation. This is accomplished by consuming the existing registration UTXO, burning the authentication token, and creating no replacement output.
+The deregistration process removes a user's Cardano-to-Midnight address mapping and stops DUST token generation. This is accomplished by consuming the existing registration UTXO from the DUST Generator contract and burning the DUST NFT, creating no replacement output.
 
 ## Prerequisites
 
 Before the deregistration process can begin:
 
 - Cardano wallet must be connected
-- Existing registration UTXO must exist on-chain
-- DUST protocol contracts deployed and initialized
+- Existing registration UTXO must exist
+- DUST Generator contract
 - Midnight wallet must be connected (to provide coin public key for validation)
 - No other transaction currently executing
 
@@ -21,7 +21,6 @@ User clicks "STOP GENERATION" button in the dashboard's Midnight Wallet Card.
 **Location**: `src/components/dashboard/MidnightWalletCard.tsx:315`
 
 The button is disabled if:
-- Protocol is not ready (`!protocolStatus?.isReady`)
 - Registration UTXO is still loading
 - No registration UTXO found
 - Another transaction is currently running
@@ -71,35 +70,33 @@ The button shows loading state during execution and displays "UNREGISTERING..." 
 
 ## Step 3: Validation and Preparation
 
-**Location**: `src/components/dashboard/MidnightWalletCard.tsx:85-145`
+**Location**: `src/components/dashboard/MidnightWalletCard.tsx:82-100`
 
 The `handleUnregisterAddress` function performs validation:
 
 1. **Cardano wallet connection**: Verifies `cardano.lucid` instance exists
-2. **Protocol readiness**: Confirms contracts are ready via `protocolStatus.isReady`
-3. **Midnight coin public key**: Validates `midnight.coinPublicKey` is available
-4. **Registration UTXO**: Ensures existing registration UTXO is present
+2. **Midnight coin public key**: Validates `midnight.coinPublicKey` is available
+3. **Registration UTXO**: Ensures existing registration UTXO is present
 
 If any validation fails, the process terminates with an appropriate error message displayed via `transaction.setError()`.
 
 ## Step 4: Create Deregistration Executor
 
-**Location**: `src/components/dashboard/MidnightWalletCard.tsx:116-121`
+**Location**: `src/components/dashboard/MidnightWalletCard.tsx:106-110`
 
 ```typescript
 const unregistrationExecutor = DustTransactionsUtils.createUnregistrationExecutor(
     cardano.lucid as LucidEvolution,
-    contracts,
     dustPKHValue,
     registrationUtxo
 );
 ```
 
-This factory method returns a function that will build, sign, and submit the transaction. The executor pattern allows `TransactionContext` to control timing and progress tracking independently of transaction construction logic.
+This factory method returns a function that will build, sign, and submit the transaction.
 
 ## Step 5: Execute Transaction
 
-**Location**: `src/components/dashboard/MidnightWalletCard.tsx:123-128`
+**Location**: `src/components/dashboard/MidnightWalletCard.tsx:112-117`
 
 ```typescript
 const transactionState = await transaction.executeTransaction(
@@ -110,135 +107,63 @@ const transactionState = await transaction.executeTransaction(
 );
 ```
 
-The `TransactionContext` manages the transaction lifecycle through several states:
+The `TransactionContext` manages the transaction lifecycle:
 - `preparing` - Building transaction
 - `signing` - Awaiting user approval
 - `submitting` - Broadcasting to network
 - `confirming` - Polling for confirmation
 - `success` or `error` - Final states
 
-Progress callbacks update the UI from 0-100% throughout execution.
-
 ## Step 6: Build Deregistration Transaction
 
-**Location**: `src/lib/dustTransactionsUtils.ts:205-357`
+**Location**: `src/lib/dustTransactionsUtils.ts:156-234`
 
 The transaction builder constructs a Cardano transaction with the following structure:
 
-### Reference Inputs
+### Contract Instantiation
+- DUST Generator contract: `new Contracts.CnightGeneratesDustCnightGeneratesDustElse()`
+- Validator address derived from contract script
 
-Two Version Oracle UTXOs containing reference scripts:
-
-1. **DUST Auth Token Burning Policy** reference script
-2. **DUST Mapping Validator Spend Policy** reference script
-
-**Location**: `src/lib/dustTransactionsUtils.ts:235-258`
-
-The system queries all UTXOs at the Version Oracle address and filters for those containing the required policy scripts by matching their `scriptRef` against the expected policy IDs.
+### Burn DUST NFT
+- Burns the DUST NFT token (-1 amount)
+- Uses policy ID from DUST Generator contract
+- Redeemer: `DustAction.Burn` (serialized to CBOR)
 
 ### Consumed Input
-
-**Location**: `src/lib/dustTransactionsUtils.ts:268-283`
-
-The existing registration UTXO from DUST Mapping Validator is consumed with redeemer `Constructor 0 []` (empty constructor for deregister action):
-
-```typescript
-const unregistrationRedeemer = Data.to(new Constr(0, []));
-txBuilder.collectFrom([registrationUtxo], unregistrationRedeemer);
-```
-
-This UTXO contains:
-- 1.586080 ADA
-- 1 DUST Auth Token
-- Inline datum with Cardano PKH and DUST PKH mapping
-
-### Mints
-
-**Mint 1: DUST Auth Token Burning Policy**
-
-**Location**: `src/lib/dustTransactionsUtils.ts:285-301`
-
-Mints 1 token with empty asset name to permit the burning operation:
-
-```typescript
-const dustAuthTokenBurningRedeemer = Data.to(new Constr(0, []));
-const dustAuthTokenBurningAssetName = dustAuthTokenBurningPolicyContract.policyId! + '';
-
-txBuilder.mintAssets({ [dustAuthTokenBurningAssetName]: 1n }, dustAuthTokenBurningRedeemer);
-```
-
-This mint proves authorization to burn the authentication token.
-
-**Mint 2: DUST Mapping Validator Spend Policy**
-
-**Location**: `src/lib/dustTransactionsUtils.ts:303-320`
-
-Mints 1 token with empty asset name using `Constructor 0` (Deregister action):
-
-```typescript
-const dustMappingValidatorSpendRedeemer = Data.to(new Constr(0, []));
-const dustMappingValidatorSpendAssetName = dustMappingValidatorSpendPolicyContract.policyId! + '';
-
-txBuilder.mintAssets({ [dustMappingValidatorSpendAssetName]: 1n }, dustMappingValidatorSpendRedeemer);
-```
-
-**Note**: Constructor 0 indicates Deregister action, while Constructor 1 indicates Update action.
-
-### Burn
-
-**Location**: `src/lib/dustTransactionsUtils.ts:322-340`
-
-Burns the DUST Auth Token (negative mint of -1):
-
-```typescript
-const dustTokenName = toHex(new TextEncoder().encode('DUST production auth token'));
-const dustAuthTokenAssetName = dustAuthTokenPolicyContract.policyId! + dustTokenName;
-const dustAuthTokenBurnRedeemer = Data.to(new Constr(1, [])); // Constructor 1 for Burn
-
-txBuilder.mintAssets({ [dustAuthTokenAssetName]: -1n }, dustAuthTokenBurnRedeemer);
-```
-
-The negative amount (-1n) indicates burning rather than minting. The redeemer uses `Constructor 1` to specify the Burn action.
+- Existing registration UTXO from DUST Generator
+- Redeemer: `Data.void()` (unit type for deregistration)
 
 ### Outputs
 
-**No outputs are created**. The registration UTXO is fully consumed, and all ADA (minus fees) is returned to the user's wallet as change. The authentication token is destroyed.
+No registration output is created. The registration UTXO is fully consumed, and all ADA (minus fees) is returned to the user's wallet as change.
 
 ### Scripts Attached
-
-**Location**: `src/lib/dustTransactionsUtils.ts:342-347`
-
 ```typescript
-txBuilder.attach.SpendingValidator(dustMappingValidatorContract.scriptObject!);
-txBuilder.attach.MintingPolicy(dustAuthTokenBurningPolicyContract.scriptObject!);
-txBuilder.attach.MintingPolicy(dustMappingValidatorSpendPolicyContract.scriptObject!);
-txBuilder.attach.MintingPolicy(dustAuthTokenPolicyContract.scriptObject!);
+txBuilder.attach.MintingPolicy(blazeToLucidScript(dustGenerator.Script));
+txBuilder.attach.SpendingValidator(blazeToLucidScript(dustGenerator.Script));
 ```
 
-Four scripts must be attached for execution:
-- Spending validator for consuming the registration UTXO
-- Three minting policies for the mint/burn operations
+Both the minting policy (for burning) and spending validator scripts must be attached for script execution.
 
 ## Step 7: Sign Transaction
 
-**Location**: `src/lib/dustTransactionsUtils.ts:371`
+**Location**: `src/lib/dustTransactionsUtils.ts:248`
 
 ```typescript
 const signedTx = await completedTx.sign.withWallet().complete();
 ```
 
 The user's Cardano wallet displays a popup showing transaction details:
-- Fee estimate (typically 0.4-0.6 ADA)
-- Input: Existing registration UTXO (1.586080 ADA + auth token)
-- Mints: 2 policy tokens
-- Burn: -1 DUST Auth Token
-- Change output back to user (1.586080 ADA minus fees)
+- Fee estimate
+- Input: Existing registration UTXO (LOVELACE_FOR_REGISTRATION ADA + NFT)
+- Burn: -1 DUST NFT token
+- Change output back to user (registration ADA minus fees)
 
 User must approve to proceed. Rejection throws an error caught by the try/catch block.
 
 ## Step 8: Submit to Blockchain
 
-**Location**: `src/lib/dustTransactionsUtils.ts:375`
+**Location**: `src/lib/dustTransactionsUtils.ts:252`
 
 ```typescript
 const txHash = await signedTx.submit();

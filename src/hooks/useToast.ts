@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 export interface ToastOptions {
     message: string;
@@ -22,18 +22,18 @@ export function useToast() {
             ...options,
         };
 
-        setToasts(prev => [...prev, toast]);
+        setToasts((prev) => [...prev, toast]);
 
         // Auto remove toast
         setTimeout(() => {
-            setToasts(prev => prev.filter(t => t.id !== id));
+            setToasts((prev) => prev.filter((t) => t.id !== id));
         }, toast.duration);
 
         return id;
     }, []);
 
     const removeToast = useCallback((id: string) => {
-        setToasts(prev => prev.filter(t => t.id !== id));
+        setToasts((prev) => prev.filter((t) => t.id !== id));
     }, []);
 
     return {
