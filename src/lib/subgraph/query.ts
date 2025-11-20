@@ -1,10 +1,10 @@
-import { gql, GraphQLClient } from "graphql-request";
+import { gql, GraphQLClient } from 'graphql-request';
 
 interface DustGenerationStatusResponse {
     dustGenerationStatus: {
         cardanoStakeKey: string;
         dustAddress: string | null;
-        registered: boolean; 
+        registered: boolean;
         nightBalance: string;
         generationRate: string;
         currentCapacity: string;
@@ -15,7 +15,7 @@ export class Subgraph {
     private client: GraphQLClient;
 
     constructor(uri: string) {
-        this.client = new GraphQLClient(uri, { cache: "no-store" });
+        this.client = new GraphQLClient(uri, { cache: 'no-store' });
     }
 
     /**
@@ -24,20 +24,20 @@ export class Subgraph {
      */
     public async getDustGenerationStatus(cardanoStakeKeys: string[]): Promise<DustGenerationStatusResponse['dustGenerationStatus']> {
         const query = gql`
-                query GetDustGenerationStatus($cardanoStakeKeys: [HexEncoded!]!) {
-                    dustGenerationStatus(cardanoStakeKeys: $cardanoStakeKeys) {
-                        cardanoStakeKey
-                        dustAddress
-                        registered
-                        nightBalance
-                        generationRate
-                        currentCapacity
-                    }
+            query GetDustGenerationStatus($cardanoStakeKeys: [HexEncoded!]!) {
+                dustGenerationStatus(cardanoStakeKeys: $cardanoStakeKeys) {
+                    cardanoStakeKey
+                    dustAddress
+                    registered
+                    nightBalance
+                    generationRate
+                    currentCapacity
                 }
-            `;
+            }
+        `;
 
         const { dustGenerationStatus } = await this.client.request<DustGenerationStatusResponse>(query, {
-            cardanoStakeKeys
+            cardanoStakeKeys,
         });
         return dustGenerationStatus;
     }

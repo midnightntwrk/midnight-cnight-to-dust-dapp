@@ -2,15 +2,15 @@
 
 ## Overview
 
-The update address process allows users to change the Midnight address where their DUST tokens are generated while maintaining their existing Cardano address registration. This is accomplished by consuming the existing registration UTXO and creating a new one with the updated Midnight coin public key.
+The update address process allows users to change the Midnight address where their DUST tokens are generated while maintaining their existing Cardano address registration. This is accomplished by consuming the existing registration UTXO and creating a new one with the updated Midnight dust address, preserving the same DUST NFT.
 
 ## Prerequisites
 
 Before the update process can begin:
 
 - Cardano wallet must be connected
-- Existing registration UTXO must exist on-chain
-- DUST protocol contracts deployed and initialized
+- Existing registration UTXO must exist
+- DUST Generator contract
 - User must provide a valid new Midnight shielded address
 - No other transaction currently executing
 
@@ -21,7 +21,6 @@ User clicks "CHANGE ADDRESS" button in the dashboard's Midnight Wallet Card.
 **Location**: `src/components/dashboard/MidnightWalletCard.tsx:276-295`
 
 The button is disabled if:
-- Protocol is not ready (`!protocolStatus?.isReady`)
 - Registration UTXO is still loading
 - No registration UTXO found
 - Another transaction is currently running
@@ -85,7 +84,7 @@ const coinPublicKeyBytes = data.slice(0, 32);
 const coinPublicKeyHex = Buffer.from(coinPublicKeyBytes).toString('hex');
 ```
 
-This ensures the new address is properly parsed and the coin public key is correctly extracted before proceeding with the transaction.
+This ensures the new address is properly parsed and the coin public key is correctly extracted.
 
 ## Step 3: Handler Invocation
 
@@ -99,78 +98,91 @@ await onAddressUpdate(newAddress.trim(), newCoinPublicKey);
 
 ## Step 4: Validation and Preparation
 
-**Location**: `src/components/dashboard/MidnightWalletCard.tsx:146-206`
+**Location**: `src/components/dashboard/MidnightWalletCard.tsx:136-153`
 
 The `handleUpdateAddress` function performs validation:
 
 1. **Cardano wallet connection**: Verifies `cardano.lucid` instance exists
-2. **Protocol readiness**: Confirms contracts are ready via `protocolStatus.isReady`
-3. **New coin public key**: Validates the extracted key is not null
-4. **Registration UTXO**: Ensures existing registration UTXO is available
+2. **New coin public key**: Validates the extracted key is not null
+3. **Registration UTXO**: Ensures existing registration UTXO is available
 
 The handler receives the new address parameters rather than using the currently connected Midnight wallet, allowing users to update to any valid Midnight address without needing to connect that wallet.
 
 ## Step 5: Build Update Transaction
 
-**Location**: `src/lib/dustTransactionsUtils.ts:387-537`
+**Location**: `src/lib/dustTransactionsUtils.ts:297-493`
 
 The `buildUpdateTransaction` function constructs a Cardano transaction with the following structure:
 
-### Reference Input
-- Version Oracle UTXO containing the DUST Mapping Validator Spend Policy reference script
+### Stake Registration Check
+- First checks if DUST Generator stake address is registered
+- If not registered: executes stake registration transaction only
+- If already registered: proceeds with update transaction
 
-### Consumed Input
-- Existing registration UTXO from DUST Mapping Validator
-- Redeemer: `Constructor 0 []` (empty constructor for update)
+### Contract Instantiation
+- DUST Generator contract: `new Contracts.CnightGeneratesDustCnightGeneratesDustElse()`
+- Validator and stake addresses derived from contract script
 
-### Mint
-- DUST Mapping Validator Spend Policy: 1 token
-- Redeemer: `Constructor 1 []` (Constructor 1 indicates Update action)
+### Consumed Input (Update Only)
+- Existing registration UTXO from DUST Generator
+- Redeemer: `Data.void()` (unit type for update)
 
-This mint proves authorization to update the registration.
+### Output to DUST Generator (Update Only)
 
-### Output to DUST Mapping Validator
-
-**Location**: `src/lib/dustTransactionsUtils.ts:488-522`
+**Location**: `src/lib/dustTransactionsUtils.ts:440-470`
 
 Creates a new registration UTXO with:
 
 ```typescript
 // Build updated datum
-const updatedRegistrationDatumData = new Constr(0, [
-    cardanoPKH!,                                      // SAME Cardano PKH
-    toHex(new TextEncoder().encode(newDustPKH)),     // NEW Midnight coin public key
-]);
+const updatedRegistrationDatumData: Contracts.DustMappingDatum = {
+    c_wallet: {
+        VerificationKey: [cardanoPKH!], // Cardano PKH (28 bytes hex string)
+    },
+    dust_address: newDustPKH,          // DUST PKH (32 bytes hex string)
+};
 
-// Preserve the auth token from consumed UTXO
-const dustTokenName = toHex(new TextEncoder().encode('DUST production auth token'));
-const dustAuthTokenAssetName = dustAuthTokenPolicyContract.policyId! + dustTokenName;
+// Preserve the existing DUST NFT
+const dustNFTAssetName = getPolicyId(dustGenerator.Script) + '';
 
 // Create new UTXO
 txBuilder.pay.ToContract(
-    dustMappingValidatorContract.address!,
+    dustGeneratorAddress,
     { kind: 'inline', value: serializedUpdatedRegistrationDatum },
     {
-        lovelace: 1586080n,              // Same minimum ADA
-        [dustAuthTokenAssetName]: 1n     // Same auth token (preserved)
+        lovelace: LOVELACE_FOR_REGISTRATION,
+        [dustNFTAssetName]: 1n,
     }
 );
 ```
 
 **Key Points**:
-- Field 0 (Cardano PKH) remains unchanged
-- Field 1 (Midnight coin public key) is updated with the new value
-- The same auth token is preserved from the consumed UTXO
-- Minimum ADA amount remains 1.586080 ADA
+- `c_wallet.VerificationKey[0]` remains unchanged
+- `dust_address` is updated with the new value
+- The same DUST NFT is preserved from the consumed UTXO
+- Minimum ADA amount remains `LOVELACE_FOR_REGISTRATION`
 
-### Scripts Attached
+### Withdrawal (Update Only)
+
+**Location**: `src/lib/dustTransactionsUtils.ts:474-478`
 
 ```typescript
-txBuilder.attach.SpendingValidator(dustMappingValidatorContract.scriptObject!);
-txBuilder.attach.MintingPolicy(dustMappingValidatorSpendPolicyContract.scriptObject!);
+txBuilder.withdraw(
+    dustGeneratorStakeAddress,
+    0n,
+    Data.void()
+);
 ```
 
-Both the spending validator and minting policy must be attached for script execution.
+Withdrawal from the script stake address with 0 ADA amount.
+
+### Scripts Attached (Update Only)
+```typescript
+txBuilder.attach.SpendingValidator(blazeToLucidScript(dustGenerator.Script));
+txBuilder.attach.WithdrawalValidator(blazeToLucidScript(dustGenerator.Script));
+```
+
+Both the spending validator and withdrawal validator scripts must be attached for script execution.
 
 ## Step 6: Sign Transaction
 
@@ -181,10 +193,10 @@ const signedTx = await completedTx.sign.withWallet().complete();
 ```
 
 The user sees a wallet popup displaying:
-- Fee estimate (typically 0.3-0.5 ADA)
+- Fee estimate
 - Input: Existing registration UTXO
-- Mint: 1 spend policy token
-- Output: New registration UTXO with updated datum
+- Withdrawal: 0 ADA from stake address
+- Output: New registration UTXO with updated datum (preserving same NFT)
 - Change output back to user
 
 ## Step 7: Submit to Blockchain
@@ -205,7 +217,7 @@ Progress updates from 60% to 100% during this phase.
 
 ## Step 9: Post-Update Actions
 
-**Location**: `src/components/dashboard/MidnightWalletCard.tsx:192-196`
+**Location**: `src/components/dashboard/MidnightWalletCard.tsx:175-181`
 
 Once the transaction succeeds:
 
@@ -217,7 +229,7 @@ if (transactionState === 'success') {
 }
 ```
 
-The new registration UTXO is searched using the same polling mechanism as initial registration, matching against the user's Cardano PKH and the new Midnight coin public key.
+The new registration UTXO is searched using the same polling mechanism as initial registration.
 
 ## Timeline Summary
 
@@ -273,7 +285,6 @@ User clicks "GO TO DASHBOARD"
 ## Progress Indicators
 
 During transaction execution, the modal displays loading states:
-- Validating and extracting coin public key
 - Building transaction (20%)
 - Signing transaction (40%)
 - Submitting transaction (60%)

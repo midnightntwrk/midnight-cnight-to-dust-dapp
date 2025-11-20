@@ -7,8 +7,8 @@ import CopyIcon from '@/assets/icons/copy.svg';
 import CheckIcon from '@/assets/icons/check.svg';
 import InfoIcon from '@/assets/icons/info.svg';
 import { useTransaction } from '@/contexts/TransactionContext';
-import { useDustProtocol } from '@/contexts/DustProtocolContext';
-import { hasMinimumBalance, MIN_ADA_FOR_REGISTRATION } from '@/config/transactionLimits';
+// import { useDustProtocol } from '@/contexts/DustProtocolContext';
+import { hasMinimumBalance, MIN_ADA_FOR_REGISTRATION } from '@/config/transactionConstants';
 
 interface MatchAddressesCardProps {
     // Cardano wallet info
@@ -41,15 +41,11 @@ export default function MatchAddressesCard({
     // Transaction management
     const transaction = useTransaction();
 
-    // Use DUST protocol context
-    const { protocolStatus } = useDustProtocol();
-
     // Check if user has minimum balance
     const hasEnoughBalance = hasMinimumBalance(cardanoBalanceADA);
 
     const isMatching = transaction.isCurrentTransaction('register') && transaction.isAnyTransactionRunning();
-    const disabled = // Disable if protocol not ready
-        !protocolStatus?.isReady ||
+    const disabled = 
         // Disable if insufficient balance
         !hasEnoughBalance ||
         // Disable during any transaction execution
@@ -176,9 +172,8 @@ export default function MatchAddressesCard({
                             ? 'REGISTRATION COMPLETED ✅'
                             : !hasEnoughBalance
                             ? `INSUFFICIENT BALANCE (Min. ${MIN_ADA_FOR_REGISTRATION} ADA)`
-                            : protocolStatus?.isReady
-                            ? 'MATCH ADDRESSES'
-                            : 'DUST PROTOCOL NOT READY'}
+                            : 'MATCH ADDRESSES'
+                            }
                     </Button>
                 </CardBody>
             </Card>

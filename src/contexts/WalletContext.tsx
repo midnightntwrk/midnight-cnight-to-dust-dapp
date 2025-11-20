@@ -9,15 +9,15 @@ import {
     initializeLucidWithBlockfrostClientSide,
     isMainnet,
     isTestnet,
-    LUCID_NETWORK_MAINNET_ID,
-    LUCID_NETWORK_TESTNET_ID,
+    NETWORK_MAINNET_ID,
+    NETWORK_TESTNET_ID,
 } from '@/config/network';
 import { useGenerationStatus } from '@/hooks/useGenerationStatus';
 import { useRegistrationUtxo } from '@/hooks/useRegistrationUtxo';
 import { getTotalOfUnitInUTxOList } from '@/lib/utils';
-import { getAddressDetails, UTxO } from '@lucid-evolution/lucid';
+import { UTxO } from '@lucid-evolution/lucid';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { createContext, ReactNode, useContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 
 export type SupportedWallet = 'nami' | 'eternl' | 'lace' | 'flint' | 'typhoncip30' | 'nufi' | 'gero' | 'ccvault';
 export type SupportedMidnightWallet = 'mnLace';
@@ -128,12 +128,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const hasInitializedRef = useRef(false);
 
     // Generation status hook
-    const {
-        data: generationStatus,
-        isLoading: isCheckingRegistration,
-        error: registrationError,
-        refetch: refetchGenerationStatus
-    } = useGenerationStatus(cardanoState.address);
+    const { data: generationStatus, isLoading: isCheckingRegistration, error: registrationError, refetch: refetchGenerationStatus } = useGenerationStatus(cardanoState.address);
 
     // Registration UTXO hook
     const {
@@ -179,10 +174,10 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             const api = await window.cardano[walletName].enable();
             const networkId = await api.getNetworkId();
 
-            if (isMainnet && networkId !== LUCID_NETWORK_MAINNET_ID) {
+            if (isMainnet && networkId !== NETWORK_MAINNET_ID) {
                 throw new Error(`Must connect with a ${getCurrentNetwork()} Cardano Wallet`);
             }
-            if (isTestnet && networkId !== LUCID_NETWORK_TESTNET_ID) {
+            if (isTestnet && networkId !== NETWORK_TESTNET_ID) {
                 throw new Error(`Must connect with a ${getCurrentNetwork()} Testnet Cardano Wallet`);
             }
 
@@ -191,6 +186,8 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
             // Get wallet info
             const address = await lucid.wallet().address();
+            
+            const { getAddressDetails } = await import('@lucid-evolution/lucid');
             const cardanoAddressDetails = getAddressDetails(address);
 
             const cardanoStakeKey = cardanoAddressDetails?.stakeCredential?.hash;
@@ -367,7 +364,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const updateMidnightAddress = (address: string, coinPublicKey: string) => {
         logger.log('[Wallet]', 'Updating Midnight address in state', {
             newAddress: address,
-            newCoinPublicKey: coinPublicKey
+            newCoinPublicKey: coinPublicKey,
         });
 
         setMidnightState({

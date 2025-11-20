@@ -16,7 +16,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    // NOTE:
+    // suppressHydrationWarning prevents hydration mismatch errors from next-themes
+    // next-themes adds className="dark" and style={{color-scheme:"dark"}} during client-side hydration
+    // which differs from server-rendered HTML, causing React hydration warnings
+    <html lang="en" suppressHydrationWarning>
       <body>
         <ClientWrapper>
           {children}
