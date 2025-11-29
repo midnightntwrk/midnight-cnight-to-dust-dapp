@@ -1,7 +1,9 @@
-import { NETWORK_ID } from '@/config/network';
+import * as Contracts from '@/config/contract_blueprint';
+import { CARDANO_NET, NETWORK_ID } from '@/config/network';
 import { addressFromValidator, Script as BlazeScript, CredentialType, PolicyId, RewardAddress } from '@blaze-cardano/core';
 import { serialize } from '@blaze-cardano/data';
 import { Script as LucidScript } from '@lucid-evolution/lucid';
+import { logger } from './logger';
 
 /**
  *
@@ -71,4 +73,29 @@ export function getPolicyId(script: BlazeScript): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function serializeToCbor(type: any, data: any): string {
     return serialize(type, data).toCbor();
+}
+
+/**
+ * Log all contract addresses at startup for debugging
+ */
+export function logContractAddresses(): void {
+    logger.log('[ContractUtils]', '🚀 ========== CONTRACT ADDRESSES (STARTUP) ==========');
+    logger.log('[ContractUtils]', `📍 Network: ${CARDANO_NET} (ID: ${NETWORK_ID})`);
+
+    try {
+        // DUST Generator (Mapping) Contract
+        const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
+        const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
+        const dustGeneratorPolicyId = getPolicyId(dustGenerator.Script);
+        const dustGeneratorStakeAddress = getStakeAddress(dustGenerator.Script);
+
+        logger.log('[ContractUtils]', '📋 DUST Generator (Mapping) Contract:');
+        logger.log('[ContractUtils]', `   Address: ${dustGeneratorAddress}`);
+        logger.log('[ContractUtils]', `   Policy ID: ${dustGeneratorPolicyId}`);
+        logger.log('[ContractUtils]', `   Stake Address: ${dustGeneratorStakeAddress}`);
+
+        logger.log('[ContractUtils]', '🚀 =====================================================');
+    } catch (error) {
+        logger.error('[ContractUtils]', '❌ Error logging contract addresses:', error);
+    }
 }
