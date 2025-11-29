@@ -1,5 +1,14 @@
 import * as Contracts from '@/config/contract_blueprint';
-import { CARDANO_NET, NETWORK_ID } from '@/config/network';
+import { 
+    CARDANO_NET, 
+    NETWORK_ID, 
+    BLOCKFROST_URL, 
+    BLOCKCHAIN_EXPLORER_URL, 
+    CNIGHT_CURRENCY_POLICY_ID, 
+    CNIGHT_CURRENCY_ENCODEDNAME,
+    INDEXER_ENDPOINT,
+    SIMULATION_MODE
+} from '@/config/network';
 import { addressFromValidator, Script as BlazeScript, CredentialType, PolicyId, RewardAddress } from '@blaze-cardano/core';
 import { serialize } from '@blaze-cardano/data';
 import { Script as LucidScript } from '@lucid-evolution/lucid';
@@ -76,11 +85,26 @@ export function serializeToCbor(type: any, data: any): string {
 }
 
 /**
- * Log all contract addresses at startup for debugging
+ * Log all configuration and contract addresses at startup for debugging
  */
 export function logContractAddresses(): void {
-    logger.log('[ContractUtils]', '🚀 ========== CONTRACT ADDRESSES (STARTUP) ==========');
-    logger.log('[ContractUtils]', `📍 Network: ${CARDANO_NET} (ID: ${NETWORK_ID})`);
+    logger.log('[Startup]', '🚀 ========== MIDNIGHT DAPP CONFIGURATION (STARTUP) ==========');
+    
+    // Network Configuration
+    logger.log('[Startup]', '📍 NETWORK:');
+    logger.log('[Startup]', `   Cardano Network: ${CARDANO_NET} (ID: ${NETWORK_ID})`);
+    logger.log('[Startup]', `   Blockfrost URL: ${BLOCKFROST_URL}`);
+    logger.log('[Startup]', `   Explorer URL: ${BLOCKCHAIN_EXPLORER_URL}`);
+    
+    // cNIGHT Token Configuration
+    logger.log('[Startup]', '🌙 cNIGHT TOKEN:');
+    logger.log('[Startup]', `   Policy ID: ${CNIGHT_CURRENCY_POLICY_ID}`);
+    logger.log('[Startup]', `   Encoded Name: ${CNIGHT_CURRENCY_ENCODEDNAME}`);
+    
+    // Indexer Configuration
+    logger.log('[Startup]', '📊 INDEXER:');
+    logger.log('[Startup]', `   Endpoint: ${INDEXER_ENDPOINT || '(not configured)'}`);
+    logger.log('[Startup]', `   Simulation Mode: ${SIMULATION_MODE}`);
 
     try {
         // DUST Generator (Mapping) Contract
@@ -89,13 +113,31 @@ export function logContractAddresses(): void {
         const dustGeneratorPolicyId = getPolicyId(dustGenerator.Script);
         const dustGeneratorStakeAddress = getStakeAddress(dustGenerator.Script);
 
-        logger.log('[ContractUtils]', '📋 DUST Generator (Mapping) Contract:');
-        logger.log('[ContractUtils]', `   Address: ${dustGeneratorAddress}`);
-        logger.log('[ContractUtils]', `   Policy ID: ${dustGeneratorPolicyId}`);
-        logger.log('[ContractUtils]', `   Stake Address: ${dustGeneratorStakeAddress}`);
+        logger.log('[Startup]', '📋 DUST GENERATOR CONTRACT:');
+        logger.log('[Startup]', `   Address: ${dustGeneratorAddress}`);
+        logger.log('[Startup]', `   Policy ID: ${dustGeneratorPolicyId}`);
+        logger.log('[Startup]', `   Stake Address: ${dustGeneratorStakeAddress}`);
 
-        logger.log('[ContractUtils]', '🚀 =====================================================');
+        // ============ TEST: Convert payment hash to stake address format ============
+        // This is for testing if the indexer searches by the c_wallet hash from datum
+        const testPaymentHash = 'abfff883edcf7a2e38628015cebb72952e361b2c8a2262f7daf9c16e';
+        
+        // Build a reward address using the payment hash as if it were a stake credential
+        // Network ID 0 = testnet, prefix e0 for key hash stake address
+        const fakeStakeAddressFromPaymentHash = RewardAddress.fromCredentials(NETWORK_ID, {
+            type: CredentialType.KeyHash,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            hash: testPaymentHash as any,
+        }).toAddress().toBech32();
+
+        logger.log('[Startup]', '🧪 TEST - Payment Hash to Stake Address:');
+        logger.log('[Startup]', `   Payment Hash (from datum): ${testPaymentHash}`);
+        logger.log('[Startup]', `   As Stake Address (bech32): ${fakeStakeAddressFromPaymentHash}`);
+        logger.log('[Startup]', '   👆 Try querying indexer with this stake address!');
+        // ============ END TEST ============
+
+        logger.log('[Startup]', '🚀 ===========================================================');
     } catch (error) {
-        logger.error('[ContractUtils]', '❌ Error logging contract addresses:', error);
+        logger.error('[Startup]', '❌ Error logging contract addresses:', error);
     }
 }
