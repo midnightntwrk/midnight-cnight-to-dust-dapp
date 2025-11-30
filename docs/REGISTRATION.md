@@ -142,9 +142,9 @@ The transaction builder constructs a Cardano transaction with the following stru
   ```
   {
     c_wallet: {
-      VerificationKey: [cardanoPKH]  // Cardano PKH (28 bytes hex string)
+      VerificationKey: [stakeKeyHash]  // Stake key hash (28 bytes hex string)
     },
-    dust_address: newDustPKH         // DUST PKH (32 bytes hex string)
+    dust_address: newDustPKH           // DUST PKH (32 bytes hex string)
   }
   ```
 
@@ -391,24 +391,25 @@ Assets:
 Datum (inline):
   DustMappingDatum:
     c_wallet:
-      VerificationKey: [cardanoPKH]     // Cardano PKH (28 bytes hex string)
+      VerificationKey: [stakeKeyHash]   // Stake key hash (28 bytes hex string)
     dust_address: dustPKH               // DUST PKH (32 bytes hex string)
 ```
 
 ### Datum Field Details
 
-**Field 0: Cardano Payment Key Hash (c_wallet.VerificationKey)**
+**Field 0: Cardano Stake Key Hash (c_wallet.VerificationKey)**
 
 Extracted from the connected Cardano wallet address:
 
-**Location**: `src/lib/dustTransactionsUtils.ts:68-69`
+**Location**: `src/lib/dustTransactionsUtils.ts:16-18`
 
 ```typescript
 const cardanoAddress = await lucid.wallet().address();
-const cardanoPKH = getAddressDetails(cardanoAddress)?.paymentCredential?.hash;
+const addressDetails = getAddressDetails(cardanoAddress);
+const stakeKeyHash = addressDetails?.stakeCredential?.hash;
 ```
 
-Value: 28-byte hex string (56 characters) representing the payment credential hash.
+Value: 28-byte hex string (56 characters) representing the stake credential hash.
 
 **Field 1: Midnight Dust Address (dust_address)**
 
@@ -419,9 +420,9 @@ The Midnight dust address is stored directly as a 32-byte hex string:
 ```typescript
 const dustMappingDatum: Contracts.DustMappingDatum = {
     c_wallet: {
-        VerificationKey: [cardanoPKH!], // Cardano PKH (28 bytes hex string)
+        VerificationKey: [stakeKeyHash!], // Stake key hash (28 bytes hex string)
     },
-    dust_address: dustPKH,              // DUST PKH (32 bytes hex string)
+    dust_address: dustPKH,                // DUST PKH (32 bytes hex string)
 };
 ```
 
@@ -438,15 +439,15 @@ const datumData = Data.from(utxo.inline_datum);
 
 // Check if datumData is a Constr with the expected structure
 if (datumData instanceof Constr && datumData.index === 0 && datumData.fields.length === 2) {
-    const [datumCardanoPKHConstr, dustPKHFromDatum] = datumData.fields;
+    const [datumStakeKeyHashConstr, dustPKHFromDatum] = datumData.fields;
     
-    if (datumCardanoPKHConstr instanceof Constr && 
-        datumCardanoPKHConstr.index === 0 && 
-        datumCardanoPKHConstr.fields.length === 1) {
-        const datumCardanoPKH = datumCardanoPKHConstr.fields[0];
+    if (datumStakeKeyHashConstr instanceof Constr && 
+        datumStakeKeyHashConstr.index === 0 && 
+        datumStakeKeyHashConstr.fields.length === 1) {
+        const datumStakeKeyHash = datumStakeKeyHashConstr.fields[0];
         
         // Match credentials
-        if (datumCardanoPKH === cardanoPKH && dustPKHFromDatum === dustPKH) {
+        if (datumStakeKeyHash === stakeKeyHash && dustPKHFromDatum === dustPKH) {
             return utxo;
         }
     }
@@ -454,7 +455,7 @@ if (datumData instanceof Constr && datumData.index === 0 && datumData.fields.len
 ```
 
 The UTXO is matched when both fields match the user's credentials:
-- `datumCardanoPKH === cardanoPKH` (Cardano payment key hash matches)
+- `datumStakeKeyHash === stakeKeyHash` (Stake key hash matches)
 - `dustPKHFromDatum === dustPKH` (Midnight dust address matches)
 
 This UTXO serves as the on-chain proof of registration and enables the Midnight network to generate DUST tokens for the registered Cardano address.
