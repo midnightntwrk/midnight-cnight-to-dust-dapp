@@ -29,6 +29,7 @@ export default function Dashboard() {
 
     // Show banner when registered on-chain (Blockfrost) but indexer hasn't synced yet
     const showIndexerSyncBanner = registrationUtxo && generationStatus?.registered === false;
+    const isIndexerSyncing = registrationUtxo && generationStatus?.registered === false;
 
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
     const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);
@@ -125,11 +126,12 @@ export default function Dashboard() {
                     <AccordionItem
                         key="lifecycle"
                         aria-label="DUST Generation Lifecycle"
+                        isDisabled={isIndexerSyncing}
                         title={
                             <div className="flex flex-row gap-2 items-center">
                                 <span className="text-[18px] font-normal">DUST Generation Lifecycle</span>
                                 <Tooltip
-                                    content="Visual representation of your DUST generation progress over time"
+                                    content={isIndexerSyncing ? "Chart will be available once indexer syncs" : "Visual representation of your DUST generation progress over time"}
                                     placement="top"
                                     classNames={{
                                         content: 'bg-gray-800 text-white text-sm px-2 py-1',

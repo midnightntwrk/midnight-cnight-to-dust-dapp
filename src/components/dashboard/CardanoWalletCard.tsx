@@ -30,14 +30,13 @@ const CardanoWalletCard = () => {
     const isIndexerSyncing = registrationUtxo && generationStatus?.registered === false;
     const isIndexerSynced = generationStatus?.registered === true;
 
-    // Get NIGHT balance - show from indexer if synced, otherwise from wallet
+    // Get NIGHT balance - always show from indexer if available
     const getNightBalance = () => {
-        if (isIndexerSynced && generationStatus?.nightBalance) {
-            // Format the balance (assuming it's in lovelace-like units)
+        if (generationStatus?.nightBalance) {
             const balance = parseFloat(generationStatus.nightBalance);
-            return balance > 0 ? (balance / 1_000_000).toFixed(6) : cardano.balanceNight;
+            return balance.toFixed(6);
         }
-        return cardano.balanceNight;
+        return '0.000000';
     };
 
     const handleFormatWalletAddress = (address: string) => {
