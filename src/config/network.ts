@@ -1,8 +1,20 @@
 import { logger } from '@/lib/logger';
+import { validateEnvOrThrow } from './env';
 
 import { toJson } from '@/lib/utils';
 import { Network, ProtocolParameters } from '@lucid-evolution/lucid';
 import { protocolParametersForLucid } from './protocolParameters';
+
+// Validate environment variables at module load time (server-side only)
+if (typeof window === 'undefined') {
+    try {
+        validateEnvOrThrow();
+    } catch (error) {
+        logger.error('[Network]', 'Environment validation failed:', error);
+        // Re-throw to prevent app from starting with invalid configuration
+        throw error;
+    }
+}
 
 export type CardanoNetwork = 'Mainnet' | 'Preview' | 'Preprod' | 'Emulator' | 'Custom';
 interface NetworkConfig {

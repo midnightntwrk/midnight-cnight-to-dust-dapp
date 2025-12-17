@@ -28,10 +28,21 @@ export async function GET(
     // Check for required environment variable
     const indexerEndpoint = process.env.INDEXER_ENDPOINT;
 
-    if (!indexerEndpoint) {
-      logger.error("[API:GenerationStatus]", "❌ INDEXER_ENDPOINT environment variable not set");
+    if (!indexerEndpoint || indexerEndpoint.trim() === '') {
+      logger.error("[API:GenerationStatus]", "❌ INDEXER_ENDPOINT environment variable not set or empty");
       return NextResponse.json(
         { error: "Indexer endpoint not configured" },
+        { status: 500 }
+      );
+    }
+
+    // Validate URL format
+    try {
+      new URL(indexerEndpoint);
+    } catch {
+      logger.error("[API:GenerationStatus]", "❌ INDEXER_ENDPOINT is not a valid URL", { indexerEndpoint });
+      return NextResponse.json(
+        { error: "Indexer endpoint configuration is invalid" },
         { status: 500 }
       );
     }
