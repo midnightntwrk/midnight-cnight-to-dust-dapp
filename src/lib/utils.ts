@@ -1,5 +1,6 @@
 import { UTxO } from '@lucid-evolution/lucid';
 import { bech32m } from 'bech32';
+import { logger } from './logger';
 
 // Helper function to convert to JSON for logging
 export const toJson = (obj: object): string => {
@@ -29,17 +30,15 @@ export const extractCoinPublicKeyFromMidnightAddress = (address: string): string
         // Convert to hex string
         const coinPublicKeyHex = Buffer.from(coinPublicKeyBytes).toString('hex');
 
-        console.log('🔑 Extracted Coin Public Key:', {
-            address: address,
-            prefix: prefix,
+        logger.debug('[Utils]', 'Extracted coin public key from Midnight address', {
+            prefix,
             dataLength: data.length,
-            coinPublicKeyHex: coinPublicKeyHex,
             coinPublicKeyLength: coinPublicKeyHex.length,
         });
 
         return coinPublicKeyHex;
     } catch (error) {
-        console.error('❌ Failed to extract coin public key from address:', error);
+        logger.error('[Utils]', 'Failed to extract coin public key from address', error);
         return null;
     }
 };

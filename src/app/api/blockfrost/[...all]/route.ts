@@ -92,7 +92,7 @@ async function handleRequest(request: NextRequest) {
         const duration = Date.now() - startTime;
         const isDevelopment = process.env.NODE_ENV === 'development';
         
-        logger.error('❌ Blockfrost Proxy Error:', {
+        logger.error('[BlockfrostProxy]', 'Request failed', {
             error: error instanceof Error ? error.message : String(error),
             stack: error instanceof Error ? error.stack : undefined,
             duration: `${duration}ms`,

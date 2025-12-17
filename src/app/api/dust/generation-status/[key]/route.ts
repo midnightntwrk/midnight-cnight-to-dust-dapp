@@ -12,13 +12,8 @@ export async function GET(
     const resolvedParams = await params;
     const rewardAddress = resolvedParams.key;
 
-    logger.log("[API:GenerationStatus]", "📥 Request received", {
-      rewardAddress: rewardAddress,
-      url: request.url,
-    });
-
     if (!rewardAddress) {
-      logger.warn("[API:GenerationStatus]", "⚠️ Missing reward address in request");
+      logger.warn("[API:GenerationStatus]", "Missing reward address in request");
       return NextResponse.json(
         { error: "Reward address is required" },
         { status: 400 }
@@ -29,7 +24,7 @@ export async function GET(
     const indexerEndpoint = process.env.INDEXER_ENDPOINT;
 
     if (!indexerEndpoint || indexerEndpoint.trim() === '') {
-      logger.error("[API:GenerationStatus]", "❌ INDEXER_ENDPOINT environment variable not set or empty");
+      logger.error("[API:GenerationStatus]", "INDEXER_ENDPOINT environment variable not set or empty");
       return NextResponse.json(
         { error: "Indexer endpoint not configured" },
         { status: 500 }
@@ -40,29 +35,23 @@ export async function GET(
     try {
       new URL(indexerEndpoint);
     } catch {
-      logger.error("[API:GenerationStatus]", "❌ INDEXER_ENDPOINT is not a valid URL", { indexerEndpoint });
+      logger.error("[API:GenerationStatus]", "INDEXER_ENDPOINT is not a valid URL", { indexerEndpoint });
       return NextResponse.json(
         { error: "Indexer endpoint configuration is invalid" },
         { status: 500 }
       );
     }
 
-    logger.log("[API:GenerationStatus]", "🔗 Connecting to indexer", {
-      endpoint: indexerEndpoint,
-      rewardAddress: rewardAddress,
-    });
-
     // Initialize Subgraph client
     const subgraph = new Subgraph(indexerEndpoint);
 
     // Fetch generation status by reward address
-    logger.log("[API:GenerationStatus]", "🔍 Querying indexer for reward address...");
     const generationStatus = await subgraph.getDustGenerationStatus([rewardAddress]);
 
     const duration = Date.now() - startTime;
 
     if (!generationStatus || generationStatus.length === 0) {
-      logger.log("[API:GenerationStatus]", "📭 Reward address not found in indexer", {
+      logger.debug("[API:GenerationStatus]", "Reward address not found in indexer", {
         rewardAddress: rewardAddress,
         duration: `${duration}ms`,
       });
@@ -75,11 +64,10 @@ export async function GET(
       );
     }
 
-    logger.log("[API:GenerationStatus]", "✅ Generation status retrieved successfully", {
+    logger.debug("[API:GenerationStatus]", "Generation status retrieved", {
       rewardAddress: rewardAddress,
       resultsCount: generationStatus.length,
       duration: `${duration}ms`,
-      data: generationStatus,
     });
 
     // Return complete block data
@@ -92,7 +80,7 @@ export async function GET(
     const duration = Date.now() - startTime;
     const resolvedParams = await params;
 
-    logger.error("[API:GenerationStatus]", `❌ Error fetching reward address ${resolvedParams.key}:`, {
+    logger.error("[API:GenerationStatus]", `Error fetching reward address ${resolvedParams.key}`, {
       error: error instanceof Error ? error.message : error,
       stack: error instanceof Error ? error.stack : undefined,
       duration: `${duration}ms`,
