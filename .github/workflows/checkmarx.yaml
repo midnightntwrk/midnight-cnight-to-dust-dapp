@@ -80,7 +80,7 @@ jobs:
           base_uri: https://eu-2.ast.checkmarx.net/
           cx_client_id: ${{ secrets.CX_CLIENT_ID }}
           cx_client_secret: ${{ secrets.CX_CLIENT_SECRET_EU }}
-          additional_params: >
+          scan_params: >
             --scs-repo-url https://github.com/${{ github.repository }}
             --scs-repo-token ${{ secrets.MIDNIGHTCI_REPO }}
             --report-format sarif
