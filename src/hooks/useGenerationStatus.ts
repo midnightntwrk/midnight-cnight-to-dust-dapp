@@ -1,6 +1,6 @@
 import { GenerationStatusData } from '@/contexts/WalletContext';
 import { logger } from '@/lib/logger';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface UseGenerationStatusReturn {
     data: GenerationStatusData | null;
@@ -19,8 +19,9 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
     const [data, setData] = useState<GenerationStatusData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
-    const fetchGenerationStatus = useCallback(async () => {
+    const fetchGenerationStatus = useCallback(async (signal?: AbortSignal) => {
         if (!rewardAddress) {
             logger.log('[Indexer:GenerationStatus]', '⏸️ No reward address provided, skipping fetch');
             return;
@@ -36,7 +37,9 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
         try {
             // Reward address is already in bech32 format (stake_test1... or stake1...)
             // URL encode it to handle special characters
-            const response = await fetch(`/api/dust/generation-status/${encodeURIComponent(rewardAddress)}`);
+            const response = await fetch(`/api/dust/generation-status/${encodeURIComponent(rewardAddress)}`, {
+                signal: signal,
+            });
 
             if (!response.ok) {
                 if (response.status === 404) {
@@ -74,6 +77,11 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
                 setData(null);
             }
         } catch (err) {
+            // Don't set error state if the request was aborted
+            if (err instanceof Error && err.name === 'AbortError') {
+                logger.log('[Indexer:GenerationStatus]', '⏸️ Request aborted');
+                return;
+            }
             logger.error('[Indexer:GenerationStatus]', '❌ Failed to fetch generation status:', err);
             setError(err instanceof Error ? err.message : 'Failed to fetch generation status');
             setData(null);
@@ -85,20 +93,42 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
     const refetch = useCallback(() => {
         if (rewardAddress) {
             logger.log('[Indexer:GenerationStatus]', '🔄 Manual refetch triggered');
-            fetchGenerationStatus();
+            // Cancel any pending request
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+            // Create new abort controller for refetch
+            const abortController = new AbortController();
+            abortControllerRef.current = abortController;
+            fetchGenerationStatus(abortController.signal);
         }
     }, [rewardAddress, fetchGenerationStatus]);
 
     useEffect(() => {
+        // Cancel any pending request when rewardAddress changes or component unmounts
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+
+        // Create new abort controller for this effect
+        const abortController = new AbortController();
+        abortControllerRef.current = abortController;
+
         if (rewardAddress) {
             logger.log('[Indexer:GenerationStatus]', '🚀 Reward address changed, fetching status...', { rewardAddress });
-            fetchGenerationStatus();
+            fetchGenerationStatus(abortController.signal);
         } else {
             logger.log('[Indexer:GenerationStatus]', '⏸️ No reward address, clearing state');
             setData(null);
             setError(null);
             setIsLoading(false);
         }
+
+        // Cleanup: abort request if component unmounts or dependencies change
+        return () => {
+            abortController.abort();
+            abortControllerRef.current = null;
+        };
     }, [rewardAddress, fetchGenerationStatus]);
 
     return {

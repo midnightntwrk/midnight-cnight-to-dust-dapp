@@ -128,6 +128,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     // Track if we've already initialized to prevent re-running autoReconnect
     const hasInitializedRef = useRef(false);
+    const isMountedRef = useRef(true);
 
     // Generation status hook - queries the Midnight indexer using reward address
     // This runs in parallel with the Blockfrost-based registration UTXO check
@@ -481,32 +482,43 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     // Auto-reconnect on page load (only once per session)
     useEffect(() => {
+        isMountedRef.current = true;
+
         // Only auto-reconnect once on initial mount
         if (hasInitializedRef.current) {
             return;
         }
 
         const autoReconnect = async () => {
+            if (!isMountedRef.current) return;
+
             setIsAutoReconnecting(true);
             hasInitializedRef.current = true; // Mark as initialized
 
             // Auto-reconnect Cardano wallet
             const savedCardanoWallet = localStorage.getItem('connectedCardanoWallet') as SupportedWallet;
-            if (savedCardanoWallet && window.cardano?.[savedCardanoWallet]) {
+            if (savedCardanoWallet && window.cardano?.[savedCardanoWallet] && isMountedRef.current) {
                 await connectCardanoWallet(savedCardanoWallet);
             }
 
             // Auto-reconnect Midnight wallet
             const savedMidnightWallet = localStorage.getItem('connectedMidnightWallet') as SupportedMidnightWallet;
-            if (savedMidnightWallet && window.midnight?.[savedMidnightWallet]) {
+            if (savedMidnightWallet && window.midnight?.[savedMidnightWallet] && isMountedRef.current) {
                 await connectMidnightWallet(savedMidnightWallet);
             }
 
-            setIsAutoReconnecting(false);
+            if (isMountedRef.current) {
+                setIsAutoReconnecting(false);
+            }
         };
 
         autoReconnect();
-    }, []);
+
+        // Cleanup: mark as unmounted
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, [connectCardanoWallet, connectMidnightWallet]);
 
     // Centralized redirect logic based on registration status
     useEffect(() => {
@@ -519,6 +531,11 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         // Guard: Only redirect if Cardano wallet is connected
         if (!cardanoState.isConnected) {
             logger.log('⏸️  Skipping redirect - Cardano wallet not connected');
+            return;
+        }
+
+        // Guard: Only redirect if component is still mounted
+        if (!isMountedRef.current) {
             return;
         }
 
