@@ -8,14 +8,27 @@ import { useState } from 'react';
 import CardanoWalletCard from './dashboard/CardanoWalletCard';
 import DustLifecycleChart from './dashboard/DustLifecycleChart';
 import GenerationRateCard from './dashboard/GenerationRateCard';
+import IndexerSyncBanner from './dashboard/IndexerSyncBanner';
 import MidnightWalletCard from './dashboard/MidnightWalletCard';
 import RegistrationUtxoCard from './dashboard/RegistrationUtxoCard';
 import LoadingBackdrop from './ui/LoadingBackdrop';
 import WalletsModal from './wallet-connect/WalletsModal';
 
 export default function Dashboard() {
-    const { cardano, isAutoReconnecting, connectCardanoWallet, connectMidnightWallet, getAvailableCardanoWallets, getAvailableMidnightWallets, isLoadingRegistrationUtxo } =
-        useWalletContext();
+    const {
+        cardano,
+        isAutoReconnecting,
+        connectCardanoWallet,
+        connectMidnightWallet,
+        getAvailableCardanoWallets,
+        getAvailableMidnightWallets,
+        isLoadingRegistrationUtxo,
+        registrationUtxo,
+        generationStatus,
+    } = useWalletContext();
+
+    // Show banner when registered on-chain (Blockfrost) but indexer hasn't synced yet
+    const showIndexerSyncBanner = registrationUtxo && generationStatus?.registered === false;
 
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
     const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);
@@ -69,6 +82,10 @@ export default function Dashboard() {
                     <p className="text-gray-500">Manage your Cardano and Midnight wallet connections</p>
                 </div>
             </div>
+
+            {/* Indexer Sync Banner - shows when on-chain registration exists but indexer hasn't synced */}
+            <IndexerSyncBanner isVisible={!!showIndexerSyncBanner} />
+
             <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
                 <CardanoWalletCard />
                 <GenerationRateCard />

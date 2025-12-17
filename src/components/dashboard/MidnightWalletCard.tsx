@@ -44,6 +44,21 @@ const MidnightWalletCard = () => {
         updateMidnightAddress
     } = useWalletContext();
 
+    // Check if indexer has synced
+    const isIndexerSyncing = registrationUtxo && generationStatus?.registered === false;
+    const isIndexerSynced = generationStatus?.registered === true;
+
+    // Get DUST balance from indexer (currentCapacity) or show syncing state
+    const getDustBalance = () => {
+        if (isIndexerSynced && generationStatus?.currentCapacity) {
+            return generationStatus.currentCapacity;
+        }
+        if (isIndexerSyncing) {
+            return '...';
+        }
+        return '0';
+    };
+
 
     const [isDisconnecting, setIsDisconnecting] = useState(false);
 
@@ -240,8 +255,10 @@ const MidnightWalletCard = () => {
                 </Tooltip>
             </div>
             <div className="flex flex-row gap-2 items-center z-10">
-                <Image src={DustBalanceIcon} alt="night balance" width={42} height={42} />
-                <span className="text-[24px] font-bold">***</span>
+                <Image src={DustBalanceIcon} alt="dust balance" width={42} height={42} />
+                <span className={`text-[24px] font-bold ${isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}>
+                    {getDustBalance()}
+                </span>
                 <span className="text-[24px]">DUST</span>
             </div>
             <div className="flex flex-col gap-2">
