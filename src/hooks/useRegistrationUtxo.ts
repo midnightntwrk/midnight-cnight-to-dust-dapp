@@ -188,7 +188,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
     // Poll until registration UTXO is found (useful after registration transaction)
     const pollUntilFound = useCallback(async () => {
         const MAX_ATTEMPTS = 20; // Maximum number of polling attempts
-        const POLL_INTERVAL = 3000; // 3 seconds between attempts
+        const POLL_INTERVAL = 6000; // 3 seconds between attempts
 
         logger.log('[RegistrationUtxo]', '🔄 Starting polling for registration UTXO...');
         setIsLoadingRegistrationUtxo(true);

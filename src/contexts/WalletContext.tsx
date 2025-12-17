@@ -290,7 +290,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                 type: typeof walletObj,
                 keys: walletObj ? Object.keys(walletObj) : [],
                 hasEnable: typeof walletObj?.enable === 'function',
-                hasConnect: typeof walletObj?.connect === 'function',
+                hasConnect: typeof (walletObj as any)?.connect === 'function',
                 prototype: walletObj ? Object.getOwnPropertyNames(Object.getPrototypeOf(walletObj)) : [],
             });
 
@@ -302,10 +302,10 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
             // Connect to Midnight wallet - try different API patterns
             let api;
-            if (typeof walletObj.connect === 'function') {
+            if (typeof (walletObj as any).connect === 'function') {
                 // New API (v4+): uses connect() method with network parameter
                 logger.log('[Wallet]', 'Using connect() method (v4+ API)');
-                api = await walletObj.connect(midnightNetwork);
+                api = await (walletObj as any).connect(midnightNetwork);
             } else if (typeof walletObj.enable === 'function') {
                 // Legacy API: uses enable() method
                 logger.log('[Wallet]', 'Using enable() method (legacy API)');
@@ -313,7 +313,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             } else if (typeof walletObj === 'function') {
                 // Some wallets expose the connector as a function
                 logger.log('[Wallet]', 'Wallet object is a function, calling it');
-                api = await walletObj();
+                api = await (walletObj as any)();
             } else {
                 // The wallet object might already be the API
                 logger.log('[Wallet]', 'Using wallet object directly as API');
