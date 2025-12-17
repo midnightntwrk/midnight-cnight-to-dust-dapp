@@ -89,11 +89,16 @@ export async function GET(
 
     // Handle GraphQL errors
     if (error instanceof Error) {
+      // In production, don't expose error details to clients
+      const isDevelopment = process.env.NODE_ENV === 'development';
+      
       return NextResponse.json(
         {
           error: "Failed to fetch generation status",
-          message: error.message,
-          details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+          ...(isDevelopment && {
+            message: error.message,
+            details: error.stack
+          })
         },
         { status: 500 }
       );
