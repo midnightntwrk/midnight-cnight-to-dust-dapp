@@ -47,7 +47,7 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
 
     // Poll for transaction confirmation using dual strategy from SetupActions
     const pollTransactionConfirmation = useCallback(async (lucid: LucidEvolution, txHash: string): Promise<void> => {
-        logger.log('[Transaction]', '🔍 PollTransactionConfirmation STARTED for txHash:', txHash);
+        logger.debug('[Transaction]', 'Starting transaction confirmation polling', { txHash });
         const maxAttempts = 60; // 15 minutes max (15s intervals)
         let attempts = 0;
 
@@ -60,13 +60,11 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
                     const progress = 60 + (attempts / maxAttempts) * 40; // 60% to 100%
                     setTransactionProgress(progress);
 
-                    logger.log('[Transaction]', `⏳ Checking transaction confirmation and UTxOs... [${attempts}/${maxAttempts}]`);
-
                     // Strategy 1: Try awaitTx but don't rely on it alone
                     try {
                         const txInfo = await lucid.awaitTx(txHash, 3000);
                         if (txInfo) {
-                            logger.log('[Transaction]', '📋 lucid.awaitTx() reports transaction confirmed');
+                            logger.debug('[Transaction]', 'Transaction confirmed', { txHash });
 
                             clearInterval(pollInterval);
                             setTransactionProgress(100);
@@ -75,19 +73,19 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
                             return;
                         }
                     } catch {
-                        logger.log('[Transaction]', '⏳ lucid.awaitTx() still waiting...');
+                        // Silently continue polling
                     }
 
                     // Continue polling if neither confirmation method succeeded
                     if (attempts >= maxAttempts) {
-                        logger.log('[Transaction]', '⚠️ Transaction confirmation timeout reached');
+                        logger.warn('[Transaction]', 'Transaction confirmation timeout', { txHash, attempts: maxAttempts });
                         clearInterval(pollInterval);
                         setTransactionError('Transaction confirmation timeout. UTxOs not detected after 15 minutes.');
                         setTransactionState('error');
                         reject(new Error('Transaction confirmation timeout. UTxOs not detected after 15 minutes.'));
                     }
                 } catch (err) {
-                    logger.log('[Transaction]', '⚠️ Error during polling:', err);
+                    logger.error('[Transaction]', 'Error during polling', err);
                     if (attempts >= maxAttempts) {
                         clearInterval(pollInterval);
                         setTransactionError('Polling error occurred during confirmation.');
@@ -109,11 +107,11 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
                 setTransactionError(null);
                 setCurrentTransactionId(transactionId);
 
-                logger.log('[Transaction]', `🔄 Starting transaction execution for ID: ${transactionId}...`);
+                logger.debug('[Transaction]', 'Starting transaction execution', { transactionId });
 
                 // Execute the transaction with progress callback
                 const resultTxHash = await executor(params, (step: string, progress: number) => {
-                    logger.log('[Transaction]', `📋 Transaction step: ${step} (${progress}%)`);
+                    logger.debug('[Transaction]', 'Transaction progress', { step, progress });
                     setTransactionProgress(progress);
 
                     // Update state based on step
@@ -128,7 +126,7 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
 
                 // Set transaction hash and start confirmation polling
                 setTxHash(resultTxHash);
-                logger.log('[Transaction]', '🎯 Transaction submitted, starting confirmation polling:', resultTxHash);
+                logger.debug('[Transaction]', 'Transaction submitted', { txHash: resultTxHash });
 
                 // Use the existing pollTransactionConfirmation method if lucid is provided
                 if (lucid) {
@@ -139,11 +137,11 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
                     setTransactionProgress(100);
                 }
 
-                logger.log('[Transaction]', '✅ Transaction completed successfully:', resultTxHash);
+                logger.debug('[Transaction]', 'Transaction completed', { txHash: resultTxHash });
                 return 'success';
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : 'Transaction failed';
-                logger.error('[Transaction]', '❌ Transaction failed:', errorMessage);
+                logger.error('[Transaction]', 'Transaction failed', { error: errorMessage, transactionId });
                 setTransactionError(errorMessage);
                 setTransactionState('error');
                 // Propagate error so callers (e.g., Onboard) can handle it
@@ -159,7 +157,7 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
     }, []);
 
     const resetTransaction = useCallback(() => {
-        logger.log('[Transaction]', '🔄 Resetting transaction state...');
+        logger.debug('[Transaction]', 'Resetting transaction state');
         setTransactionState('idle');
         setTransactionProgress(0);
         setTxHash(null);

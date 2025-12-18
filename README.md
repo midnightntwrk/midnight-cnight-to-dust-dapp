@@ -258,7 +258,6 @@ yarn lint     # Run ESLint
 
 ## Additional Documentation
 
-- **[CLAUDE.md](./CLAUDE.md)** - AI assistant guidance with deep architecture details and implementation specifics
 - **[Tech-spec.md](./docs/Tech-spec.md)** - Functional and technical specifications with user workflows
 - **[REGISTRATION.md](./docs/REGISTRATION.md)** - Complete registration process documentation
 - **[UPDATE.md](./docs/UPDATE.md)** - Address update process documentation

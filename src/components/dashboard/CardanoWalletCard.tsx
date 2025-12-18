@@ -21,8 +21,23 @@ const CardanoWalletCard = () => {
     const {
         cardano,
         disconnectCardanoWallet,
-        disconnectMidnightWallet
+        disconnectMidnightWallet,
+        generationStatus,
+        registrationUtxo
     } = useWalletContext();
+
+    // Check if indexer has synced and user is generating
+    const isIndexerSyncing = registrationUtxo && generationStatus?.registered === false;
+    const isIndexerSynced = generationStatus?.registered === true;
+
+    // Get NIGHT balance - always show from indexer if available
+    const getNightBalance = () => {
+        if (generationStatus?.nightBalance) {
+            const balance = parseFloat(generationStatus.nightBalance);
+            return balance.toFixed(6);
+        }
+        return '0.000000';
+    };
 
     const handleFormatWalletAddress = (address: string) => {
         return address.slice(0, 10) + '...' + address.slice(-10);
@@ -76,20 +91,35 @@ const CardanoWalletCard = () => {
                     <Image src={InfoIcon} alt='info' width={24} height={24} className="cursor-pointer" />
                 </Tooltip>
 
-                {/* Intermittent green dot with tooltip */}
-                <Tooltip
-                    content="Your NIGHT is generating DUST"
-                    placement="top"
-                    classNames={{
-                        content: "bg-gray-800 text-white text-sm px-2 py-1"
-                    }}
-                >
-                    <div className='absolute right-[-12px] top-1/2 transform -translate-y-1/2 w-[10px] h-[10px] bg-[#34C759] rounded-full animate-pulse cursor-pointer z-20'></div>
-                </Tooltip>
+                {/* Green dot - only show when indexer confirms generation is active */}
+                {isIndexerSynced && (
+                    <Tooltip
+                        content="Your NIGHT is generating DUST"
+                        placement="top"
+                        classNames={{
+                            content: "bg-gray-800 text-white text-sm px-2 py-1"
+                        }}
+                    >
+                        <div className='absolute right-[-12px] top-1/2 transform -translate-y-1/2 w-[10px] h-[10px] bg-[#34C759] rounded-full animate-pulse cursor-pointer z-20'></div>
+                    </Tooltip>
+                )}
+
+                {/* Amber dot - show when indexer is syncing */}
+                {isIndexerSyncing && (
+                    <Tooltip
+                        content="Waiting for indexer to sync your registration"
+                        placement="top"
+                        classNames={{
+                            content: "bg-gray-800 text-white text-sm px-2 py-1"
+                        }}
+                    >
+                        <div className='absolute right-[-12px] top-1/2 transform -translate-y-1/2 w-[10px] h-[10px] bg-amber-500 rounded-full animate-pulse cursor-pointer z-20'></div>
+                    </Tooltip>
+                )}
             </div>
             <div className='flex flex-row gap-2 items-center z-10'>
                 <Image src={NightBalanceIcon} alt='night balance' width={42} height={42} />
-                <span className='text-[24px] font-bold'>{cardano.balanceNight}</span>
+                <span className='text-[24px] font-bold'>{getNightBalance()}</span>
                 <span className='text-[24px]'>NIGHT</span>
             </div>
             <div className='flex flex-col gap-2'>

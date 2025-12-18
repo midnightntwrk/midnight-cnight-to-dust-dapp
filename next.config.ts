@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  reactStrictMode: false, // Disabled to prevent duplicate executions in development
+  reactStrictMode: true, // Re-enabled with proper cleanup functions to prevent issues
   webpack: (config, { isServer }) => {
     config.experiments = {
       asyncWebAssembly: true,

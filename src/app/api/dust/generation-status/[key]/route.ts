@@ -7,43 +7,38 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ key: string }> }
 ) {
+  const startTime = Date.now();
+
   try {
     const resolvedParams = await params;
+    const rewardAddress = resolvedParams.key;
 
-    logger.log("resolvedParams", resolvedParams);
-    
-    const stakeKey = resolvedParams.key;
-
-    if (!stakeKey) {
+    if (!rewardAddress) {
+      logger.warn("[API:GenerationStatus]", "Missing reward address in request");
       return NextResponse.json(
-        { error: "Stake key is required" },
+        { error: "Reward address is required" },
         { status: 400 }
       );
     }
 
-    // Check if simulation mode is enabled
-    if (SIMULATION_MODE) {
-      // Mock response for QA/UI testing
-      const mockGenerationStatus = {
-        cardanoStakeKey: stakeKey,
-        dustAddress: "mn1qg5ks9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mc",
-        registered: true,
-        nightBalance: "1000000",
-        generationRate: "2.5",
-        currentCapacity: "2500000000000000000",
-      };
-
-      return NextResponse.json({
-        success: true,
-        data: [mockGenerationStatus]
-      });
-    }
-
     // Check for required environment variable
-    if (!INDEXER_ENDPOINT) {
-      logger.error("NEXT_PUBLIC_INDEXER_ENDPOINT environment variable not set");
+    const indexerEndpoint = process.env.INDEXER_ENDPOINT;
+
+    if (!indexerEndpoint || indexerEndpoint.trim() === '') {
+      logger.error("[API:GenerationStatus]", "INDEXER_ENDPOINT environment variable not set or empty");
       return NextResponse.json(
         { error: "Indexer endpoint not configured" },
+        { status: 500 }
+      );
+    }
+
+    // Validate URL format
+    try {
+      new URL(indexerEndpoint);
+    } catch {
+      logger.error("[API:GenerationStatus]", "INDEXER_ENDPOINT is not a valid URL", { indexerEndpoint });
+      return NextResponse.json(
+        { error: "Indexer endpoint configuration is invalid" },
         { status: 500 }
       );
     }
@@ -51,18 +46,30 @@ export async function GET(
     // Initialize Subgraph client
     const subgraph = new Subgraph(INDEXER_ENDPOINT);
 
-    // Fetch stake key data
-    const generationStatus = await subgraph.getDustGenerationStatus([stakeKey]);
+    // Fetch generation status by reward address
+    const generationStatus = await subgraph.getDustGenerationStatus([rewardAddress]);
 
-    if (!generationStatus) {
+    const duration = Date.now() - startTime;
+
+    if (!generationStatus || generationStatus.length === 0) {
+      logger.debug("[API:GenerationStatus]", "Reward address not found in indexer", {
+        rewardAddress: rewardAddress,
+        duration: `${duration}ms`,
+      });
       return NextResponse.json(
-        { 
-          error: "Stake key not found",
-          message: `No block exists at stake key ${stakeKey}` 
+        {
+          error: "Reward address not found",
+          message: `No registration exists for reward address ${rewardAddress}`
         },
         { status: 404 }
       );
     }
+
+    logger.debug("[API:GenerationStatus]", "Generation status retrieved", {
+      rewardAddress: rewardAddress,
+      resultsCount: generationStatus.length,
+      duration: `${duration}ms`,
+    });
 
     // Return complete block data
     return NextResponse.json({
@@ -71,16 +78,27 @@ export async function GET(
     });
 
   } catch (error) {
+    const duration = Date.now() - startTime;
     const resolvedParams = await params;
-    logger.error(`❌ Error fetching stake key ${resolvedParams.key}:`, error);
+
+    logger.error("[API:GenerationStatus]", `Error fetching reward address ${resolvedParams.key}`, {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+      duration: `${duration}ms`,
+    });
 
     // Handle GraphQL errors
     if (error instanceof Error) {
+      // In production, don't expose error details to clients
+      const isDevelopment = process.env.NODE_ENV === 'development';
+      
       return NextResponse.json(
         {
-          error: "Failed to fetch stake key",
-          message: error.message,
-          details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+          error: "Failed to fetch generation status",
+          ...(isDevelopment && {
+            message: error.message,
+            details: error.stack
+          })
         },
         { status: 500 }
       );

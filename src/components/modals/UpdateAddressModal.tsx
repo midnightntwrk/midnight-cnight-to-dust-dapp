@@ -11,6 +11,7 @@ import { bech32m } from 'bech32';
 import ToastContainer from '../ui/ToastContainer';
 import { useToast } from '@/hooks/useToast';
 import { extractCoinPublicKeyFromMidnightAddress } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface UpdateAddressModalProps {
     isOpen: boolean;
@@ -57,9 +58,7 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
             return;
         }
 
-        console.log('🔄 Update Address:', {
-            newAddress: newAddress.trim(),
-            extractedCoinPublicKey: newCoinPublicKey,
+        logger.debug('[UpdateAddressModal]', 'Updating Midnight address', {
             coinPublicKeyLength: newCoinPublicKey.length
         });
 
