@@ -227,8 +227,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             const balanceLovelace = utxos.reduce((acc, utxo) => acc + (utxo.assets?.lovelace || BigInt(0)), BigInt(0));
             const balanceInAdaStr = (Number(balanceLovelace) / 1_000_000).toFixed(6);
 
-            console.log('[Wallet]', 'Balance Night:', balanceNightStr);
-
             setCardanoState({
                 isConnected: true,
                 address,

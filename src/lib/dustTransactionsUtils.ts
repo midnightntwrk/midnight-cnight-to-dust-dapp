@@ -230,8 +230,15 @@ export class DustTransactionsUtils {
         logger.log('[DustTransactions]', '📎 Attaching DUST Mapping Validator Script...');
         txBuilder.attach.SpendingValidator(blazeToLucidScript(dustGenerator.Script));
 
-        // Add signer
+        // Add signers: payment address + stake address
         txBuilder.addSigner(await lucid.wallet().address());
+
+        // Add stake address as signer to validate stake key hash
+        const stakeAddress = await lucid.wallet().rewardAddress();
+        if (stakeAddress) {
+            txBuilder.addSigner(stakeAddress);
+            logger.log('[DustTransactions]', '✍️ Added stake address as signer:', stakeAddress);
+        }
 
         // Complete transaction
         logger.log('[DustTransactions]', '🔧 Completing unregistration transaction...');
