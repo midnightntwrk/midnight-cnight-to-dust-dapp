@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from '@/lib/logger';
 import { Subgraph } from "@/lib/subgraph/query";
-import { INDEXER_ENDPOINT, SIMULATION_MODE } from "@/config/network";
+import { INDEXER_ENDPOINT } from "@/config/network";
 
 export async function GET(
   request: NextRequest,

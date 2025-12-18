@@ -28,8 +28,8 @@ export default function Dashboard() {
     } = useWalletContext();
 
     // Show banner when registered on-chain (Blockfrost) but indexer hasn't synced yet
-    const showIndexerSyncBanner = registrationUtxo && generationStatus?.registered === false;
-    const isIndexerSyncing = registrationUtxo && generationStatus?.registered === false;
+    const showIndexerSyncBanner = !!(registrationUtxo && generationStatus?.registered === false);
+    const isIndexerSyncing = !!(registrationUtxo && generationStatus?.registered === false);
 
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
     const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);

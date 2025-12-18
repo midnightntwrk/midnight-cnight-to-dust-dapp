@@ -7,7 +7,6 @@ import {
     CNIGHT_CURRENCY_POLICY_ID, 
     CNIGHT_CURRENCY_ENCODEDNAME,
     INDEXER_ENDPOINT,
-    SIMULATION_MODE
 } from '@/config/network';
 import { addressFromValidator, Script as BlazeScript, CredentialType, PolicyId, RewardAddress } from '@blaze-cardano/core';
 import { serialize } from '@blaze-cardano/data';
@@ -104,7 +103,6 @@ export function logContractAddresses(): void {
     // Indexer Configuration
     logger.log('[Startup]', '📊 INDEXER:');
     logger.log('[Startup]', `   Endpoint: ${INDEXER_ENDPOINT || '(not configured)'}`);
-    logger.log('[Startup]', `   Simulation Mode: ${SIMULATION_MODE}`);
 
     try {
         // DUST Generator (Mapping) Contract

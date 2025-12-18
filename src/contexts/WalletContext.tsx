@@ -214,28 +214,25 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             logger.log('[Wallet]', `🎯 Stake Address (bech32): ${stakeAddressBech32}`);
             logger.log('[Wallet]', '🔑 ================================================');
 
-            logger.log('[Wallet]', 'Cardano wallet details:', {
-                address,
-                rewardAddress,
-                stakeKey: cardanoStakeKey,
-            });
-
             const utxos = await lucid.wallet().getUtxos();
 
             const tokenNightPolicy = CNIGHT_CURRENCY_POLICY_ID;
             const tokenNightEncodedName = CNIGHT_CURRENCY_ENCODEDNAME;
 
             const balanceNight = getTotalOfUnitInUTxOList(tokenNightPolicy + tokenNightEncodedName, utxos);
-            const balanceNightStr = (Number(balanceNight) / 1_000_000).toFixed(6);
+            // cNIGHT/NIGHT has 0 decimals, so no division needed (unlike ADA which has 6 decimals)
+            const balanceNightStr = Number(balanceNight).toString();
 
             // Calculate balance (sum of all UTxOs)
             const balanceLovelace = utxos.reduce((acc, utxo) => acc + (utxo.assets?.lovelace || BigInt(0)), BigInt(0));
             const balanceInAdaStr = (Number(balanceLovelace) / 1_000_000).toFixed(6);
 
+            console.log('[Wallet]', 'Balance Night:', balanceNightStr);
+
             setCardanoState({
                 isConnected: true,
                 address,
-                stakeKey: cardanoStakeKey || null,
+                stakeKey: cardanoStakeKeyHash || null,
                 rewardAddress: rewardAddress || null,
                 balanceADA: balanceInAdaStr,
                 balanceNight: balanceNightStr,
