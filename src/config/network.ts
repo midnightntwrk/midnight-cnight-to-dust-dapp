@@ -204,6 +204,10 @@ export const BLOCKCHAIN_EXPLORER_SUBPATH = config.BLOCKCHAIN_EXPLORER_SUBPATH;
 export const BLOCKFROST_KEY = config.BLOCKFROST_KEY;
 export const CNIGHT_CURRENCY_POLICY_ID = config.CNIGHT_CURRENCY_POLICY_ID!;
 export const CNIGHT_CURRENCY_ENCODEDNAME = config.CNIGHT_CURRENCY_ENCODEDNAME!;
+
+// Indexer and Simulation Mode
+export const INDEXER_ENDPOINT = process.env.NEXT_PUBLIC_INDEXER_ENDPOINT || '';
+export const SIMULATION_MODE = process.env.NEXT_PUBLIC_SIMULATION_MODE === 'true';
 //---------------------------------------------------
 // Export utility functions
 export { config as currentNetworkConfig, getCardanoScanUrl, getCurrentNetwork, getCurrentNetworkConfig, getLucidNetwork, initializeLucidWithBlockfrostClientSide, networkConfigs };

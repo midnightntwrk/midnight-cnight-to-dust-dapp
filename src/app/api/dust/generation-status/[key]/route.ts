@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from '@/lib/logger';
 import { Subgraph } from "@/lib/subgraph/query";
+import { INDEXER_ENDPOINT, SIMULATION_MODE } from "@/config/network";
 
 export async function GET(
   request: NextRequest,
@@ -43,7 +44,7 @@ export async function GET(
     }
 
     // Initialize Subgraph client
-    const subgraph = new Subgraph(indexerEndpoint);
+    const subgraph = new Subgraph(INDEXER_ENDPOINT);
 
     // Fetch generation status by reward address
     const generationStatus = await subgraph.getDustGenerationStatus([rewardAddress]);

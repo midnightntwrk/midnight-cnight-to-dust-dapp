@@ -195,7 +195,24 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             const { getAddressDetails } = await import('@lucid-evolution/lucid');
             const cardanoAddressDetails = getAddressDetails(address);
 
-            const cardanoStakeKey = cardanoAddressDetails?.stakeCredential?.hash;
+            const cardanoPaymentCredentialHash = cardanoAddressDetails?.paymentCredential?.hash;
+            const cardanoStakeKeyHash = cardanoAddressDetails?.stakeCredential?.hash;
+            
+            // Get reward address using lucid
+            let stakeAddressBech32: string | null = null;
+            try {
+                const rewardAddress = await lucid.wallet().rewardAddress();
+                stakeAddressBech32 = rewardAddress || null;
+            } catch {
+                stakeAddressBech32 = null;
+            }
+
+            logger.log('[Wallet]', '🔑 ========== CARDANO WALLET CONNECTED ==========');
+            logger.log('[Wallet]', `📍 Address (bech32): ${address}`);
+            logger.log('[Wallet]', `📍 Payment Credential (hash): ${cardanoPaymentCredentialHash}`);
+            logger.log('[Wallet]', `🎯 Stake Key (hash): ${cardanoStakeKeyHash}`);
+            logger.log('[Wallet]', `🎯 Stake Address (bech32): ${stakeAddressBech32}`);
+            logger.log('[Wallet]', '🔑 ================================================');
 
             logger.log('[Wallet]', 'Cardano wallet details:', {
                 address,

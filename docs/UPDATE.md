@@ -137,9 +137,9 @@ Creates a new registration UTXO with:
 // Build updated datum
 const updatedRegistrationDatumData: Contracts.DustMappingDatum = {
     c_wallet: {
-        VerificationKey: [cardanoPKH!], // Cardano PKH (28 bytes hex string)
+        VerificationKey: [stakeKeyHash!], // Stake key hash (28 bytes hex string)
     },
-    dust_address: newDustPKH,          // DUST PKH (32 bytes hex string)
+    dust_address: newDustPKH,             // DUST PKH (32 bytes hex string)
 };
 
 // Preserve the existing DUST NFT
@@ -157,7 +157,7 @@ txBuilder.pay.ToContract(
 ```
 
 **Key Points**:
-- `c_wallet.VerificationKey[0]` remains unchanged
+- `c_wallet.VerificationKey[0]` contains the stake key hash (unchanged for same wallet)
 - `dust_address` is updated with the new value
 - The same DUST NFT is preserved from the consumed UTXO
 - Minimum ADA amount remains `LOVELACE_FOR_REGISTRATION`
@@ -327,7 +327,7 @@ Before update:
 UTXO at DUST Mapping Validator:
   Assets: 1.586080 ADA + 1 Auth Token
   Datum:
-    Field 0: {cardanoPKH}
+    Field 0: {stakeKeyHash}
     Field 1: {oldMidnightCoinPublicKey}
 ```
 
@@ -336,11 +336,11 @@ After update:
 UTXO at DUST Mapping Validator:
   Assets: 1.586080 ADA + 1 Auth Token (same token)
   Datum:
-    Field 0: {cardanoPKH}                    (unchanged)
+    Field 0: {stakeKeyHash}                  (unchanged)
     Field 1: {newMidnightCoinPublicKey}      (updated)
 ```
 
-The Cardano address association remains unchanged, but DUST generation will now occur for the new Midnight address.
+The Cardano stake address association remains unchanged, but DUST generation will now occur for the new Midnight address.
 
 ## Error Handling
 

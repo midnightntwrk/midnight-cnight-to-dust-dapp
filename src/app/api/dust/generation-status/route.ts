@@ -1,10 +1,11 @@
 import { Subgraph } from "@/lib/subgraph/query";
 import { logger } from '@/lib/logger';
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { INDEXER_ENDPOINT } from "@/config/network";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const graph = new Subgraph(process.env.INDEXER_ENDPOINT!);
+    const graph = new Subgraph(INDEXER_ENDPOINT);
     const generationStatus = await graph.getDustGenerationStatus(["0x00"]);
     
     return NextResponse.json({
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Optional: Handle other HTTP methods if needed
-export async function POST(request: NextRequest) {
+export async function POST() {
   return NextResponse.json(
     { error: "Method not allowed" },
     { status: 405 }
