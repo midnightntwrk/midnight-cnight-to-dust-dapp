@@ -51,9 +51,10 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
                 })
             );
             
-            // Get current user's Cardano PKH
+            // Get current user's stake key hash
             const { getAddressDetails } = await import('@lucid-evolution/lucid');
-            const cardanoPKH = getAddressDetails(cardanoAddress)?.paymentCredential?.hash;
+            const addressDetails = getAddressDetails(cardanoAddress);
+            const stakeKeyHash = addressDetails?.stakeCredential?.hash;
 
             // Construct the expected NFT asset name
             const dustNFTTokenName = '';
@@ -119,15 +120,15 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
                             '[RegistrationUtxo]',
                             '📋 Comparing datum values:',
                             toJson({
-                                datumCardanoPKH,
-                                expectedCardanoPKH: cardanoPKH,
+                                datumStakeKeyHash: datumCardanoPKH,
+                                expectedStakeKeyHash: stakeKeyHash,
                                 datumDustPKH: dustPKHFromDatum,
                                 expectedDustPKH: dustPKH,
                             })
                         );
 
                         // Check if this UTXO matches our registration
-                        if (datumCardanoPKH === cardanoPKH && dustPKHFromDatum === dustPKH) {
+                        if (datumCardanoPKH === stakeKeyHash && dustPKHFromDatum === dustPKH) {
                             const registrationOutRef: OutRef = {
                                 txHash: utxo.tx_hash,
                                 outputIndex: utxo.output_index,

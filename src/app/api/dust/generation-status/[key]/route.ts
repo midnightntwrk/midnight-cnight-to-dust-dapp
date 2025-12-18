@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from '@/lib/logger';
 import { Subgraph } from "@/lib/subgraph/query";
+import { INDEXER_ENDPOINT, SIMULATION_MODE } from "@/config/network";
 
 export async function GET(
   request: NextRequest,
@@ -21,9 +22,7 @@ export async function GET(
     }
 
     // Check if simulation mode is enabled
-    const simulationMode = process.env.SIMULATION_MODE === 'true';
-
-    if (simulationMode) {
+    if (SIMULATION_MODE) {
       // Mock response for QA/UI testing
       const mockGenerationStatus = {
         cardanoStakeKey: stakeKey,
@@ -41,10 +40,8 @@ export async function GET(
     }
 
     // Check for required environment variable
-    const indexerEndpoint = process.env.INDEXER_ENDPOINT;
-
-    if (!indexerEndpoint) {
-      logger.error("INDEXER_ENDPOINT environment variable not set");
+    if (!INDEXER_ENDPOINT) {
+      logger.error("NEXT_PUBLIC_INDEXER_ENDPOINT environment variable not set");
       return NextResponse.json(
         { error: "Indexer endpoint not configured" },
         { status: 500 }
@@ -52,7 +49,7 @@ export async function GET(
     }
 
     // Initialize Subgraph client
-    const subgraph = new Subgraph(indexerEndpoint);
+    const subgraph = new Subgraph(INDEXER_ENDPOINT);
 
     // Fetch stake key data
     const generationStatus = await subgraph.getDustGenerationStatus([stakeKey]);

@@ -358,7 +358,7 @@ Before deregistration:
 UTXO at DUST Mapping Validator:
   Assets: 1.586080 ADA + 1 Auth Token
   Datum:
-    Field 0: {cardanoPKH}
+    Field 0: {stakeKeyHash}
     Field 1: {midnightCoinPublicKey}
 ```
 
