@@ -1,13 +1,15 @@
 # Midnight NIGHT to DUST DApp
 
-A cross-chain decentralized application that enables DUST token generation on the Midnight network based on cNIGHT token holdings on Cardano. The application creates an on-chain mapping between Cardano addresses and Midnight addresses through smart contract transactions.
+A cross-chain decentralized application that enables DUST token generation on the Midnight network based on NIGHT token holdings on Cardano. The application creates an on-chain mapping between Cardano addresses and Midnight addresses through smart contract transactions.
+
+> **Note on Token Naming:** The token is technically called "cNIGHT" (Cardano NIGHT) in configuration and environment variables, but is displayed as "NIGHT" throughout the user interface for simplicity.
 
 ## What It Does
 
 The dApp allows users to:
 
-1. **Register** a mapping between their Cardano wallet address (holding cNIGHT tokens) and their Midnight wallet address
-2. **Generate DUST tokens** on Midnight based on their registered cNIGHT holdings on Cardano
+1. **Register** a mapping between their Cardano wallet address (holding NIGHT tokens) and their Midnight wallet address
+2. **Generate DUST tokens** on Midnight based on their registered NIGHT holdings on Cardano
 3. **Update** their registered Midnight address while maintaining the same Cardano address registration
 4. **Deregister** their address mapping to permanently stop DUST token generation
 
@@ -62,15 +64,12 @@ BLOCKFROST_KEY_PREVIEW="your_preview_key_here"
 BLOCKFROST_KEY_PREPROD=""
 
 # cNIGHT Token Configuration
-NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_POLICY_ID="fb3cec684bc96575f4ba6ed7f11b1547114d7af41a9f38e552bcfbd2"
+NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_POLICY_ID="03cf16101d110dcad9cacb225f0d1e63a8809979e7feb60426995414"
 NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME=""
 
 # Server Configuration
 NEXT_PUBLIC_REACT_SERVER_BASEURL="http://localhost"
 NEXT_PUBLIC_REACT_SERVER_URL="$NEXT_PUBLIC_REACT_SERVER_BASEURL:3000"
-
-# Optional: Simulation Mode (for development without indexer)
-SIMULATION_MODE=false
 ```
 
 ## Transaction Processes
@@ -160,7 +159,7 @@ GraphQL-based API for querying registration status from the Midnight Indexer.
 {
   "success": true,
   "data": [{
-    "cardanoStakeKey": "stake1...",
+    "cardanoRewardAddress": "stake1...",
     "dustAddress": "mn1q...",
     "registered": true,
     "nightBalance": "1000000",
@@ -169,6 +168,14 @@ GraphQL-based API for querying registration status from the Midnight Indexer.
   }]
 }
 ```
+
+**Field Descriptions:**
+- `cardanoRewardAddress`: The Cardano stake address (bech32 format: `stake1...` or `stake_test1...`)
+- `dustAddress`: The Midnight address where DUST is generated (null if not registered)
+- `registered`: Boolean flag indicating if the address mapping is active
+- `nightBalance`: Current NIGHT token balance in lovelace format (raw integer)
+- `generationRate`: DUST generation rate in the smallest unit
+- `currentCapacity`: Current DUST balance capacity in the smallest unit
 
 **Simulation Mode:**
 
@@ -183,6 +190,43 @@ SIMULATION_MODE=true
 The application currently uses Blockfrost for UTXO searches and transaction confirmation. The indexer API integration is prepared but not yet active, pending indexer deployment. Once ready, the system will switch to faster indexer-based registration status queries.
 
 See [**API.md**](./docs/API.md) for complete API documentation, error handling, security considerations, and migration plans.
+
+## Dashboard Features
+
+### DUST Lifecycle Chart
+
+The dashboard includes an interactive lifecycle chart that visualizes DUST generation progress over time. The chart automatically displays different states:
+
+- **Generating** - NIGHT balance is actively generating DUST (green indicator)
+- **Capped** - Generation has reached maximum capacity (orange indicator)
+- **Decaying** - DUST balance is decreasing (red indicator)
+- **Syncing** - Indexer is syncing registration data (amber indicator with pulse animation)
+
+**Availability:** The chart accordion is automatically disabled when:
+- The indexer is still syncing registration data
+- The current DUST balance is 0 (no generation has started yet)
+
+Users will see a helpful tooltip explaining why the chart is unavailable and when it will become accessible.
+
+### Generation Rate & CAP
+
+The Generation Rate card displays two key metrics:
+
+- **Generation Rate:** Real-time DUST generation rate from indexer data (DUST/H)
+- **CAP:** Maximum DUST generation capacity calculated from wallet balance
+
+**Important:** The CAP is always calculated from the user's current wallet balance (`NIGHT Balance × 10`) to ensure accuracy. This real-time calculation prevents displaying outdated values if the indexer data lags behind actual wallet state.
+
+### Indexer Sync Banner
+
+When a user successfully registers on-chain but the indexer hasn't yet synced the registration, a banner appears at the top of the dashboard:
+
+- Explains that registration was successful on Cardano
+- Indicates the indexer is currently syncing
+- Shows estimated sync time
+- Provides reassurance that DUST generation will begin once sync completes
+
+This prevents user confusion during the brief period between blockchain confirmation and indexer synchronization.
 
 ## Smart Contract Integration
 
@@ -258,14 +302,8 @@ yarn lint     # Run ESLint
 
 ## Additional Documentation
 
-- **[Tech-spec.md](./docs/Tech-spec.md)** - Functional and technical specifications with user workflows
 - **[REGISTRATION.md](./docs/REGISTRATION.md)** - Complete registration process documentation
 - **[UPDATE.md](./docs/UPDATE.md)** - Address update process documentation
 - **[DEREGISTRATION.md](./docs/DEREGISTRATION.md)** - Deregistration process documentation
 - **[API.md](./docs/API.md)** - API routes documentation with examples
 - **[DAPP_INTEGRATION_GUIDE.md](./DAPP_INTEGRATION_GUIDE.md)** - Smart contract integration guide
-
----
-
-**Network:** Cardano Preview Testnet
-**Status:** Active Development

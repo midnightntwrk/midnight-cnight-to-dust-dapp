@@ -90,15 +90,23 @@ async function handleRequest(request: NextRequest) {
 
     } catch (error) {
         const duration = Date.now() - startTime;
-        logger.error('❌ Blockfrost Proxy Error:', {
+        const isDevelopment = process.env.NODE_ENV === 'development';
+        
+        logger.error('[BlockfrostProxy]', 'Request failed', {
             error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
             duration: `${duration}ms`,
             pathname: pathname,
             method: request.method
         });
 
+        // In production, return generic error message to prevent information leakage
+        const errorMessage = isDevelopment && error instanceof Error
+            ? error.message
+            : 'An error occurred while processing your request. Please try again later.';
+
         return Response.json({
-            error: error instanceof Error ? error.message : String(error),
+            error: errorMessage,
             timestamp: new Date().toISOString()
         }, { status: 500 });
     }

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useWalletContext } from '@/contexts/WalletContext';
-import { ButtonGroup, Button } from '@heroui/react';
+import { Chip } from '@heroui/react';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -30,24 +30,13 @@ ChartJS.register(
     annotationPlugin
 );
 
-type LifecycleCase = 'generating' | 'capped' | 'decaying';
+type LifecycleCase = 'generating' | 'capped' | 'decaying' | 'syncing';
 
 export default function DustLifecycleChart() {
-
-    const { cardano } = useWalletContext();
-
-    // Test case selection
-    const [selectedCase, setSelectedCase] = React.useState<LifecycleCase>('generating');
+    const { cardano, generationStatus, registrationUtxo } = useWalletContext();
 
     // Fade animation state
     const [fadeKey, setFadeKey] = React.useState(0);
-
-    // Calculate CAP
-    const generationCap = 10 * Number(cardano.balanceNight ?? 0);
-
-    // MOCKED DATA - will vary based on selected case
-    const mockedCurrentBalance = generationCap / 2; // Example: 4500 DUST
-    const mockedHasReachedCap = false; // false = generating (case A), true = capped (case B)
 
     // Animation state for pulsating point (opacity)
     const [pulseOpacity, setPulseOpacity] = React.useState(1);
@@ -59,10 +48,60 @@ export default function DustLifecycleChart() {
         return () => clearInterval(interval);
     }, []);
 
+    // Check indexer sync status
+    const isIndexerSyncing = registrationUtxo && generationStatus?.registered === false;
+    const isIndexerSynced = generationStatus?.registered === true;
+
+    // Calculate CAP (10 * NIGHT balance from indexer)
+    const nightBalance = useMemo(() => {
+        if (isIndexerSynced && generationStatus?.nightBalance) {
+            const indexerBalance = parseFloat(generationStatus.nightBalance);
+            // nightBalance from indexer is already in display format
+            return indexerBalance;
+        }
+        return 0; // Show 0 if indexer not synced yet
+    }, [isIndexerSynced, generationStatus?.nightBalance]);
+
+    const generationCap = 10 * nightBalance;
+
+    // Get current DUST balance from indexer
+    const currentDustBalance = useMemo(() => {
+        if (isIndexerSynced && generationStatus?.currentCapacity) {
+            return parseFloat(generationStatus.currentCapacity);
+        }
+        return 0;
+    }, [isIndexerSynced, generationStatus?.currentCapacity]);
+
+    // Get generation rate from indexer
+    const generationRate = useMemo(() => {
+        if (isIndexerSynced && generationStatus?.generationRate) {
+            return parseFloat(generationStatus.generationRate);
+        }
+        return 0;
+    }, [isIndexerSynced, generationStatus?.generationRate]);
+
+    // Determine lifecycle case automatically based on generation rate
+    const lifecycleCase: LifecycleCase = useMemo(() => {
+        if (isIndexerSyncing) {
+            return 'syncing';
+        }
+        if (!isIndexerSynced) {
+            return 'syncing';
+        }
+        if (generationRate > 0) {
+            return 'generating';
+        }
+        if (generationRate < 0) {
+            return 'decaying';
+        }
+        // generationRate === 0
+        return 'capped';
+    }, [isIndexerSyncing, isIndexerSynced, generationRate]);
+
     // Trigger fade animation when case changes
     React.useEffect(() => {
         setFadeKey(prev => prev + 1);
-    }, [selectedCase]);
+    }, [lifecycleCase]);
 
     const labels = useCallback(() => {
         const today = new Date();
@@ -72,55 +111,73 @@ export default function DustLifecycleChart() {
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         };
 
-        if (selectedCase === 'generating') {
+        if (lifecycleCase === 'generating' || lifecycleCase === 'syncing') {
             return [formatDate(-2), 'Now', formatDate(2), ''];
-        } else if (selectedCase === 'capped') {
+        } else if (lifecycleCase === 'capped') {
             return [formatDate(-4), formatDate(-2), 'Now', ''];
-        } else if (selectedCase === 'decaying') {
+        } else if (lifecycleCase === 'decaying') {
             return [formatDate(-8), formatDate(-6), formatDate(-4), formatDate(-2), 'Now', ''];
         }
-
-    }, [selectedCase]);
+        return [];
+    }, [lifecycleCase]);
 
     const capLine = useCallback(() => {
-        if (selectedCase === 'generating') {
+        if (lifecycleCase === 'generating' || lifecycleCase === 'syncing') {
             return [generationCap, generationCap, generationCap, null];
-        } else if (selectedCase === 'capped') {
+        } else if (lifecycleCase === 'capped') {
             return null;
-        } else if (selectedCase === 'decaying') {
+        } else if (lifecycleCase === 'decaying') {
             return [generationCap, generationCap, generationCap, null];
         }
-    }, [selectedCase, mockedCurrentBalance, generationCap]);
+        return null;
+    }, [lifecycleCase, generationCap]);
 
     const yourPositionPoint = useCallback(() => {
-        if (selectedCase === 'generating') {
-            return [null, mockedCurrentBalance, null, null];
-        } else if (selectedCase === 'capped') {
+        if (lifecycleCase === 'generating' || lifecycleCase === 'syncing') {
+            return [null, currentDustBalance, null, null];
+        } else if (lifecycleCase === 'capped') {
             return [null, null, generationCap, null];
-        } else if (selectedCase === 'decaying') {
-            return [null, null, null, null, mockedCurrentBalance];
+        } else if (lifecycleCase === 'decaying') {
+            return [null, null, null, null, currentDustBalance];
         }
-    }, [selectedCase, mockedCurrentBalance, generationCap]);
+        return [];
+    }, [lifecycleCase, currentDustBalance, generationCap]);
 
     const yourPositionLine = useCallback(() => {
-        if (selectedCase === 'generating') {
-            return [mockedCurrentBalance, mockedCurrentBalance, null, null];
-        } else if (selectedCase === 'capped') {
+        if (lifecycleCase === 'generating' || lifecycleCase === 'syncing') {
+            return [currentDustBalance, currentDustBalance, null, null];
+        } else if (lifecycleCase === 'capped') {
             return [generationCap, generationCap, generationCap, null];
-        } else if (selectedCase === 'decaying') {
-            return [mockedCurrentBalance, mockedCurrentBalance, mockedCurrentBalance, mockedCurrentBalance, mockedCurrentBalance];
+        } else if (lifecycleCase === 'decaying') {
+            return [currentDustBalance, currentDustBalance, currentDustBalance, currentDustBalance, currentDustBalance];
         }
-    }, [selectedCase, mockedCurrentBalance, generationCap]);
+        return [];
+    }, [lifecycleCase, currentDustBalance, generationCap]);
 
     const chartDataLine = useCallback(() => {
-        if (selectedCase === 'generating') {
-            return [0, mockedCurrentBalance, generationCap, generationCap];
-        } else if (selectedCase === 'capped') {
-            return [0, mockedCurrentBalance, generationCap, generationCap];
-        } else if (selectedCase === 'decaying') {
-            return [0, mockedCurrentBalance, generationCap, generationCap, mockedCurrentBalance, 0];
+        if (lifecycleCase === 'generating' || lifecycleCase === 'syncing') {
+            return [0, currentDustBalance, generationCap, generationCap];
+        } else if (lifecycleCase === 'capped') {
+            return [0, currentDustBalance, generationCap, generationCap];
+        } else if (lifecycleCase === 'decaying') {
+            return [0, generationCap * 0.5, generationCap, generationCap, currentDustBalance, 0];
         }
-    }, [selectedCase, mockedCurrentBalance, generationCap]);
+        return [];
+    }, [lifecycleCase, currentDustBalance, generationCap]);
+
+    // Get status color and label
+    const statusConfig = useMemo(() => {
+        switch (lifecycleCase) {
+            case 'generating':
+                return { color: 'success' as const, label: 'Generating', textColor: 'text-green-400' };
+            case 'capped':
+                return { color: 'warning' as const, label: 'Capped', textColor: 'text-orange-400' };
+            case 'decaying':
+                return { color: 'danger' as const, label: 'Decaying', textColor: 'text-red-400' };
+            case 'syncing':
+                return { color: 'default' as const, label: 'Syncing...', textColor: 'text-amber-400' };
+        }
+    }, [lifecycleCase]);
 
     // Chart data
     const data = {
@@ -129,7 +186,7 @@ export default function DustLifecycleChart() {
             {
                 label: 'Current Horizontal',
                 data: yourPositionLine(),
-                borderColor: '#34c759', // Green
+                borderColor: lifecycleCase === 'decaying' ? '#ef4444' : '#34c759',
                 backgroundColor: 'transparent',
                 borderWidth: 2,
                 borderDash: [5, 5],
@@ -140,7 +197,7 @@ export default function DustLifecycleChart() {
             {
                 label: 'Generation Cap',
                 data: capLine(),
-                borderColor: '#fb923c', // Orange
+                borderColor: '#fb923c',
                 backgroundColor: 'transparent',
                 borderWidth: 2,
                 borderDash: [5, 5],
@@ -148,7 +205,7 @@ export default function DustLifecycleChart() {
                 pointRadius: 0,
                 order: 2,
             },
-            // Glow effect layers (rendered behind main line)
+            // Glow effect layers
             {
                 label: 'Glow Layer 3',
                 data: chartDataLine(),
@@ -186,7 +243,7 @@ export default function DustLifecycleChart() {
                 borderColor: '#ffffff',
                 backgroundColor: 'transparent',
                 borderWidth: 4,
-                tension: 0.1, // Straight lines
+                tension: 0.1,
                 pointRadius: 0,
                 order: 1,
             },
@@ -195,10 +252,12 @@ export default function DustLifecycleChart() {
                 label: 'Point Glow Layer 3',
                 data: yourPositionPoint(),
                 borderColor: 'transparent',
-                backgroundColor: `rgba(52, 199, 89, ${pulseOpacity * 0.1})`,
-                pointRadius: selectedCase === 'generating'
+                backgroundColor: lifecycleCase === 'decaying'
+                    ? `rgba(239, 68, 68, ${pulseOpacity * 0.1})`
+                    : `rgba(52, 199, 89, ${pulseOpacity * 0.1})`,
+                pointRadius: lifecycleCase === 'generating' || lifecycleCase === 'syncing'
                     ? [0, 18, 0, 0]
-                    : selectedCase === 'capped'
+                    : lifecycleCase === 'capped'
                     ? [0, 0, 18, 0]
                     : [0, 0, 0, 0, 18, 0],
                 pointBorderWidth: 0,
@@ -209,10 +268,12 @@ export default function DustLifecycleChart() {
                 label: 'Point Glow Layer 2',
                 data: yourPositionPoint(),
                 borderColor: 'transparent',
-                backgroundColor: `rgba(52, 199, 89, ${pulseOpacity * 0.2})`,
-                pointRadius: selectedCase === 'generating'
+                backgroundColor: lifecycleCase === 'decaying'
+                    ? `rgba(239, 68, 68, ${pulseOpacity * 0.2})`
+                    : `rgba(52, 199, 89, ${pulseOpacity * 0.2})`,
+                pointRadius: lifecycleCase === 'generating' || lifecycleCase === 'syncing'
                     ? [0, 12, 0, 0]
-                    : selectedCase === 'capped'
+                    : lifecycleCase === 'capped'
                     ? [0, 0, 12, 0]
                     : [0, 0, 0, 0, 12, 0],
                 pointBorderWidth: 0,
@@ -223,10 +284,12 @@ export default function DustLifecycleChart() {
                 label: 'Point Glow Layer 1',
                 data: yourPositionPoint(),
                 borderColor: 'transparent',
-                backgroundColor: `rgba(52, 199, 89, ${pulseOpacity * 0.4})`,
-                pointRadius: selectedCase === 'generating'
+                backgroundColor: lifecycleCase === 'decaying'
+                    ? `rgba(239, 68, 68, ${pulseOpacity * 0.4})`
+                    : `rgba(52, 199, 89, ${pulseOpacity * 0.4})`,
+                pointRadius: lifecycleCase === 'generating' || lifecycleCase === 'syncing'
                     ? [0, 8, 0, 0]
-                    : selectedCase === 'capped'
+                    : lifecycleCase === 'capped'
                     ? [0, 0, 8, 0]
                     : [0, 0, 0, 0, 8, 0],
                 pointBorderWidth: 0,
@@ -237,17 +300,23 @@ export default function DustLifecycleChart() {
             {
                 label: 'Current Position Point',
                 data: yourPositionPoint(),
-                borderColor: `rgba(52, 199, 89, ${pulseOpacity})`, // Green with pulsating opacity
-                backgroundColor: `rgba(52, 199, 89, ${pulseOpacity})`,
-                pointRadius: selectedCase === 'generating'
+                borderColor: lifecycleCase === 'decaying'
+                    ? `rgba(239, 68, 68, ${pulseOpacity})`
+                    : `rgba(52, 199, 89, ${pulseOpacity})`,
+                backgroundColor: lifecycleCase === 'decaying'
+                    ? `rgba(239, 68, 68, ${pulseOpacity})`
+                    : `rgba(52, 199, 89, ${pulseOpacity})`,
+                pointRadius: lifecycleCase === 'generating' || lifecycleCase === 'syncing'
                     ? [0, 5, 0, 0]
-                    : selectedCase === 'capped'
+                    : lifecycleCase === 'capped'
                     ? [0, 0, 5, 0]
-                    : [0, 0, 0, 0, 5, 0], // Point at "Now" position for each case
+                    : [0, 0, 0, 0, 5, 0],
                 pointBorderWidth: 2,
-                pointBorderColor: `rgba(52, 199, 89, ${pulseOpacity})`,
-                showLine: false, // Don't draw a line, just the point
-                order: 0, // Render on top
+                pointBorderColor: lifecycleCase === 'decaying'
+                    ? `rgba(239, 68, 68, ${pulseOpacity})`
+                    : `rgba(52, 199, 89, ${pulseOpacity})`,
+                showLine: false,
+                order: 0,
             },
         ],
     };
@@ -267,7 +336,6 @@ export default function DustLifecycleChart() {
                 titleColor: '#ffffff',
                 bodyColor: '#9ca3af',
                 filter: (tooltipItem) => {
-                    // Hide glow layers from tooltip
                     const label = tooltipItem.dataset.label || '';
                     return !label.startsWith('Glow Layer') && !label.startsWith('Point Glow Layer');
                 },
@@ -285,8 +353,8 @@ export default function DustLifecycleChart() {
                         xValue: 0.5,
                         yValue: generationCap,
                         backgroundColor: 'transparent',
-                        content: selectedCase === 'generating' || selectedCase === 'decaying' ? ['Generation CAP'] : ['CAP Reached'],
-                        color: selectedCase === 'generating' || selectedCase === 'decaying' ? '#fb923c' : '#34c759',
+                        content: lifecycleCase === 'capped' ? ['CAP Reached'] : ['Generation CAP'],
+                        color: lifecycleCase === 'capped' ? '#34c759' : '#fb923c',
                         font: {
                             size: 12,
                             weight: 'bold',
@@ -299,10 +367,10 @@ export default function DustLifecycleChart() {
                     currentPositionLabel: {
                         type: 'label',
                         xValue: 0.5,
-                        yValue: mockedCurrentBalance,
+                        yValue: currentDustBalance,
                         backgroundColor: 'transparent',
-                        content: selectedCase === 'generating' || selectedCase === 'decaying' ? ['Your Position'] : [''],
-                        color: '#34c759',
+                        content: lifecycleCase !== 'capped' ? ['Your Position'] : [''],
+                        color: lifecycleCase === 'decaying' ? '#ef4444' : '#34c759',
                         font: {
                             size: 12,
                             weight: 'bold',
@@ -347,56 +415,47 @@ export default function DustLifecycleChart() {
                     },
                 },
                 beginAtZero: true,
-                max: Math.floor(generationCap * 1.1),
+                max: Math.max(Math.floor(generationCap * 1.1), 100),
                 grid: {
                     color: '#374151',
                 },
                 ticks: {
-                    color: '#9ca3af',
-                    font: {
-                        family: 'Outfit, sans-serif',
-                    },
-                    callback: function(tickValue: string | number) {
-                        const value = Number(tickValue);
-                        if (value >= 1000000) {
-                            return (value / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-                        } else if (value >= 1000) {
-                            return (value / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-                        }
-                        return value.toString();
-                    },
+                    display: false,
                 },
             },
         },
     };
 
-    const balancePercent = (mockedCurrentBalance / generationCap) * 100;
+    // Calculate progress percentage
+    const progressPercent = generationCap > 0 ? (currentDustBalance / generationCap) * 100 : 0;
+
+    // Format generation rate for display
+    const formatGenerationRate = () => {
+        if (lifecycleCase === 'syncing') {
+            return '...';
+        }
+        if (generationRate === 0) {
+            return '0';
+        }
+        if (generationRate < 0) {
+            return generationRate.toFixed(2);
+        }
+        return generationRate.toFixed(2);
+    };
 
     return (
         <div className="w-full">
             <div className="flex flex-col gap-4">
-                {/* Test Case Selector */}
+                {/* Status Indicator */}
                 <div className="flex justify-center">
-                    <ButtonGroup>
-                        <Button
-                            color={selectedCase === 'generating' ? 'primary' : 'default'}
-                            onPress={() => setSelectedCase('generating')}
-                        >
-                            Generating
-                        </Button>
-                        <Button
-                            color={selectedCase === 'capped' ? 'primary' : 'default'}
-                            onPress={() => setSelectedCase('capped')}
-                        >
-                            Capped
-                        </Button>
-                        <Button
-                            color={selectedCase === 'decaying' ? 'primary' : 'default'}
-                            onPress={() => setSelectedCase('decaying')}
-                        >
-                            Decaying
-                        </Button>
-                    </ButtonGroup>
+                    <Chip
+                        color={statusConfig.color}
+                        variant="flat"
+                        size="lg"
+                        className={lifecycleCase === 'syncing' ? 'animate-pulse' : ''}
+                    >
+                        {statusConfig.label}
+                    </Chip>
                 </div>
 
                 {/* Chart */}
@@ -411,22 +470,16 @@ export default function DustLifecycleChart() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="flex flex-col gap-1">
                         <span className="text-gray-400 text-sm">Current Balance</span>
-                        <span className="text-green-400 text-xl font-bold">
-                            {/* {formatNumber(mockedCurrentBalance)} DUST */}
-                            *** DUST
+                        <span className={`text-xl font-bold ${lifecycleCase === 'syncing' ? 'text-amber-400 animate-pulse' : 'text-green-400'}`}>
+                            {lifecycleCase === 'syncing' ? '...' : `${formatNumber(currentDustBalance)}`} DUST
                         </span>
                         <span className="text-blue-400 text-xs">(Shielded)</span>
                     </div>
 
                     <div className="flex flex-col gap-1">
                         <span className="text-gray-400 text-sm">Generation Rate</span>
-                        <span className={`text-xl font-bold ${selectedCase === 'decaying' ? 'text-red-400' : 'text-white'}`}>
-                            {selectedCase === 'generating'
-                                ? '*** DUST/H'
-                                : selectedCase === 'capped'
-                                ? '0 DUST/H'
-                                : '- *** DUST/H'
-                            }
+                        <span className={`text-xl font-bold ${statusConfig.textColor} ${lifecycleCase === 'syncing' ? 'animate-pulse' : ''}`}>
+                            {formatGenerationRate()} DUST/H
                         </span>
                         <span className="text-blue-400 text-xs">(Shielded)</span>
                     </div>
@@ -441,20 +494,17 @@ export default function DustLifecycleChart() {
 
                     <div className="flex flex-col gap-1">
                         <span className="text-gray-400 text-sm">Progress</span>
-                        <span className={`text-xl font-bold ${selectedCase === 'decaying' ? 'text-red-400' : 'text-white'}`}>
-                            {selectedCase === 'generating'
-                                ? `${balancePercent.toFixed(1)}%`
-                                : selectedCase === 'capped'
-                                ? '100%'
-                                : '-50%'
-                            }
+                        <span className={`text-xl font-bold ${statusConfig.textColor} ${lifecycleCase === 'syncing' ? 'animate-pulse' : ''}`}>
+                            {lifecycleCase === 'syncing' ? '...' : `${progressPercent.toFixed(1)}%`}
                         </span>
                         <span className="text-gray-500 text-xs">
-                            {selectedCase === 'generating'
+                            {lifecycleCase === 'generating'
                                 ? 'Generating...'
-                                : selectedCase === 'capped'
+                                : lifecycleCase === 'capped'
                                 ? '(Capped)'
-                                : '(Decaying)'
+                                : lifecycleCase === 'decaying'
+                                ? '(Decaying)'
+                                : '(Syncing...)'
                             }
                         </span>
                     </div>

@@ -12,13 +12,14 @@ export class DustTransactionsUtils {
     static async buildRegistrationTransaction(lucid: LucidEvolution, dustPKH: string): Promise<TxSignBuilder> {
         logger.log('[DustTransactions]', '🔧 Building DUST Address Registration Transaction...');
 
-        // Get current user's Cardano address and PKH
+        // Get current user's Cardano address and stake key hash
         const cardanoAddress = await lucid.wallet().address();
-        const cardanoPKH = getAddressDetails(cardanoAddress)?.paymentCredential?.hash;
+        const addressDetails = getAddressDetails(cardanoAddress);
+        const stakeKeyHash = addressDetails?.stakeCredential?.hash;
 
-        if (!cardanoPKH) {
-            logger.error('[DustTransactions]', '❌ Cardano PKH not found');
-            throw new Error('Cardano PKH not found');
+        if (!stakeKeyHash) {
+            logger.error('[DustTransactions]', '❌ Stake key hash not found');
+            throw new Error('Stake key hash not found');
         }
 
         if (!dustPKH) {
@@ -80,10 +81,10 @@ export class DustTransactionsUtils {
 
         // OUTPUT: DUST Mapping Validator with Registration Datum
 
-        // Create dust mapping datum with user's credential and dust address
+        // Create dust mapping datum with user's stake key hash and dust address
         const dustMappingDatum: Contracts.DustMappingDatum = {
             c_wallet: {
-                VerificationKey: [cardanoPKH!], // Cardano PKH (28 bytes hex string)
+                VerificationKey: [stakeKeyHash!], // Stake key hash (28 bytes hex string)
             },
             dust_address: dustPKH, // DUST PKH (32 bytes hex string)
         };
@@ -113,8 +114,15 @@ export class DustTransactionsUtils {
             }
         );
 
-        // Add signer
+        // Add signers: payment address + stake address
         txBuilder.addSigner(await lucid.wallet().address());
+        
+        // Add stake address as signer to validate stake key hash
+        const stakeAddress = await lucid.wallet().rewardAddress();
+        if (stakeAddress) {
+            txBuilder.addSigner(stakeAddress);
+            logger.log('[DustTransactions]', '✍️ Added stake address as signer:', stakeAddress);
+        }
 
         // Complete transaction
         logger.log('[DustTransactions]', '🔧 Completing registration transaction...');
@@ -222,8 +230,15 @@ export class DustTransactionsUtils {
         logger.log('[DustTransactions]', '📎 Attaching DUST Mapping Validator Script...');
         txBuilder.attach.SpendingValidator(blazeToLucidScript(dustGenerator.Script));
 
-        // Add signer
+        // Add signers: payment address + stake address
         txBuilder.addSigner(await lucid.wallet().address());
+
+        // Add stake address as signer to validate stake key hash
+        const stakeAddress = await lucid.wallet().rewardAddress();
+        if (stakeAddress) {
+            txBuilder.addSigner(stakeAddress);
+            logger.log('[DustTransactions]', '✍️ Added stake address as signer:', stakeAddress);
+        }
 
         // Complete transaction
         logger.log('[DustTransactions]', '🔧 Completing unregistration transaction...');
@@ -365,13 +380,14 @@ export class DustTransactionsUtils {
     private static async buildUpdateOnlyTransaction(lucid: LucidEvolution, newDustPKH: string, registrationUtxo: UTxO): Promise<TxSignBuilder> {
         logger.log('[DustTransactions]', '🔧 Building Update ONLY Transaction...');
 
-        // Get current user's Cardano address and PKH
+        // Get current user's Cardano address and stake key hash
         const cardanoAddress = await lucid.wallet().address();
-        const cardanoPKH = getAddressDetails(cardanoAddress)?.paymentCredential?.hash;
+        const addressDetails = getAddressDetails(cardanoAddress);
+        const stakeKeyHash = addressDetails?.stakeCredential?.hash;
 
-        if (!cardanoPKH) {
-            logger.error('[DustTransactions]', '❌ Cardano PKH not found');
-            throw new Error('Cardano PKH not found');
+        if (!stakeKeyHash) {
+            logger.error('[DustTransactions]', '❌ Stake key hash not found');
+            throw new Error('Stake key hash not found');
         }
 
         if (!newDustPKH) {
@@ -436,10 +452,10 @@ export class DustTransactionsUtils {
             })
         );
 
-        // Create dust mapping datum with user's credential and dust address
+        // Create dust mapping datum with user's stake key hash and dust address
         const updatedRegistrationDatumData: Contracts.DustMappingDatum = {
             c_wallet: {
-                VerificationKey: [cardanoPKH!], // Cardano PKH (28 bytes hex string)
+                VerificationKey: [stakeKeyHash!], // Stake key hash (28 bytes hex string)
             },
             dust_address: newDustPKH, // DUST PKH (32 bytes hex string)
         };
@@ -481,8 +497,15 @@ export class DustTransactionsUtils {
         logger.log('[DustTransactions]', '📎 Attaching DUST Withdrawal Script...');
         txBuilder.attach.WithdrawalValidator(blazeToLucidScript(dustGenerator.Script));
 
-        // Add signer
+        // Add signers: payment address + stake address
         txBuilder.addSigner(await lucid.wallet().address());
+        
+        // Add stake address as signer to validate stake key hash
+        const stakeAddress = await lucid.wallet().rewardAddress();
+        if (stakeAddress) {
+            txBuilder.addSigner(stakeAddress);
+            logger.log('[DustTransactions]', '✍️ Added stake address as signer:', stakeAddress);
+        }
 
         // Complete transaction
         logger.log('[DustTransactions]', '🔧 Completing update transaction...');

@@ -24,7 +24,7 @@ export type SupportedMidnightWallet = 'mnLace';
 
 // Generation Status Types
 export interface GenerationStatusData {
-    cardanoStakeKey: string;
+    cardanoRewardAddress: string;
     dustAddress: string | null;
     registered: boolean;
     nightBalance: string;
@@ -37,6 +37,7 @@ interface CardanoWalletState {
     isConnected: boolean;
     address: string | null;
     stakeKey: string | null;
+    rewardAddress: string | null; // bech32 reward address (stake_test1... or stake1...)
     balanceADA: string | null;
     balanceNight: string | null;
     walletName: string | null;
@@ -101,6 +102,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         isConnected: false,
         address: null,
         stakeKey: null,
+        rewardAddress: null,
         balanceADA: null,
         balanceNight: null,
         walletName: null,
@@ -126,9 +128,11 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     // Track if we've already initialized to prevent re-running autoReconnect
     const hasInitializedRef = useRef(false);
+    const isMountedRef = useRef(true);
 
-    // Generation status hook
-    const { data: generationStatus, isLoading: isCheckingRegistration, error: registrationError, refetch: refetchGenerationStatus } = useGenerationStatus(cardanoState.address);
+    // Generation status hook - queries the Midnight indexer using reward address
+    // This runs in parallel with the Blockfrost-based registration UTXO check
+    const { data: generationStatus, isLoading: isCheckingRegistration, error: registrationError, refetch: refetchGenerationStatus } = useGenerationStatus(cardanoState.rewardAddress);
 
     // Registration UTXO hook
     const {
@@ -186,11 +190,29 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
             // Get wallet info
             const address = await lucid.wallet().address();
-            
+            const rewardAddress = await lucid.wallet().rewardAddress();
+
             const { getAddressDetails } = await import('@lucid-evolution/lucid');
             const cardanoAddressDetails = getAddressDetails(address);
 
-            const cardanoStakeKey = cardanoAddressDetails?.stakeCredential?.hash;
+            const cardanoPaymentCredentialHash = cardanoAddressDetails?.paymentCredential?.hash;
+            const cardanoStakeKeyHash = cardanoAddressDetails?.stakeCredential?.hash;
+            
+            // Get reward address using lucid
+            let stakeAddressBech32: string | null = null;
+            try {
+                const rewardAddress = await lucid.wallet().rewardAddress();
+                stakeAddressBech32 = rewardAddress || null;
+            } catch {
+                stakeAddressBech32 = null;
+            }
+
+            logger.log('[Wallet]', '🔑 ========== CARDANO WALLET CONNECTED ==========');
+            logger.log('[Wallet]', `📍 Address (bech32): ${address}`);
+            logger.log('[Wallet]', `📍 Payment Credential (hash): ${cardanoPaymentCredentialHash}`);
+            logger.log('[Wallet]', `🎯 Stake Key (hash): ${cardanoStakeKeyHash}`);
+            logger.log('[Wallet]', `🎯 Stake Address (bech32): ${stakeAddressBech32}`);
+            logger.log('[Wallet]', '🔑 ================================================');
 
             const utxos = await lucid.wallet().getUtxos();
 
@@ -198,7 +220,8 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             const tokenNightEncodedName = CNIGHT_CURRENCY_ENCODEDNAME;
 
             const balanceNight = getTotalOfUnitInUTxOList(tokenNightPolicy + tokenNightEncodedName, utxos);
-            const balanceNightStr = (Number(balanceNight) / 1_000_000).toFixed(6);
+            // cNIGHT/NIGHT has 0 decimals, so no division needed (unlike ADA which has 6 decimals)
+            const balanceNightStr = Number(balanceNight).toString();
 
             // Calculate balance (sum of all UTxOs)
             const balanceLovelace = utxos.reduce((acc, utxo) => acc + (utxo.assets?.lovelace || BigInt(0)), BigInt(0));
@@ -207,7 +230,8 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             setCardanoState({
                 isConnected: true,
                 address,
-                stakeKey: cardanoStakeKey || null,
+                stakeKey: cardanoStakeKeyHash || null,
+                rewardAddress: rewardAddress || null,
                 balanceADA: balanceInAdaStr,
                 balanceNight: balanceNightStr,
                 walletName,
@@ -233,6 +257,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             isConnected: false,
             address: null,
             stakeKey: null,
+            rewardAddress: null,
             balanceADA: null,
             balanceNight: null,
             walletName: null,
@@ -271,16 +296,102 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                 throw new Error(`${walletName} Midnight wallet not found. Please install it first.`);
             }
 
-            // Connect to Midnight wallet
-            const api = await window.midnight[walletName].enable();
+            // Debug: Log what's available on the midnight wallet object
+            const walletObj = window.midnight[walletName];
+            logger.log('[Wallet]', 'Midnight wallet object:', {
+                walletName,
+                type: typeof walletObj,
+                keys: walletObj ? Object.keys(walletObj) : [],
+                hasEnable: typeof walletObj?.enable === 'function',
+                hasConnect: typeof (walletObj as any)?.connect === 'function',
+                prototype: walletObj ? Object.getOwnPropertyNames(Object.getPrototypeOf(walletObj)) : [],
+            });
 
-            // Get wallet state from Midnight API
-            const walletState = await api.state();
-            logger.log('[Wallet]', 'Midnight Wallet State:', walletState);
+            // Determine the Midnight network based on Cardano network
+            const cardanoNetwork = getCurrentNetwork().toLowerCase();
+            const midnightNetwork = cardanoNetwork === 'mainnet' ? 'mainnet' : 'preview';
 
-            // Extract values from wallet state
-            const address = walletState?.address || null;
-            const coinPublicKey = walletState?.coinPublicKeyLegacy || null;
+            logger.log('[Wallet]', 'Connecting to Midnight network:', { cardanoNetwork, midnightNetwork });
+
+            // Connect to Midnight wallet - try different API patterns
+            let api;
+            if (typeof (walletObj as any).connect === 'function') {
+                // New API (v4+): uses connect() method with network parameter
+                logger.log('[Wallet]', 'Using connect() method (v4+ API)');
+                api = await (walletObj as any).connect(midnightNetwork);
+            } else if (typeof walletObj.enable === 'function') {
+                // Legacy API: uses enable() method
+                logger.log('[Wallet]', 'Using enable() method (legacy API)');
+                api = await walletObj.enable();
+            } else if (typeof walletObj === 'function') {
+                // Some wallets expose the connector as a function
+                logger.log('[Wallet]', 'Wallet object is a function, calling it');
+                api = await (walletObj as any)();
+            } else {
+                // The wallet object might already be the API
+                logger.log('[Wallet]', 'Using wallet object directly as API');
+                api = walletObj;
+            }
+
+            logger.log('[Wallet]', 'Midnight API object:', {
+                type: typeof api,
+                keys: api ? Object.keys(api) : [],
+                hasGetUnshieldedAddress: typeof api?.getUnshieldedAddress === 'function',
+                hasState: typeof api?.state === 'function',
+            });
+
+            // Get wallet state from Midnight API - handle different API patterns
+            let address = null;
+            let coinPublicKey = null;
+
+            if (typeof api?.getUnshieldedAddress === 'function') {
+                // New API (v4+): use getUnshieldedAddress()
+                logger.log('[Wallet]', 'Using new Midnight API (v4+) - getUnshieldedAddress()');
+
+                const unshieldedAddressResult = await api.getUnshieldedAddress();
+                logger.log('[Wallet]', 'Unshielded address result:', unshieldedAddressResult);
+
+                // API returns {unshieldedAddress: '...'} object, extract the string
+                address = typeof unshieldedAddressResult === 'string'
+                    ? unshieldedAddressResult
+                    : unshieldedAddressResult?.unshieldedAddress;
+
+                logger.log('[Wallet]', 'Extracted address string:', address);
+
+                // Extract coin public key from the address
+                if (address && typeof address === 'string') {
+                    const { extractCoinPublicKeyFromMidnightAddress } = require('@/lib/utils');
+                    coinPublicKey = extractCoinPublicKeyFromMidnightAddress(address);
+                    logger.log('[Wallet]', 'Extracted coinPublicKey from address:', coinPublicKey);
+                }
+            } else if (typeof api?.state === 'function') {
+                // Legacy API: state is a function
+                const walletState = await api.state();
+                logger.log('[Wallet]', 'Midnight Wallet State (from function):', walletState);
+                address = walletState?.address || null;
+                coinPublicKey = walletState?.coinPublicKeyLegacy || walletState?.coinPublicKey || null;
+            } else if (api?.state && typeof api.state === 'object') {
+                // Alternative: state is already an object
+                const walletState = api.state;
+                logger.log('[Wallet]', 'Midnight Wallet State (from property):', walletState);
+                address = walletState?.address || null;
+                coinPublicKey = walletState?.coinPublicKeyLegacy || walletState?.coinPublicKey || null;
+            } else {
+                // Log all available properties for debugging
+                logger.error('[Wallet]', 'Unknown Midnight API structure. Available properties:', {
+                    keys: Object.keys(api || {}),
+                    prototype: Object.getOwnPropertyNames(Object.getPrototypeOf(api || {})),
+                    stringified: JSON.stringify(api, null, 2),
+                });
+                throw new Error('Unable to get wallet state from Midnight API. The wallet extension may have been updated.');
+            }
+
+            logger.log('[Wallet]', 'Extracted Midnight wallet data:', { address, coinPublicKey });
+
+            if (!address) {
+                throw new Error('Could not get address from Midnight wallet. Please ensure your wallet is set up.');
+            }
+
             const balance = 'N/A (Shield address)';
 
             // Verify if coinPublicKeyLegacy matches the address
@@ -383,32 +494,43 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     // Auto-reconnect on page load (only once per session)
     useEffect(() => {
+        isMountedRef.current = true;
+
         // Only auto-reconnect once on initial mount
         if (hasInitializedRef.current) {
             return;
         }
 
         const autoReconnect = async () => {
+            if (!isMountedRef.current) return;
+
             setIsAutoReconnecting(true);
             hasInitializedRef.current = true; // Mark as initialized
 
             // Auto-reconnect Cardano wallet
             const savedCardanoWallet = localStorage.getItem('connectedCardanoWallet') as SupportedWallet;
-            if (savedCardanoWallet && window.cardano?.[savedCardanoWallet]) {
+            if (savedCardanoWallet && window.cardano?.[savedCardanoWallet] && isMountedRef.current) {
                 await connectCardanoWallet(savedCardanoWallet);
             }
 
             // Auto-reconnect Midnight wallet
             const savedMidnightWallet = localStorage.getItem('connectedMidnightWallet') as SupportedMidnightWallet;
-            if (savedMidnightWallet && window.midnight?.[savedMidnightWallet]) {
+            if (savedMidnightWallet && window.midnight?.[savedMidnightWallet] && isMountedRef.current) {
                 await connectMidnightWallet(savedMidnightWallet);
             }
 
-            setIsAutoReconnecting(false);
+            if (isMountedRef.current) {
+                setIsAutoReconnecting(false);
+            }
         };
 
         autoReconnect();
-    }, []);
+
+        // Cleanup: mark as unmounted
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, [connectCardanoWallet, connectMidnightWallet]);
 
     // Centralized redirect logic based on registration status
     useEffect(() => {
@@ -421,6 +543,11 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         // Guard: Only redirect if Cardano wallet is connected
         if (!cardanoState.isConnected) {
             logger.log('⏸️  Skipping redirect - Cardano wallet not connected');
+            return;
+        }
+
+        // Guard: Only redirect if component is still mounted
+        if (!isMountedRef.current) {
             return;
         }
 

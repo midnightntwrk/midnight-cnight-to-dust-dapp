@@ -3,6 +3,7 @@
 import { Providers } from "@/contexts/Providers";
 import MidnightNavbar from "@/components/Navbar";
 import Footer from "@/components/ui/Footer";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import { ReactNode } from "react";
 
 interface ClientWrapperProps {
@@ -11,12 +12,14 @@ interface ClientWrapperProps {
 
 export default function ClientWrapper({ children }: ClientWrapperProps) {
   return (
-    <Providers>
-      <main>
-        <MidnightNavbar />
-        {children}
-        <Footer />
-      </main>
-    </Providers>
+    <ErrorBoundary>
+      <Providers>
+        <main>
+          <MidnightNavbar />
+          {children}
+          <Footer />
+        </main>
+      </Providers>
+    </ErrorBoundary>
   );
 }

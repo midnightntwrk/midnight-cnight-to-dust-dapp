@@ -3,8 +3,8 @@ import "./globals.css";
 import ClientWrapper from "@/components/ui/ClientWrapper";
 
 export const metadata: Metadata = {
-  title: "Midnight vs Cardano",
-  description: "Midnight vs Cardano",
+  title: "Midnight to Cardano - Mapping Validator",
+  description: "Midnight to Cardano - Mapping Validation",
 };
 
 // Force dynamic rendering for all pages - prevents WASM/wallet API issues during build

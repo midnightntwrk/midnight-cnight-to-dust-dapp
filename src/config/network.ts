@@ -1,8 +1,20 @@
 import { logger } from '@/lib/logger';
+import { validateEnvOrThrow } from './env';
 
 import { toJson } from '@/lib/utils';
 import { Network, ProtocolParameters } from '@lucid-evolution/lucid';
 import { protocolParametersForLucid } from './protocolParameters';
+
+// Validate environment variables at module load time (server-side only)
+if (typeof window === 'undefined') {
+    try {
+        validateEnvOrThrow();
+    } catch (error) {
+        logger.error('[Network]', 'Environment validation failed:', error);
+        // Re-throw to prevent app from starting with invalid configuration
+        throw error;
+    }
+}
 
 export type CardanoNetwork = 'Mainnet' | 'Preview' | 'Preprod' | 'Emulator' | 'Custom';
 interface NetworkConfig {
@@ -192,6 +204,9 @@ export const BLOCKCHAIN_EXPLORER_SUBPATH = config.BLOCKCHAIN_EXPLORER_SUBPATH;
 export const BLOCKFROST_KEY = config.BLOCKFROST_KEY;
 export const CNIGHT_CURRENCY_POLICY_ID = config.CNIGHT_CURRENCY_POLICY_ID!;
 export const CNIGHT_CURRENCY_ENCODEDNAME = config.CNIGHT_CURRENCY_ENCODEDNAME!;
+
+// Indexer and Simulation Mode
+export const INDEXER_ENDPOINT = process.env.INDEXER_ENDPOINT || '';
 //---------------------------------------------------
 // Export utility functions
 export { config as currentNetworkConfig, getCardanoScanUrl, getCurrentNetwork, getCurrentNetworkConfig, getLucidNetwork, initializeLucidWithBlockfrostClientSide, networkConfigs };

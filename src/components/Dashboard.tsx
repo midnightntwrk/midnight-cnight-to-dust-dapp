@@ -8,14 +8,32 @@ import { useState } from 'react';
 import CardanoWalletCard from './dashboard/CardanoWalletCard';
 import DustLifecycleChart from './dashboard/DustLifecycleChart';
 import GenerationRateCard from './dashboard/GenerationRateCard';
+import IndexerSyncBanner from './dashboard/IndexerSyncBanner';
 import MidnightWalletCard from './dashboard/MidnightWalletCard';
 import RegistrationUtxoCard from './dashboard/RegistrationUtxoCard';
 import LoadingBackdrop from './ui/LoadingBackdrop';
 import WalletsModal from './wallet-connect/WalletsModal';
 
 export default function Dashboard() {
-    const { cardano, isAutoReconnecting, connectCardanoWallet, connectMidnightWallet, getAvailableCardanoWallets, getAvailableMidnightWallets, isLoadingRegistrationUtxo } =
-        useWalletContext();
+    const {
+        cardano,
+        isAutoReconnecting,
+        connectCardanoWallet,
+        connectMidnightWallet,
+        getAvailableCardanoWallets,
+        getAvailableMidnightWallets,
+        isLoadingRegistrationUtxo,
+        registrationUtxo,
+        generationStatus,
+    } = useWalletContext();
+
+    // Show banner when registered on-chain (Blockfrost) but indexer hasn't synced yet
+    const showIndexerSyncBanner = !!(registrationUtxo && generationStatus?.registered === false);
+    const isIndexerSyncing = !!(registrationUtxo && generationStatus?.registered === false);
+
+    // Disable lifecycle chart when indexer is syncing OR when DUST balance is 0
+    const dustBalance = generationStatus?.currentCapacity ? parseFloat(generationStatus.currentCapacity) : 0;
+    const shouldDisableLifecycleChart = isIndexerSyncing || dustBalance === 0;
 
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
     const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);
@@ -69,6 +87,10 @@ export default function Dashboard() {
                     <p className="text-gray-500">Manage your Cardano and Midnight wallet connections</p>
                 </div>
             </div>
+
+            {/* Indexer Sync Banner - shows when on-chain registration exists but indexer hasn't synced */}
+            <IndexerSyncBanner isVisible={!!showIndexerSyncBanner} />
+
             <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
                 <CardanoWalletCard />
                 <GenerationRateCard />
@@ -108,11 +130,18 @@ export default function Dashboard() {
                     <AccordionItem
                         key="lifecycle"
                         aria-label="DUST Generation Lifecycle"
+                        isDisabled={shouldDisableLifecycleChart}
                         title={
                             <div className="flex flex-row gap-2 items-center">
                                 <span className="text-[18px] font-normal">DUST Generation Lifecycle</span>
                                 <Tooltip
-                                    content="Visual representation of your DUST generation progress over time"
+                                    content={
+                                        isIndexerSyncing
+                                            ? "Chart will be available once indexer syncs"
+                                            : dustBalance === 0
+                                            ? "Chart will be available once you start generating DUST"
+                                            : "Visual representation of your DUST generation progress over time"
+                                    }
                                     placement="top"
                                     classNames={{
                                         content: 'bg-gray-800 text-white text-sm px-2 py-1',

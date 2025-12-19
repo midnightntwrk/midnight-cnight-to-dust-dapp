@@ -8,14 +8,37 @@ import { formatNumber } from '@/lib/utils';
 
 
 const GenerationRateCard = () => {
-    const { generationStatus, cardano } = useWalletContext();
+    const { generationStatus, cardano, registrationUtxo } = useWalletContext();
 
-    // Calculate CAP as Night Balance * 10
+    // Check if indexer has synced (registered on-chain but indexer shows false)
+    const isIndexerSyncing = registrationUtxo && generationStatus?.registered === false;
+    const isIndexerSynced = generationStatus?.registered === true;
+
+    // Calculate CAP as Night Balance * 10 (fallback when indexer not synced)
     const calculateCap = () => {
         if (!cardano.balanceNight) return '0';
         const balance = parseFloat(cardano.balanceNight);
         const cap = Math.floor(balance * 10);
         return formatNumber(cap);
+    };
+
+    // Get generation rate - use indexer data if synced, otherwise show syncing state
+    const getGenerationRate = () => {
+        if (isIndexerSynced) {
+            return generationStatus?.generationRate || '0';
+        }
+        if (isIndexerSyncing) {
+            return '...';
+        }
+        return '0';
+    };
+
+    // Get CAP - always calculate from wallet balance (NIGHT * 10)
+    const getCapValue = () => {
+        if (!cardano.balanceNight) {
+            return '...';
+        }
+        return calculateCap();
     };
 
     return (
@@ -34,7 +57,9 @@ const GenerationRateCard = () => {
                     </Tooltip>
                 </div>
                 <div className='flex flex-row gap-2 items-center z-10'>
-                    <span className='text-[24px] font-bold'>{generationStatus?.generationRate || '0'}</span>
+                    <span className={`text-[24px] font-bold ${isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}>
+                        {getGenerationRate()}
+                    </span>
                     <span className='text-[24px]'>DUST/H</span>
                 </div>
             </div>
@@ -52,7 +77,9 @@ const GenerationRateCard = () => {
                     </Tooltip>
                 </div>
                 <div className='flex flex-row gap-2 items-center z-10'>
-                    <span className='text-[24px] font-bold'>{calculateCap()}</span>
+                    <span className={`text-[24px] font-bold ${!cardano.balanceNight ? 'text-amber-400 animate-pulse' : ''}`}>
+                        {getCapValue()}
+                    </span>
                     <span className='text-[24px]'>DUST</span>
                 </div>
             </div>

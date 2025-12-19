@@ -29,9 +29,11 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
 
     // Track if we've already fetched for current params to avoid unnecessary re-fetches
     const lastFetchedRef = useRef<string>('');
+    const abortControllerRef = useRef<AbortController | null>(null);
+    const isMountedRef = useRef<boolean>(true);
 
     // Internal method to find registration UTXO - returns the UTXO or null
-    const searchRegistrationUtxo = useCallback(async (): Promise<UTxO | null> => {
+    const searchRegistrationUtxo = useCallback(async (signal?: AbortSignal): Promise<UTxO | null> => {
         try {
             logger.log('[RegistrationUtxo]', '🔍 Searching for registration UTXO...', { cardanoAddress, dustPKH });
 
@@ -51,9 +53,10 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
                 })
             );
             
-            // Get current user's Cardano PKH
+            // Get current user's stake key hash
             const { getAddressDetails } = await import('@lucid-evolution/lucid');
-            const cardanoPKH = getAddressDetails(cardanoAddress)?.paymentCredential?.hash;
+            const addressDetails = getAddressDetails(cardanoAddress);
+            const stakeKeyHash = addressDetails?.stakeCredential?.hash;
 
             // Construct the expected NFT asset name
             const dustNFTTokenName = '';
@@ -66,7 +69,10 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
             });
 
             // Query UTXOs at the mapping validator address using Blockfrost proxy
-            const response = await fetch(`/api/blockfrost/addresses/${dustGeneratorAddress}/utxos/${dustNFTAssetName}`);
+            // Use descending order to get newest UTXOs first (helps with pagination)
+            const response = await fetch(`/api/blockfrost/addresses/${dustGeneratorAddress}/utxos/${dustNFTAssetName}?order=desc`, {
+                signal: signal,
+            });
 
             if (!response.ok) {
                 throw new Error(`Blockfrost API error: ${response.status} ${response.statusText}`);
@@ -119,15 +125,15 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
                             '[RegistrationUtxo]',
                             '📋 Comparing datum values:',
                             toJson({
-                                datumCardanoPKH,
-                                expectedCardanoPKH: cardanoPKH,
+                                datumStakeKeyHash: datumCardanoPKH,
+                                expectedStakeKeyHash: stakeKeyHash,
                                 datumDustPKH: dustPKHFromDatum,
                                 expectedDustPKH: dustPKH,
                             })
                         );
 
                         // Check if this UTXO matches our registration
-                        if (datumCardanoPKH === cardanoPKH && dustPKHFromDatum === dustPKH) {
+                        if (datumCardanoPKH === stakeKeyHash && dustPKHFromDatum === dustPKH) {
                             const registrationOutRef: OutRef = {
                                 txHash: utxo.tx_hash,
                                 outputIndex: utxo.output_index,
@@ -157,6 +163,11 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
             logger.log('[RegistrationUtxo]', '❌ No matching registration UTXO found');
             return null;
         } catch (error) {
+            // Don't throw if the request was aborted
+            if (error instanceof Error && error.name === 'AbortError') {
+                logger.log('[RegistrationUtxo]', '⏸️ Request aborted');
+                return null;
+            }
             logger.error('[RegistrationUtxo]', '❌ Error finding registration UTXO:', error);
             throw error;
         }
@@ -164,18 +175,38 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
 
     // Method to find registration UTXO (single attempt, updates state)
     const findRegistrationUtxo = useCallback(async () => {
+        // Cancel any pending request
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+
+        // Create new abort controller
+        const abortController = new AbortController();
+        abortControllerRef.current = abortController;
+
         setIsLoadingRegistrationUtxo(true);
         setRegistrationUtxoError(null);
 
         try {
-            const utxo = await searchRegistrationUtxo();
-            setRegistrationUtxo(utxo);
+            const utxo = await searchRegistrationUtxo(abortController.signal);
+            // Only update state if component is still mounted and request wasn't aborted
+            if (isMountedRef.current && !abortController.signal.aborted) {
+                setRegistrationUtxo(utxo);
+            }
         } catch (error) {
-            logger.error('[RegistrationUtxo]', '❌ Error finding registration UTXO:', error);
-            setRegistrationUtxoError(error instanceof Error ? error.message : 'Failed to find registration UTXO');
-            setRegistrationUtxo(null);
+            // Don't set error if request was aborted or component unmounted
+            if (error instanceof Error && error.name === 'AbortError') {
+                return;
+            }
+            if (isMountedRef.current) {
+                logger.error('[RegistrationUtxo]', '❌ Error finding registration UTXO:', error);
+                setRegistrationUtxoError(error instanceof Error ? error.message : 'Failed to find registration UTXO');
+                setRegistrationUtxo(null);
+            }
         } finally {
-            setIsLoadingRegistrationUtxo(false);
+            if (isMountedRef.current) {
+                setIsLoadingRegistrationUtxo(false);
+            }
         }
     }, [searchRegistrationUtxo]);
 
@@ -187,19 +218,39 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
 
     // Poll until registration UTXO is found (useful after registration transaction)
     const pollUntilFound = useCallback(async () => {
+        // Cancel any pending request
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+
+        // Create new abort controller for polling
+        const abortController = new AbortController();
+        abortControllerRef.current = abortController;
+
         const MAX_ATTEMPTS = 20; // Maximum number of polling attempts
-        const POLL_INTERVAL = 3000; // 3 seconds between attempts
+        const POLL_INTERVAL = 6000; // 6 seconds between attempts
 
         logger.log('[RegistrationUtxo]', '🔄 Starting polling for registration UTXO...');
         setIsLoadingRegistrationUtxo(true);
         setRegistrationUtxoError(null);
 
         for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            // Check if polling was cancelled
+            if (abortController.signal.aborted || !isMountedRef.current) {
+                logger.log('[RegistrationUtxo]', '⏸️ Polling cancelled');
+                return;
+            }
+
             logger.log('[RegistrationUtxo]', `🔄 Polling attempt ${attempt}/${MAX_ATTEMPTS}`);
 
             try {
                 // Search for the UTXO
-                const utxo = await searchRegistrationUtxo();
+                const utxo = await searchRegistrationUtxo(abortController.signal);
+
+                // Check again if cancelled after async operation
+                if (abortController.signal.aborted || !isMountedRef.current) {
+                    return;
+                }
 
                 // If found, update state and return
                 if (utxo) {
@@ -215,6 +266,16 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
                     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
                 }
             } catch (error) {
+                // Don't log error if request was aborted
+                if (error instanceof Error && error.name === 'AbortError') {
+                    return;
+                }
+
+                // Check if component is still mounted before logging
+                if (!isMountedRef.current) {
+                    return;
+                }
+
                 logger.error('[RegistrationUtxo]', '❌ Error during polling attempt', attempt, error);
 
                 // Continue trying unless it's the last attempt
@@ -224,13 +285,17 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
             }
         }
 
-        // All attempts exhausted
-        logger.log('[RegistrationUtxo]', '❌ Registration UTXO not found after', MAX_ATTEMPTS, 'attempts');
-        setRegistrationUtxoError('Registration UTXO not found after polling. The transaction may still be pending on the blockchain. Please wait a moment and refresh the page.');
-        setIsLoadingRegistrationUtxo(false);
+        // All attempts exhausted - only update state if still mounted
+        if (isMountedRef.current && !abortController.signal.aborted) {
+            logger.log('[RegistrationUtxo]', '❌ Registration UTXO not found after', MAX_ATTEMPTS, 'attempts');
+            setRegistrationUtxoError('Registration UTXO not found after polling. The transaction may still be pending on the blockchain. Please wait a moment and refresh the page.');
+            setIsLoadingRegistrationUtxo(false);
+        }
     }, [searchRegistrationUtxo]);
 
     useEffect(() => {
+        isMountedRef.current = true;
+
         const fetchKey = `${cardanoAddress}-${dustPKH}`;
 
         if (cardanoAddress && dustPKH) {
@@ -241,10 +306,21 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
             }
         } else {
             lastFetchedRef.current = '';
-            setRegistrationUtxo(null);
-            setRegistrationUtxoError(null);
-            setIsLoadingRegistrationUtxo(false);
+            if (isMountedRef.current) {
+                setRegistrationUtxo(null);
+                setRegistrationUtxoError(null);
+                setIsLoadingRegistrationUtxo(false);
+            }
         }
+
+        // Cleanup: mark as unmounted and abort any pending requests
+        return () => {
+            isMountedRef.current = false;
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+                abortControllerRef.current = null;
+            }
+        };
     }, [cardanoAddress, dustPKH, findRegistrationUtxo]);
 
     return {
