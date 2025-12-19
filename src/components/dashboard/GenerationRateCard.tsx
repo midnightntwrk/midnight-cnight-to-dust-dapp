@@ -33,12 +33,9 @@ const GenerationRateCard = () => {
         return '0';
     };
 
-    // Get CAP - use indexer's currentCapacity if synced, otherwise calculate from wallet balance
+    // Get CAP - always calculate from wallet balance (NIGHT * 10)
     const getCapValue = () => {
-        if (isIndexerSynced && generationStatus?.currentCapacity) {
-            return formatNumber(parseFloat(generationStatus.currentCapacity));
-        }
-        if (isIndexerSyncing) {
+        if (!cardano.balanceNight) {
             return '...';
         }
         return calculateCap();
@@ -80,7 +77,7 @@ const GenerationRateCard = () => {
                     </Tooltip>
                 </div>
                 <div className='flex flex-row gap-2 items-center z-10'>
-                    <span className={`text-[24px] font-bold ${isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}>
+                    <span className={`text-[24px] font-bold ${!cardano.balanceNight ? 'text-amber-400 animate-pulse' : ''}`}>
                         {getCapValue()}
                     </span>
                     <span className='text-[24px]'>DUST</span>

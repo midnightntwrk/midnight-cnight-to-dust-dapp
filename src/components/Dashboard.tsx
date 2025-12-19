@@ -31,6 +31,10 @@ export default function Dashboard() {
     const showIndexerSyncBanner = !!(registrationUtxo && generationStatus?.registered === false);
     const isIndexerSyncing = !!(registrationUtxo && generationStatus?.registered === false);
 
+    // Disable lifecycle chart when indexer is syncing OR when DUST balance is 0
+    const dustBalance = generationStatus?.currentCapacity ? parseFloat(generationStatus.currentCapacity) : 0;
+    const shouldDisableLifecycleChart = isIndexerSyncing || dustBalance === 0;
+
     const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
     const [isMidnightModalOpen, setIsMidnightModalOpen] = useState(false);
 
@@ -126,12 +130,18 @@ export default function Dashboard() {
                     <AccordionItem
                         key="lifecycle"
                         aria-label="DUST Generation Lifecycle"
-                        isDisabled={isIndexerSyncing}
+                        isDisabled={shouldDisableLifecycleChart}
                         title={
                             <div className="flex flex-row gap-2 items-center">
                                 <span className="text-[18px] font-normal">DUST Generation Lifecycle</span>
                                 <Tooltip
-                                    content={isIndexerSyncing ? "Chart will be available once indexer syncs" : "Visual representation of your DUST generation progress over time"}
+                                    content={
+                                        isIndexerSyncing
+                                            ? "Chart will be available once indexer syncs"
+                                            : dustBalance === 0
+                                            ? "Chart will be available once you start generating DUST"
+                                            : "Visual representation of your DUST generation progress over time"
+                                    }
                                     placement="top"
                                     classNames={{
                                         content: 'bg-gray-800 text-white text-sm px-2 py-1',
