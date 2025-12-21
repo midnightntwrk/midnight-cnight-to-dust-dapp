@@ -146,6 +146,8 @@ async function handleRequest(request: NextRequest) {
     const startTime = Date.now();
     const origin = request.headers.get('origin');
 
+
+
     // SECURITY: Validate origin/referer before processing
     if (!validateOrigin(request)) {
         const headers = new Headers();
@@ -166,6 +168,13 @@ async function handleRequest(request: NextRequest) {
     const url = request.nextUrl.clone();
     const pathname = url.pathname;
     const search = url.search;
+
+    const ZOMBIE_TX_HASH = 'ed1b0ab4d1ef8f91bf247368905582383ff6687dc5437680c1fb1196606d063b';
+
+    if (pathname.includes(ZOMBIE_TX_HASH)) {
+      logger.warn('[Zombie Blocker]', 'Blocking zombie transaction hash');
+      return Response.json({ error: 'Blocked' }, { status: 403 });
+    }
 
     try {
         // Initial validation
