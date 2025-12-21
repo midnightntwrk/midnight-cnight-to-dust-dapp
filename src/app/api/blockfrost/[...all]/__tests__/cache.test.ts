@@ -7,6 +7,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
  * Priority 4 optimization - Request caching implementation.
  */
 
+// Type for cache entries used in tests
+interface TestCacheEntry {
+  expiresAt: number;
+}
+
 describe('Blockfrost Cache Implementation', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -162,7 +167,7 @@ describe('Blockfrost Cache Implementation', () => {
 
   describe('Cache Cleanup', () => {
     it('should remove expired entries during cleanup', () => {
-      const cache = new Map();
+      const cache = new Map<string, TestCacheEntry>();
       const now = Date.now();
 
       // Add entries with different expiration times
@@ -173,7 +178,7 @@ describe('Blockfrost Cache Implementation', () => {
       // Cleanup logic
       let removedCount = 0;
       for (const [key, entry] of cache.entries()) {
-        if ((entry as any).expiresAt <= now) {
+        if (entry.expiresAt <= now) {
           cache.delete(key);
           removedCount++;
         }
