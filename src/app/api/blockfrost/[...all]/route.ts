@@ -1,6 +1,53 @@
 import { NextRequest } from 'next/server';
 import { logger } from '@/lib/logger';
 
+// ✅ OPTIMIZATION: In-memory cache for Blockfrost API responses
+// This reduces duplicate API calls by caching responses for a short period
+interface CacheEntry {
+    response: Response;
+    responseBody: ArrayBuffer;
+    expiresAt: number;
+    headers: Headers;
+    status: number;
+    statusText: string;
+}
+
+// Cache storage with TTL
+const cache = new Map<string, CacheEntry>();
+
+// Cache configuration
+const CACHE_TTL_MS = 15000; // 15 seconds - balance between freshness and savings
+const MAX_CACHE_SIZE = 500; // Prevent memory issues
+const CLEANUP_INTERVAL_MS = 60000; // Clean up expired entries every minute
+
+// Cache statistics for monitoring
+const cacheStats = {
+    hits: 0,
+    misses: 0,
+    size: 0,
+    lastCleanup: Date.now(),
+};
+
+// Periodic cleanup of expired cache entries
+setInterval(() => {
+    const now = Date.now();
+    let removedCount = 0;
+
+    for (const [key, entry] of cache.entries()) {
+        if (entry.expiresAt <= now) {
+            cache.delete(key);
+            removedCount++;
+        }
+    }
+
+    cacheStats.lastCleanup = now;
+    cacheStats.size = cache.size;
+
+    if (removedCount > 0) {
+        logger.debug('[BlockfrostCache]', `Cleaned up ${removedCount} expired entries. Current size: ${cache.size}`);
+    }
+}, CLEANUP_INTERVAL_MS);
+
 export async function GET(request: NextRequest) {
     return handleRequest(request);
 }
@@ -46,6 +93,41 @@ async function handleRequest(request: NextRequest) {
         // Standard proxy to Blockfrost using native fetch
         const targetUrl = `${target}${blockfrostPath}${search}`;
 
+        // ✅ CACHE OPTIMIZATION: Only cache GET requests
+        const isGetRequest = request.method === 'GET';
+        const cacheKey = `${request.method}:${targetUrl}`;
+
+        // Check cache for GET requests
+        if (isGetRequest) {
+            const now = Date.now();
+            const cachedEntry = cache.get(cacheKey);
+
+            if (cachedEntry && cachedEntry.expiresAt > now) {
+                // Cache HIT! Return cached response
+                cacheStats.hits++;
+                const duration = Date.now() - startTime;
+
+                logger.debug('[BlockfrostCache]', `✅ Cache HIT (${duration}ms)`, {
+                    path: blockfrostPath,
+                    hitRate: `${((cacheStats.hits / (cacheStats.hits + cacheStats.misses)) * 100).toFixed(1)}%`,
+                });
+
+                // Clone the cached response headers and add cache indicator
+                const responseHeaders = new Headers(cachedEntry.headers);
+                responseHeaders.set('X-Cache', 'HIT');
+                responseHeaders.set('X-Cache-Age', `${Math.floor((now - (cachedEntry.expiresAt - CACHE_TTL_MS)) / 1000)}s`);
+
+                return new Response(cachedEntry.responseBody, {
+                    status: cachedEntry.status,
+                    statusText: cachedEntry.statusText,
+                    headers: responseHeaders,
+                });
+            }
+
+            // Cache MISS - will fetch from Blockfrost
+            cacheStats.misses++;
+        }
+
         // Prepare headers
         const headers = new Headers();
         headers.set('project_id', PROJECT_ID);
@@ -81,6 +163,46 @@ async function handleRequest(request: NextRequest) {
                 responseHeaders.set(headerName, value);
             }
         });
+
+        // Add cache status header
+        responseHeaders.set('X-Cache', isGetRequest ? 'MISS' : 'BYPASS');
+
+        // ✅ CACHE OPTIMIZATION: Store successful GET responses in cache
+        if (isGetRequest && fetchResponse.ok) {
+            // Clone response to read body without consuming the original stream
+            const responseClone = fetchResponse.clone();
+            const responseBody = await responseClone.arrayBuffer();
+
+            // Check cache size limit before adding
+            if (cache.size >= MAX_CACHE_SIZE) {
+                // Remove oldest entry (first entry in Map)
+                const firstKey = cache.keys().next().value;
+                if (firstKey) {
+                    cache.delete(firstKey);
+                    logger.debug('[BlockfrostCache]', '⚠️  Cache size limit reached, removed oldest entry');
+                }
+            }
+
+            // Store in cache
+            const expiresAt = Date.now() + CACHE_TTL_MS;
+            cache.set(cacheKey, {
+                response: fetchResponse.clone(),
+                responseBody,
+                expiresAt,
+                headers: new Headers(responseHeaders),
+                status: fetchResponse.status,
+                statusText: fetchResponse.statusText,
+            });
+
+            cacheStats.size = cache.size;
+
+            const duration = Date.now() - startTime;
+            logger.debug('[BlockfrostCache]', `💾 Cached response (${duration}ms)`, {
+                path: blockfrostPath,
+                cacheSize: cache.size,
+                ttl: `${CACHE_TTL_MS / 1000}s`,
+            });
+        }
 
         return new Response(fetchResponse.body, {
             status: fetchResponse.status,
