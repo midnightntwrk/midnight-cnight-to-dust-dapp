@@ -45,11 +45,20 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
 
     const isExecuting = transactionState !== 'idle' && transactionState !== 'success' && transactionState !== 'error';
 
+    // Track active polling timeout to enable cleanup
+    const activePollingTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
     // Poll for transaction confirmation using exponential backoff
     const pollTransactionConfirmation = useCallback(async (lucid: LucidEvolution, txHash: string): Promise<void> => {
         logger.debug('[Transaction]', 'Starting transaction confirmation polling with exponential backoff', { txHash });
 
-        // ✅ OPTIMIZATION: Exponential backoff for transaction confirmation
+        // Clear any existing polling timeout
+        if (activePollingTimeoutRef.current) {
+            clearTimeout(activePollingTimeoutRef.current);
+            activePollingTimeoutRef.current = null;
+        }
+
+        // OPTIMIZATION: Exponential backoff for transaction confirmation
         const MAX_DURATION_MS = 900000; // 15 minutes total (same as before)
         const INITIAL_INTERVAL_MS = 10000; // Start with 10 seconds
         const MAX_INTERVAL_MS = 30000; // Cap at 30 seconds
@@ -60,8 +69,22 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
         return new Promise((resolve, reject) => {
             const startTime = Date.now();
             let attempt = 0;
+            let isCancelled = false;
+
+            const cleanup = () => {
+                isCancelled = true;
+                if (activePollingTimeoutRef.current) {
+                    clearTimeout(activePollingTimeoutRef.current);
+                    activePollingTimeoutRef.current = null;
+                }
+            };
 
             const poll = async () => {
+                // Check if polling was cancelled
+                if (isCancelled) {
+                    logger.debug('[Transaction]', 'Polling was cancelled');
+                    return;
+                }
                 try {
                     attempt++;
                     const elapsed = Date.now() - startTime;
@@ -77,6 +100,7 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
                             const totalSeconds = (elapsed / 1000).toFixed(1);
                             logger.debug('[Transaction]', `Transaction confirmed after ${attempt} attempts in ${totalSeconds}s`, { txHash });
 
+                            cleanup();
                             setTransactionProgress(100);
                             setTransactionState('success');
                             resolve();
@@ -90,6 +114,7 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
                     const timeRemaining = MAX_DURATION_MS - elapsed;
                     if (timeRemaining <= 0) {
                         logger.warn('[Transaction]', 'Transaction confirmation timeout', { txHash, attempts: attempt });
+                        cleanup();
                         setTransactionError('Transaction confirmation timeout. UTxOs not detected after 15 minutes.');
                         setTransactionState('error');
                         reject(new Error('Transaction confirmation timeout. UTxOs not detected after 15 minutes.'));
@@ -107,10 +132,13 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
                     // Schedule next poll with calculated backoff
                     const waitTime = Math.min(nextInterval, timeRemaining);
                     logger.debug('[Transaction]', `Next poll in ${(waitTime / 1000).toFixed(1)}s`);
-                    setTimeout(poll, waitTime);
+
+                    // Store timeout ID so it can be cancelled
+                    activePollingTimeoutRef.current = setTimeout(poll, waitTime);
 
                 } catch (err) {
                     logger.error('[Transaction]', 'Error during polling', err);
+                    cleanup();
                     setTransactionError('Polling error occurred during confirmation.');
                     setTransactionState('error');
                     reject(new Error('Polling error occurred during confirmation.'));
@@ -183,6 +211,13 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
 
     const resetTransaction = useCallback(() => {
         logger.debug('[Transaction]', 'Resetting transaction state');
+
+        // Cancel any active polling
+        if (activePollingTimeoutRef.current) {
+            clearTimeout(activePollingTimeoutRef.current);
+            activePollingTimeoutRef.current = null;
+        }
+
         setTransactionState('idle');
         setTransactionProgress(0);
         setTxHash(null);
@@ -209,6 +244,17 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
     const isAnyTransactionRunning = useCallback(() => {
         return isExecuting;
     }, [isExecuting]);
+
+    // Cleanup polling on unmount
+    React.useEffect(() => {
+        return () => {
+            if (activePollingTimeoutRef.current) {
+                logger.debug('[Transaction]', 'Cleaning up active polling on unmount');
+                clearTimeout(activePollingTimeoutRef.current);
+                activePollingTimeoutRef.current = null;
+            }
+        };
+    }, []);
 
     const contextValue: TransactionContextType = useMemo(
         () => ({
