@@ -13,6 +13,10 @@
 # testing
 /coverage
 
+# internal docs
+/internal_docs
+CLAUDE.md
+
 # next.js
 /.next/
 /out/
@@ -32,8 +36,6 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
-
-CLAUDE.md
 
 # vercel
 .vercel

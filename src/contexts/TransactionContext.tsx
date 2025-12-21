@@ -45,28 +45,38 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
 
     const isExecuting = transactionState !== 'idle' && transactionState !== 'success' && transactionState !== 'error';
 
-    // Poll for transaction confirmation using dual strategy from SetupActions
+    // Poll for transaction confirmation using exponential backoff
     const pollTransactionConfirmation = useCallback(async (lucid: LucidEvolution, txHash: string): Promise<void> => {
-        logger.debug('[Transaction]', 'Starting transaction confirmation polling', { txHash });
-        const maxAttempts = 60; // 15 minutes max (15s intervals)
-        let attempts = 0;
+        logger.debug('[Transaction]', 'Starting transaction confirmation polling with exponential backoff', { txHash });
+
+        // ✅ OPTIMIZATION: Exponential backoff for transaction confirmation
+        const MAX_DURATION_MS = 900000; // 15 minutes total (same as before)
+        const INITIAL_INTERVAL_MS = 10000; // Start with 10 seconds
+        const MAX_INTERVAL_MS = 30000; // Cap at 30 seconds
+        const BACKOFF_MULTIPLIER = 1.3; // Slower growth than UTXO polling
 
         setTransactionState('confirming');
 
         return new Promise((resolve, reject) => {
-            const pollInterval = setInterval(async () => {
+            const startTime = Date.now();
+            let attempt = 0;
+
+            const poll = async () => {
                 try {
-                    attempts++;
-                    const progress = 60 + (attempts / maxAttempts) * 40; // 60% to 100%
+                    attempt++;
+                    const elapsed = Date.now() - startTime;
+                    const progress = 60 + Math.min((elapsed / MAX_DURATION_MS) * 40, 40); // 60% to 100%
                     setTransactionProgress(progress);
 
-                    // Strategy 1: Try awaitTx but don't rely on it alone
+                    logger.debug('[Transaction]', `Polling attempt ${attempt}`, { txHash, elapsedMs: elapsed });
+
+                    // Try to confirm the transaction
                     try {
                         const txInfo = await lucid.awaitTx(txHash, 3000);
                         if (txInfo) {
-                            logger.debug('[Transaction]', 'Transaction confirmed', { txHash });
+                            const totalSeconds = (elapsed / 1000).toFixed(1);
+                            logger.debug('[Transaction]', `Transaction confirmed after ${attempt} attempts in ${totalSeconds}s`, { txHash });
 
-                            clearInterval(pollInterval);
                             setTransactionProgress(100);
                             setTransactionState('success');
                             resolve();
@@ -76,24 +86,39 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
                         // Silently continue polling
                     }
 
-                    // Continue polling if neither confirmation method succeeded
-                    if (attempts >= maxAttempts) {
-                        logger.warn('[Transaction]', 'Transaction confirmation timeout', { txHash, attempts: maxAttempts });
-                        clearInterval(pollInterval);
+                    // Check if timeout reached
+                    const timeRemaining = MAX_DURATION_MS - elapsed;
+                    if (timeRemaining <= 0) {
+                        logger.warn('[Transaction]', 'Transaction confirmation timeout', { txHash, attempts: attempt });
                         setTransactionError('Transaction confirmation timeout. UTxOs not detected after 15 minutes.');
                         setTransactionState('error');
                         reject(new Error('Transaction confirmation timeout. UTxOs not detected after 15 minutes.'));
+                        return;
                     }
+
+                    // Calculate next backoff interval with exponential growth
+                    // Formula: min(INITIAL * (MULTIPLIER ^ (attempt - 1)), MAX)
+                    // Results: 10s → 13s → 16.9s → 22s → 28.6s → 30s → 30s...
+                    const nextInterval = Math.min(
+                        INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, attempt - 1),
+                        MAX_INTERVAL_MS
+                    );
+
+                    // Schedule next poll with calculated backoff
+                    const waitTime = Math.min(nextInterval, timeRemaining);
+                    logger.debug('[Transaction]', `Next poll in ${(waitTime / 1000).toFixed(1)}s`);
+                    setTimeout(poll, waitTime);
+
                 } catch (err) {
                     logger.error('[Transaction]', 'Error during polling', err);
-                    if (attempts >= maxAttempts) {
-                        clearInterval(pollInterval);
-                        setTransactionError('Polling error occurred during confirmation.');
-                        setTransactionState('error');
-                        reject(new Error('Polling error occurred during confirmation.'));
-                    }
+                    setTransactionError('Polling error occurred during confirmation.');
+                    setTransactionState('error');
+                    reject(new Error('Polling error occurred during confirmation.'));
                 }
-            }, 15000); // Check every 15 seconds
+            };
+
+            // Start first poll immediately
+            poll();
         });
     }, []);
 
