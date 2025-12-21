@@ -93,18 +93,22 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
 
                     logger.debug('[Transaction]', `Polling attempt ${attempt}`, { txHash, elapsedMs: elapsed });
 
-                    // Try to confirm the transaction
+                    // Try to confirm the transaction using direct Blockfrost call
+                    // NOTE: We don't use lucid.awaitTx() because it has a memory leak (infinite setInterval)
                     try {
-                        const txInfo = await lucid.awaitTx(txHash, 3000);
-                        if (txInfo) {
-                            const totalSeconds = (elapsed / 1000).toFixed(1);
-                            logger.debug('[Transaction]', `Transaction confirmed after ${attempt} attempts in ${totalSeconds}s`, { txHash });
+                        const response = await fetch(`/api/blockfrost/txs/${txHash}`);
+                        if (response.ok) {
+                            const txInfo = await response.json();
+                            if (txInfo && !txInfo.error) {
+                                const totalSeconds = (elapsed / 1000).toFixed(1);
+                                logger.debug('[Transaction]', `Transaction confirmed after ${attempt} attempts in ${totalSeconds}s`, { txHash });
 
-                            cleanup();
-                            setTransactionProgress(100);
-                            setTransactionState('success');
-                            resolve();
-                            return;
+                                cleanup();
+                                setTransactionProgress(100);
+                                setTransactionState('success');
+                                resolve();
+                                return;
+                            }
                         }
                     } catch {
                         // Silently continue polling
