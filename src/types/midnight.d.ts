@@ -1,21 +1,13 @@
 // types/midnight.d.ts
-import { DAppConnectorAPI, DappConnectorWalletState } from '@midnight-ntwrk/dapp-connector-api';
-export interface MidnightWallet {
-    name: string;
-    icon: string;
-    apiVersion: string;
-    enable(): Promise<MidnightAPI>;
-    isEnabled(): Promise<boolean>;
-}
+import { InitialAPI, ConnectedAPI } from '@midnight-ntwrk/dapp-connector-api';
 
-export interface MidnightAPI {
-    state(): DappConnectorWalletState;
-}
+// Re-export types for convenience
+export type { InitialAPI, ConnectedAPI };
 
 declare global {
     interface Window {
         midnight?: {
-            mnLace?: DAppConnectorAPI;
+            [key: string]: InitialAPI;
         };
     }
 }
