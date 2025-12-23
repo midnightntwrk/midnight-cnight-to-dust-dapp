@@ -14,7 +14,7 @@ import {
 } from '@/config/network';
 import { useGenerationStatus } from '@/hooks/useGenerationStatus';
 import { useRegistrationUtxo } from '@/hooks/useRegistrationUtxo';
-import { getTotalOfUnitInUTxOList } from '@/lib/utils';
+import { getTotalOfUnitInUTxOList, extractCoinPublicKeyFromMidnightAddress, validateDustAddress, getMidnightNetworkId } from '@/lib/utils';
 import { UTxO } from '@lucid-evolution/lucid';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
@@ -352,7 +352,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             // Extract coin public key from the Dust address (this is what we use for registration)
             let coinPublicKey = null;
             if (dustAddress && typeof dustAddress === 'string') {
-                const { extractCoinPublicKeyFromMidnightAddress } = require('@/lib/utils');
                 coinPublicKey = extractCoinPublicKeyFromMidnightAddress(dustAddress);
                 logger.log('[Wallet]', '🔑 Extracted coinPublicKey from Dust address:', coinPublicKey);
                 logger.log('[Wallet]', '📋 Registration will use:', {
@@ -435,8 +434,26 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     };
 
     const setManualMidnightAddress = (address: string) => {
-        // Extract coin public key from the Midnight address
-        const { extractCoinPublicKeyFromMidnightAddress } = require('@/lib/utils');
+        // Validate that it's a valid Dust address first
+        const networkId = getMidnightNetworkId();
+        if (!validateDustAddress(address, networkId)) {
+            logger.error('[Wallet]', 'Invalid Dust address format', { address, networkId });
+            setMidnightState({
+                isConnected: false,
+                address: null,
+                coinPublicKey: null,
+                balance: null,
+                walletName: null,
+                api: null,
+                isLoading: false,
+                error: 'Invalid Midnight Dust address format',
+                dustAddress: null,
+                dustBalance: null,
+            });
+            return;
+        }
+
+        // Extract coin public key from the validated Dust address
         const coinPublicKey = extractCoinPublicKeyFromMidnightAddress(address);
 
         if (!coinPublicKey) {
@@ -449,7 +466,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                 walletName: null,
                 api: null,
                 isLoading: false,
-                error: 'Invalid Midnight address format',
+                error: 'Failed to extract coin public key from address',
                 dustAddress: null,
                 dustBalance: null,
             });
