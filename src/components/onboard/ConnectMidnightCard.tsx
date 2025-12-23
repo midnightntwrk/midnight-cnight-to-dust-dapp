@@ -6,7 +6,7 @@ import MidnightLogo from '@/assets/midnight.svg';
 import { Button, Card, CardBody, Input } from '@heroui/react';
 import Image from 'next/image';
 import { useState } from 'react';
-import { bech32m } from 'bech32';
+import { validateDustAddress, getMidnightNetworkId } from '@/lib/utils';
 
 interface ConnectMidnightCardProps {
     // Connection state
@@ -38,23 +38,17 @@ export default function ConnectMidnightCard({
     const [manualAddress, setManualAddress] = useState('');
     const [isValidAddress, setIsValidAddress] = useState(true);
 
-    const validateBech32Address = (address: string): boolean => {
-        if (!address.trim()) {
-            return true; // Empty is valid (not an error state)
-        }
-        try {
-            // Midnight addresses use bech32m format with higher length limit
-            bech32m.decode(address, 200);
-            return true;
-        } catch {
-            return false;
-        }
-    };
-
     const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setManualAddress(value);
-        setIsValidAddress(validateBech32Address(value));
+        
+        // Validate as Dust address if not empty
+        if (!value.trim()) {
+            setIsValidAddress(true); // Empty is valid (not an error state)
+        } else {
+            const networkId = getMidnightNetworkId();
+            setIsValidAddress(validateDustAddress(value, networkId));
+        }
     };
 
     const handleManualSubmit = () => {
@@ -133,7 +127,7 @@ export default function ConnectMidnightCard({
                                                 </Button>
                                             </div>
                                             {!isValidAddress && manualAddress.trim() && (
-                                                <p className="text-red-400 text-xs ml-1">Invalid Midnight address format</p>
+                                                <p className="text-red-400 text-xs ml-1">Invalid Midnight Dust address format</p>
                                             )}
                                         </div>
                                     </div>

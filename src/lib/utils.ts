@@ -1,6 +1,9 @@
 import { UTxO } from '@lucid-evolution/lucid';
 import { bech32m } from 'bech32';
 import { logger } from './logger';
+import { MidnightBech32m, DustAddress } from '@midnight-ntwrk/wallet-sdk-address-format';
+import type { NetworkId } from '@midnight-ntwrk/wallet-sdk-address-format';
+import { isMainnet } from '@/config/network';
 
 // Helper function to convert to JSON for logging
 export const toJson = (obj: object): string => {
@@ -106,4 +109,45 @@ export const formatNumber = (value: number): string => {
         return (value / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
     }
     return value.toFixed(2);
+};
+
+/**
+ * Validate a Midnight Dust address using the official SDK
+ * @param address - The Dust address string to validate
+ * @param networkId - The Midnight network ID ('mainnet' or 'preview')
+ * @returns true if the address is a valid Dust address for the given network, false otherwise
+ */
+export const validateDustAddress = (address: string, networkId: NetworkId): boolean => {
+    if (!address || !address.trim()) {
+        return false;
+    }
+
+    try {
+        // Parse and decode the address as a Dust address
+        const parsed = MidnightBech32m.parse(address.trim());
+        const dustAddress = parsed.decode(DustAddress, networkId);
+        
+        // If we get here, it's a valid Dust address
+        logger.debug('[Utils]', 'Valid Dust address', {
+            address: address.trim(),
+            networkId,
+        });
+        
+        return true;
+    } catch (error) {
+        logger.debug('[Utils]', 'Invalid Dust address', {
+            address: address.trim(),
+            networkId,
+            error: error instanceof Error ? error.message : String(error),
+        });
+        return false;
+    }
+};
+
+/**
+ * Get the Midnight network ID based on the current Cardano network
+ * @returns 'mainnet' for Cardano Mainnet, 'preview' for testnets
+ */
+export const getMidnightNetworkId = (): NetworkId => {
+    return isMainnet ? 'mainnet' : 'preview';
 };
