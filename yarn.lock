@@ -2130,14 +2130,15 @@
     "@lucid-evolution/utils" "0.1.66"
     bip39 "^3.1.0"
 
-"@midnight-ntwrk/dapp-connector-api@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@midnight-ntwrk/dapp-connector-api/-/dapp-connector-api-3.0.0.tgz#70cc3abbefd1b339194a30b4dd2c0f76c5dd65cf"
-  integrity sha512-A/AhsNjibrOSaUiPhQhxANeW9178uYnzeBFBf30YCvyvWg0YWCbhQfc7dRpiL7iBoX3Sxt9mtf+Svx4ZygLajg==
-  dependencies:
-    "@midnight-ntwrk/wallet-api" "^5.0.0"
-    "@midnight-ntwrk/zswap" "^4.0.0"
-    ts-custom-error "^3.3.1"
+"@midnight-ntwrk/dapp-connector-api@^4.0.0-beta.2":
+  version "4.0.0-beta.2"
+  resolved "https://registry.yarnpkg.com/@midnight-ntwrk/dapp-connector-api/-/dapp-connector-api-4.0.0-beta.2.tgz#7326e85ed27885605f9f4ac224aea59e7a3335d1"
+  integrity sha512-GLEt1tOZzJR2egK3CCdr+8MQdrg+oMP7EsurAxIL+L3ZahjB3+PObzKFAuXNsk5uO+kfhguWbZl93GVo+oM1tA==
+
+"@midnight-ntwrk/ledger-v6@6.1.0-alpha.6":
+  version "6.1.0-alpha.6"
+  resolved "https://registry.yarnpkg.com/@midnight-ntwrk/ledger-v6/-/ledger-v6-6.1.0-alpha.6.tgz#f403540eca387202cd690dba171e97c682924ecd"
+  integrity sha512-EwmapuQx2eREsunLHM8eyy5M9T6mAtgybyANsnZ89LjFKDOSFQcZG/MDNq45IK5gv1UMHBKI+HJo+CQ7gbYIkA==
 
 "@midnight-ntwrk/wallet-api@^5.0.0":
   version "5.0.0"
@@ -2152,6 +2153,15 @@
   integrity sha512-S/3uIfXXUcklYocO0UPey+15uI095CFuCyJRYgxnTmkIXrgjOn8IfSHnReHDtE6JKkvdN2EXlYVt4ufRdCMuPA==
   dependencies:
     "@scure/base" "^1.1.9"
+
+"@midnight-ntwrk/wallet-sdk-address-format@^3.0.0-beta.9":
+  version "3.0.0-beta.9"
+  resolved "https://registry.yarnpkg.com/@midnight-ntwrk/wallet-sdk-address-format/-/wallet-sdk-address-format-3.0.0-beta.9.tgz#cf3025932bb42818a6e5184c88b19e7ddf48032d"
+  integrity sha512-HU60iB1uLTJj++wnOpJgrBGMbOk3nmzjCL2kkVDuvo8Q9xr9SHAuuUx8IiWRGJeoYIuU1ZIROJvxeKTkQF9rdA==
+  dependencies:
+    "@midnight-ntwrk/ledger-v6" "6.1.0-alpha.6"
+    "@scure/base" "^1.2.6"
+    "@subsquid/scale-codec" "^4.0.1"
 
 "@midnight-ntwrk/wallet-sdk-capabilities@^2.0.0":
   version "2.0.0"
@@ -3534,7 +3544,7 @@
   resolved "https://registry.yarnpkg.com/@rushstack/eslint-patch/-/eslint-patch-1.15.0.tgz#8184bcb37791e6d3c3c13a9bfbe4af263f66665f"
   integrity sha512-ojSshQPKwVvSMR8yT2L/QtUkV5SXi/IfDiJ4/8d6UbTPjiHVmxZzUAzGD8Tzks1b9+qQkZa0isUOvYObedITaw==
 
-"@scure/base@^1.1.1", "@scure/base@^1.1.9", "@scure/base@~1.2.5":
+"@scure/base@^1.1.1", "@scure/base@^1.1.9", "@scure/base@^1.2.6", "@scure/base@~1.2.5":
   version "1.2.6"
   resolved "https://registry.yarnpkg.com/@scure/base/-/base-1.2.6.tgz#ca917184b8231394dd8847509c67a0be522e59f6"
   integrity sha512-g/nm5FgUa//MCj1gV09zTJTaM6KBAHqLN907YVQqf7zC49+DcO4B1so4ZX07Ef10Twr6nuqYEH9GEggFXA4Fmg==
@@ -3590,6 +3600,26 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@standard-schema/spec/-/spec-1.1.0.tgz#a79b55dbaf8604812f52d140b2c9ab41bc150bb8"
   integrity sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==
+
+"@subsquid/scale-codec@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@subsquid/scale-codec/-/scale-codec-4.0.1.tgz#4d576619c8b75933e1bc39ec57edeaf49fa9755c"
+  integrity sha512-H3mi5GIvlrvOSJVSYQRNnaiulSDktPF4TwUvquAgN86tN4kokyX8XcEM2Htrm1sVWRtMi7SgYpyVR5Yg5iPKUQ==
+  dependencies:
+    "@subsquid/util-internal-hex" "^1.2.2"
+    "@subsquid/util-internal-json" "^1.2.2"
+
+"@subsquid/util-internal-hex@^1.2.2":
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@subsquid/util-internal-hex/-/util-internal-hex-1.2.2.tgz#958ab0aceac0b1160227a688d9d3099c6230f27f"
+  integrity sha512-E43HVqf23jP5hvtWF9GsiN8luANjnJ1daR2SVTwaIUAYU/uNjv1Bi6tHz2uexlflBhyxAgBDmHgunXZ45wQTIw==
+
+"@subsquid/util-internal-json@^1.2.2":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@subsquid/util-internal-json/-/util-internal-json-1.2.3.tgz#836430ccb7b6e733cec6157aa2202a85db4fae26"
+  integrity sha512-H5qW5kG20IzVMpb7GhPbVRxGuACEf1DPIXE1+LNXYxt8t/GX4zQREQWHRvCB3lck+RORLJD3WJbQUtxN5UYB3Q==
+  dependencies:
+    "@subsquid/util-internal-hex" "^1.2.2"
 
 "@swc/helpers@0.5.15":
   version "0.5.15"
@@ -8454,7 +8484,7 @@ ts-api-utils@^2.1.0:
   resolved "https://registry.yarnpkg.com/ts-api-utils/-/ts-api-utils-2.1.0.tgz#595f7094e46eed364c13fd23e75f9513d29baf91"
   integrity sha512-CUgTZL1irw8u29bzrOD/nH85jqyc74D6SshFgujOIA7osm2Rz7dYH77agkx7H4FBNxDq7Cjf+IjaX/8zwFW+ZQ==
 
-ts-custom-error@^3.2.0, ts-custom-error@^3.3.1:
+ts-custom-error@^3.2.0:
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/ts-custom-error/-/ts-custom-error-3.3.1.tgz#8bd3c8fc6b8dc8e1cb329267c45200f1e17a65d1"
   integrity sha512-5OX1tzOjxWEgsr/YEUWSuPrQ00deKLh6D7OTWcvNHm12/7QPyRh8SYpyWvA4IZv8H/+GQWQEh/kwo95Q9OVW1A==
