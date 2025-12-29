@@ -9,7 +9,7 @@ import { useTransaction } from '@/contexts/TransactionContext';
 import { useRouter } from 'next/navigation';
 import ToastContainer from '../ui/ToastContainer';
 import { useToast } from '@/hooks/useToast';
-import { extractCoinPublicKeyFromMidnightAddress, validateDustAddress, getMidnightNetworkId } from '@/lib/utils';
+import { getDustAddressBytes, validateDustAddress, getMidnightNetworkId } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 
 interface UpdateAddressModalProps {
@@ -40,12 +40,13 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
     const handleChangeAddress = async () => {
         if (!newAddress.trim()) return;
 
-        // Extract coin public key from the new Midnight address
-        const newCoinPublicKey = extractCoinPublicKeyFromMidnightAddress(newAddress.trim());
+        // Convert Dust address from bech32m to bytes format
+        const networkId = getMidnightNetworkId();
+        const newCoinPublicKey = getDustAddressBytes(newAddress.trim(), networkId);
 
         if (!newCoinPublicKey) {
             showToast({
-                message: 'Failed to extract coin public key from address. Please check the address format.',
+                message: 'Failed to convert Dust address to bytes. Please check the address format.',
                 type: 'error'
             });
             return;

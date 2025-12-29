@@ -14,7 +14,7 @@ import {
 } from '@/config/network';
 import { useGenerationStatus } from '@/hooks/useGenerationStatus';
 import { useRegistrationUtxo } from '@/hooks/useRegistrationUtxo';
-import { getTotalOfUnitInUTxOList, extractCoinPublicKeyFromMidnightAddress, validateDustAddress, getMidnightNetworkId } from '@/lib/utils';
+import { getTotalOfUnitInUTxOList, getDustAddressBytes, validateDustAddress, getMidnightNetworkId } from '@/lib/utils';
 import { UTxO } from '@lucid-evolution/lucid';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
@@ -325,6 +325,16 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
             const api = await walletObj.connect(midnightNetwork);
 
+            // Hint to the wallet which methods we'll be using
+            if (api && typeof api.hintUsage === 'function') {
+                try {
+                    api.hintUsage(['getDustBalance', 'getDustAddress']);
+                } catch (error) {
+                    // hintUsage is optional, don't fail if it's not supported
+                    logger.debug('[Wallet]', 'hintUsage not supported or failed', error);
+                }
+            }
+
             logger.log('[Wallet]', 'Midnight API object:', {
                 type: typeof api,
                 keys: api ? Object.keys(api) : [],
@@ -349,11 +359,12 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                 throw new Error('Could not get Dust address from Midnight wallet. Please ensure your wallet is set up.');
             }
 
-            // Extract coin public key from the Dust address (this is what we use for registration)
+            // Convert Dust address from bech32m to bytes format (for registration)
             let coinPublicKey = null;
             if (dustAddress && typeof dustAddress === 'string') {
-                coinPublicKey = extractCoinPublicKeyFromMidnightAddress(dustAddress);
-                logger.log('[Wallet]', '🔑 Extracted coinPublicKey from Dust address:', coinPublicKey);
+                const networkId = getMidnightNetworkId();
+                coinPublicKey = getDustAddressBytes(dustAddress, networkId);
+                logger.log('[Wallet]', '🔑 Converted Dust address to bytes:', coinPublicKey);
                 logger.log('[Wallet]', '📋 Registration will use:', {
                     dustAddress,
                     coinPublicKey,
@@ -453,11 +464,11 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             return;
         }
 
-        // Extract coin public key from the validated Dust address
-        const coinPublicKey = extractCoinPublicKeyFromMidnightAddress(address);
+        // Convert Dust address from bech32m to bytes format
+        const coinPublicKey = getDustAddressBytes(address, networkId);
 
         if (!coinPublicKey) {
-            logger.error('[Wallet]', 'Failed to extract coin public key from manual address');
+            logger.error('[Wallet]', 'Failed to convert Dust address to bytes');
             setMidnightState({
                 isConnected: false,
                 address: null,
@@ -466,7 +477,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                 walletName: null,
                 api: null,
                 isLoading: false,
-                error: 'Failed to extract coin public key from address',
+                error: 'Failed to convert Dust address to bytes',
                 dustAddress: null,
                 dustBalance: null,
             });
