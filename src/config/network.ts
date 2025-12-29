@@ -117,6 +117,11 @@ const getCurrentNetworkConfig = (): NetworkConfig => {
         const network = getCurrentNetwork();
         const config = networkConfigs[network];
 
+        // Skip validation during build time
+        if (isBuildTime) {
+            return config;
+        }
+
         if (typeof window === 'undefined' && !config.BLOCKFROST_KEY) {
             throw new Error(`Missing required environment variable: BLOCKFROST_KEY for network: ${network} in ${toJson(config)}`);
         }
@@ -205,14 +210,14 @@ export const isMainnet = CARDANO_NET === LUCID_NETWORK_MAINNET_NAME;
 // During build time, use default values to avoid errors
 // At runtime, these will be properly validated and set
 let config: NetworkConfig;
-try {
-    config = getCurrentNetworkConfig();
-} catch (error) {
-    // During build, provide defaults if validation fails
-    if (isBuildTime) {
-        logger.warn('[Network]', 'Using default config during build time');
-        config = networkConfigs.Preview; // Use Preview as default during build
-    } else {
+if (isBuildTime) {
+    // During build, use Preview config directly without validation
+    config = networkConfigs.Preview;
+} else {
+    try {
+        config = getCurrentNetworkConfig();
+    } catch (error) {
+        logger.error('[Network]', 'Error getting current network config:', error);
         throw error;
     }
 }
