@@ -48,8 +48,16 @@ const MidnightWalletCard = () => {
     const isIndexerSyncing = registrationUtxo && generationStatus?.registered === false;
     const isIndexerSynced = generationStatus?.registered === true;
 
-    // Get DUST balance from indexer (currentCapacity) or show syncing state
+    // Check if user is connected with Midnight wallet (has wallet API access)
+    const isWalletConnected = midnight.isConnected && midnight.walletName !== 'Manual' && midnight.api !== null;
+    
+    // Get DUST balance - prefer wallet data if connected, otherwise use indexer
     const getDustBalance = () => {
+        // If connected with Midnight wallet, use wallet data
+        if (isWalletConnected && midnight.dustBalance !== null) {
+            return midnight.dustBalance;
+        }
+        // Otherwise, use indexer data
         if (isIndexerSynced && generationStatus?.currentCapacity) {
             return generationStatus.currentCapacity;
         }
@@ -57,6 +65,16 @@ const MidnightWalletCard = () => {
             return '...';
         }
         return '0';
+    };
+
+    // Get DUST address - prefer wallet data if connected, otherwise use indexer or manual address
+    const getDustAddress = () => {
+        // If connected with Midnight wallet, use wallet's dust address
+        if (isWalletConnected && midnight.dustAddress) {
+            return midnight.dustAddress;
+        }
+        // Otherwise, use indexer data or manual address
+        return generationStatus?.dustAddress || midnight.address || '';
     };
 
 
@@ -100,7 +118,7 @@ const MidnightWalletCard = () => {
             return;
         }
 
-        // Get DUST PKH from midnight wallet
+        // Get DUST PKH from midnight wallet (extracted from Dust address)
         const dustPKHValue = midnight.coinPublicKey;
         if (!dustPKHValue) {
             logger.error('❌ Midnight wallet coinPublicKey not available');
@@ -115,7 +133,11 @@ const MidnightWalletCard = () => {
         }
 
         try {
-            logger.log('🚀 Starting DUST unregistration...');
+            logger.log('🚀 Starting DUST unregistration...', {
+                dustPKH: dustPKHValue,
+                dustAddress: midnight.dustAddress || midnight.address,
+                source: 'Extracted from Dust address via wallet connection',
+            });
 
             // Create the unregistration executor and execute it
             const unregistrationExecutor = DustTransactionsUtils.createUnregistrationExecutor(
@@ -219,7 +241,7 @@ const MidnightWalletCard = () => {
     };
 
     const handleCopyAddress = async () => {
-        const addressToCopy = generationStatus?.dustAddress || midnight.address;
+        const addressToCopy = getDustAddress();
         if (addressToCopy) {
             try {
                 await navigator.clipboard.writeText(addressToCopy);
@@ -245,7 +267,11 @@ const MidnightWalletCard = () => {
             <div className="flex flex-row gap-2 z-10">
                 <span className="text-[18px] font-normal">DUST Balance</span>
                 <Tooltip
-                    content="Your generated DUST token balance"
+                    content={
+                        isWalletConnected
+                            ? "We are fetching this data directly from your wallet"
+                            : "We are fetching your generation capacity from the indexer"
+                    }
                     placement="top"
                     classNames={{
                         content: "bg-gray-800 text-white text-sm px-2 py-1"
@@ -256,7 +282,7 @@ const MidnightWalletCard = () => {
             </div>
             <div className="flex flex-row gap-2 items-center z-10">
                 <Image src={DustBalanceIcon} alt="dust balance" width={42} height={42} />
-                <span className={`text-[24px] font-bold ${isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}>
+                <span className={`text-[24px] font-bold ${!isWalletConnected && isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}>
                     {getDustBalance()}
                 </span>
                 <span className="text-[24px]">DUST</span>
@@ -276,7 +302,7 @@ const MidnightWalletCard = () => {
                 </div>
                 <div className="flex flex-row gap-2 items-center z-10">
                     <Image src={CheckIcon} alt="check" width={18} height={18} />
-                    <span>{handleFormatWalletAddress(generationStatus?.dustAddress || midnight.address || '')}</span>
+                    <span>{handleFormatWalletAddress(getDustAddress())}</span>
                     <Image src={CopyIcon} alt="copy" width={18} height={18} className="cursor-pointer hover:opacity-70" onClick={handleCopyAddress} />
                 </div>
             </div>

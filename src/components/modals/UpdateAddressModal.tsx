@@ -7,10 +7,9 @@ import CheckIcon from '@/assets/icons/check.svg';
 import Image from 'next/image';
 import { useTransaction } from '@/contexts/TransactionContext';
 import { useRouter } from 'next/navigation';
-import { bech32m } from 'bech32';
 import ToastContainer from '../ui/ToastContainer';
 import { useToast } from '@/hooks/useToast';
-import { extractCoinPublicKeyFromMidnightAddress } from '@/lib/utils';
+import { getDustAddressBytes, validateDustAddress, getMidnightNetworkId } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 
 interface UpdateAddressModalProps {
@@ -26,33 +25,28 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
     const transaction = useTransaction();
     const { toasts, showToast, removeToast } = useToast();
 
-    const validateBech32Address = (address: string): boolean => {
-        if (!address.trim()) {
-            return true; // Empty is valid (not an error state)
-        }
-        try {
-            // Midnight addresses use bech32m format with higher length limit
-            bech32m.decode(address, 200);
-            return true;
-        } catch {
-            return false;
-        }
-    };
-
     const handleAddressChange = (value: string) => {
         setNewAddress(value);
-        setIsValidAddress(validateBech32Address(value));
+        
+        // Validate as Dust address if not empty
+        if (!value.trim()) {
+            setIsValidAddress(true); // Empty is valid (not an error state)
+        } else {
+            const networkId = getMidnightNetworkId();
+            setIsValidAddress(validateDustAddress(value, networkId));
+        }
     };
 
     const handleChangeAddress = async () => {
         if (!newAddress.trim()) return;
 
-        // Extract coin public key from the new Midnight address
-        const newCoinPublicKey = extractCoinPublicKeyFromMidnightAddress(newAddress.trim());
+        // Convert Dust address from bech32m to bytes format
+        const networkId = getMidnightNetworkId();
+        const newCoinPublicKey = getDustAddressBytes(newAddress.trim(), networkId);
 
         if (!newCoinPublicKey) {
             showToast({
-                message: 'Failed to extract coin public key from address. Please check the address format.',
+                message: 'Failed to convert Dust address to bytes. Please check the address format.',
                 type: 'error'
             });
             return;
@@ -161,7 +155,7 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
                                 maxRows={3}
                                 isDisabled={transaction.isAnyTransactionRunning()}
                                 isInvalid={!isValidAddress}
-                                errorMessage={!isValidAddress ? 'Invalid bech32 address format' : ''}
+                                errorMessage={!isValidAddress && newAddress.trim() ? 'Invalid Midnight Dust address format' : ''}
                             />
                         </div>
 

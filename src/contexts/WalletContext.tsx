@@ -14,13 +14,13 @@ import {
 } from '@/config/network';
 import { useGenerationStatus } from '@/hooks/useGenerationStatus';
 import { useRegistrationUtxo } from '@/hooks/useRegistrationUtxo';
-import { getTotalOfUnitInUTxOList } from '@/lib/utils';
+import { getTotalOfUnitInUTxOList, getDustAddressBytes, validateDustAddress, getMidnightNetworkId } from '@/lib/utils';
 import { UTxO } from '@lucid-evolution/lucid';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 
 export type SupportedWallet = 'nami' | 'eternl' | 'lace' | 'flint' | 'typhoncip30' | 'nufi' | 'gero' | 'ccvault';
-export type SupportedMidnightWallet = 'mnLace';
+export type SupportedMidnightWallet = string;
 
 // Generation Status Types
 export interface GenerationStatusData {
@@ -55,6 +55,8 @@ interface MidnightWalletState {
     api: unknown | null;
     isLoading: boolean;
     error: string | null;
+    dustAddress: string | null; // Dust address from getDustAddress()
+    dustBalance: string | null; // Dust balance from getDustBalance()
 }
 
 interface WalletContextType {
@@ -121,6 +123,8 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         api: null,
         isLoading: false,
         error: null,
+        dustAddress: null,
+        dustBalance: null,
     });
 
     // Auto-reconnect state
@@ -273,13 +277,15 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         if (typeof window === 'undefined') return [];
 
         const wallets: SupportedMidnightWallet[] = [];
-        const supportedWallets: SupportedMidnightWallet[] = ['mnLace'];
 
-        supportedWallets.forEach((wallet) => {
-            if (window.midnight?.[wallet]) {
-                wallets.push(wallet);
-            }
-        });
+        // Dynamically discover available Midnight wallets from window.midnight
+        if (window.midnight && typeof window.midnight === 'object') {
+            Object.keys(window.midnight).forEach((walletKey) => {
+                if (window.midnight?.[walletKey]) {
+                    wallets.push(walletKey);
+                }
+            });
+        }
 
         return wallets;
     };
@@ -302,9 +308,8 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                 walletName,
                 type: typeof walletObj,
                 keys: walletObj ? Object.keys(walletObj) : [],
-                hasEnable: typeof walletObj?.enable === 'function',
-                hasConnect: typeof (walletObj as any)?.connect === 'function',
-                prototype: walletObj ? Object.getOwnPropertyNames(Object.getPrototypeOf(walletObj)) : [],
+                hasConnect: typeof walletObj?.connect === 'function',
+                apiVersion: walletObj?.apiVersion,
             });
 
             // Determine the Midnight network based on Cardano network
@@ -313,101 +318,102 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
             logger.log('[Wallet]', 'Connecting to Midnight network:', { cardanoNetwork, midnightNetwork });
 
-            // Connect to Midnight wallet - try different API patterns
-            let api;
-            if (typeof (walletObj as any).connect === 'function') {
-                // New API (v4+): uses connect() method with network parameter
-                logger.log('[Wallet]', 'Using connect() method (v4+ API)');
-                api = await (walletObj as any).connect(midnightNetwork);
-            } else if (typeof walletObj.enable === 'function') {
-                // Legacy API: uses enable() method
-                logger.log('[Wallet]', 'Using enable() method (legacy API)');
-                api = await walletObj.enable();
-            } else if (typeof walletObj === 'function') {
-                // Some wallets expose the connector as a function
-                logger.log('[Wallet]', 'Wallet object is a function, calling it');
-                api = await (walletObj as any)();
-            } else {
-                // The wallet object might already be the API
-                logger.log('[Wallet]', 'Using wallet object directly as API');
-                api = walletObj;
+            // Connect to Midnight wallet using the new API (v4+)
+            if (!walletObj || typeof walletObj.connect !== 'function') {
+                throw new Error('Midnight wallet does not support the connect() method. Please ensure you are using a compatible wallet version.');
+            }
+
+            const api = await walletObj.connect(midnightNetwork);
+
+            // Hint to the wallet which methods we'll be using
+            if (api && typeof api.hintUsage === 'function') {
+                try {
+                    api.hintUsage(['getDustBalance', 'getDustAddress']);
+                } catch (error) {
+                    // hintUsage is optional, don't fail if it's not supported
+                    logger.debug('[Wallet]', 'hintUsage not supported or failed', error);
+                }
             }
 
             logger.log('[Wallet]', 'Midnight API object:', {
                 type: typeof api,
                 keys: api ? Object.keys(api) : [],
-                hasGetUnshieldedAddress: typeof api?.getUnshieldedAddress === 'function',
-                hasState: typeof api?.state === 'function',
+                hasGetDustAddress: typeof api?.getDustAddress === 'function',
+                hasGetDustBalance: typeof api?.getDustBalance === 'function',
             });
 
-            // Get wallet state from Midnight API - handle different API patterns
-            let address = null;
+            // Get Dust address from Midnight API (v4+) - this is what we use for registration
+            if (!api || typeof api.getDustAddress !== 'function') {
+                throw new Error('Midnight API does not support getDustAddress(). Please ensure you are using a compatible wallet version.');
+            }
+
+            logger.log('[Wallet]', 'Using Midnight API (v4+) - getDustAddress()');
+            const dustAddressResult = await api.getDustAddress();
+            logger.log('[Wallet]', '📍 Dust Address Result:', dustAddressResult);
+
+            // API returns {dustAddress: '...'} object, extract the string
+            const dustAddress = dustAddressResult?.dustAddress;
+            logger.log('[Wallet]', 'Extracted Dust address string:', dustAddress);
+
+            if (!dustAddress) {
+                throw new Error('Could not get Dust address from Midnight wallet. Please ensure your wallet is set up.');
+            }
+
+            // Convert Dust address from bech32m to bytes format (for registration)
             let coinPublicKey = null;
-
-            if (typeof api?.getUnshieldedAddress === 'function') {
-                // New API (v4+): use getUnshieldedAddress()
-                logger.log('[Wallet]', 'Using new Midnight API (v4+) - getUnshieldedAddress()');
-
-                const unshieldedAddressResult = await api.getUnshieldedAddress();
-                logger.log('[Wallet]', 'Unshielded address result:', unshieldedAddressResult);
-
-                // API returns {unshieldedAddress: '...'} object, extract the string
-                address = typeof unshieldedAddressResult === 'string'
-                    ? unshieldedAddressResult
-                    : unshieldedAddressResult?.unshieldedAddress;
-
-                logger.log('[Wallet]', 'Extracted address string:', address);
-
-                // Extract coin public key from the address
-                if (address && typeof address === 'string') {
-                    const { extractCoinPublicKeyFromMidnightAddress } = require('@/lib/utils');
-                    coinPublicKey = extractCoinPublicKeyFromMidnightAddress(address);
-                    logger.log('[Wallet]', 'Extracted coinPublicKey from address:', coinPublicKey);
-                }
-            } else if (typeof api?.state === 'function') {
-                // Legacy API: state is a function
-                const walletState = await api.state();
-                logger.log('[Wallet]', 'Midnight Wallet State (from function):', walletState);
-                address = walletState?.address || null;
-                coinPublicKey = walletState?.coinPublicKeyLegacy || walletState?.coinPublicKey || null;
-            } else if (api?.state && typeof api.state === 'object') {
-                // Alternative: state is already an object
-                const walletState = api.state;
-                logger.log('[Wallet]', 'Midnight Wallet State (from property):', walletState);
-                address = walletState?.address || null;
-                coinPublicKey = walletState?.coinPublicKeyLegacy || walletState?.coinPublicKey || null;
-            } else {
-                // Log all available properties for debugging
-                logger.error('[Wallet]', 'Unknown Midnight API structure. Available properties:', {
-                    keys: Object.keys(api || {}),
-                    prototype: Object.getOwnPropertyNames(Object.getPrototypeOf(api || {})),
-                    stringified: JSON.stringify(api, null, 2),
+            if (dustAddress && typeof dustAddress === 'string') {
+                const networkId = getMidnightNetworkId();
+                coinPublicKey = getDustAddressBytes(dustAddress, networkId);
+                logger.log('[Wallet]', '🔑 Converted Dust address to bytes:', coinPublicKey);
+                logger.log('[Wallet]', '📋 Registration will use:', {
+                    dustAddress,
+                    coinPublicKey,
                 });
-                throw new Error('Unable to get wallet state from Midnight API. The wallet extension may have been updated.');
             }
 
-            logger.log('[Wallet]', 'Extracted Midnight wallet data:', { address, coinPublicKey });
-
-            if (!address) {
-                throw new Error('Could not get address from Midnight wallet. Please ensure your wallet is set up.');
+            // Get Dust balance
+            let dustBalance: string | null = null;
+            
+            try {
+                if (typeof api.getDustBalance === 'function') {
+                    logger.log('[Wallet]', 'Fetching Dust balance...');
+                    const dustBalanceResult = await api.getDustBalance();
+                    dustBalance = dustBalanceResult.balance.toString();
+                    logger.log('[Wallet]', '💰 Dust Balance:', {
+                        balance: dustBalance,
+                        cap: dustBalanceResult.cap.toString(),
+                        balanceBigInt: dustBalanceResult.balance,
+                        capBigInt: dustBalanceResult.cap,
+                    });
+                } else {
+                    logger.warn('[Wallet]', 'getDustBalance() not available on Midnight API');
+                }
+            } catch (error) {
+                logger.error('[Wallet]', 'Error fetching Dust balance:', error);
+                // Don't throw - balance is optional for connection
             }
+
+            // Use Dust address as the main address for this wallet connection
+            const address = dustAddress;
+            logger.log('[Wallet]', '✅ Final Midnight wallet data:', { 
+                address: dustAddress, 
+                coinPublicKey,
+                dustBalance 
+            });
 
             const balance = 'N/A (Shield address)';
 
-            // Verify if coinPublicKeyLegacy matches the address
-            // Also test extraction to ensure it works correctly
-            const { extractCoinPublicKeyFromMidnightAddress } = require('@/lib/utils');
-            const extractedKey = address ? extractCoinPublicKeyFromMidnightAddress(address) : null;
-
             setMidnightState({
                 isConnected: true,
-                address,
+                address: dustAddress, // Use Dust address as the main address
                 coinPublicKey,
                 balance,
                 walletName,
                 api,
                 isLoading: false,
                 error: null,
+                dustAddress, // Store Dust address separately as well
+                dustBalance,
             });
 
             // Store connection in localStorage
@@ -432,17 +438,17 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             api: null,
             isLoading: false,
             error: null,
+            dustAddress: null,
+            dustBalance: null,
         });
         localStorage.removeItem('connectedMidnightWallet');
     };
 
     const setManualMidnightAddress = (address: string) => {
-        // Extract coin public key from the Midnight address
-        const { extractCoinPublicKeyFromMidnightAddress } = require('@/lib/utils');
-        const coinPublicKey = extractCoinPublicKeyFromMidnightAddress(address);
-
-        if (!coinPublicKey) {
-            logger.error('[Wallet]', 'Failed to extract coin public key from manual address');
+        // Validate that it's a valid Dust address first
+        const networkId = getMidnightNetworkId();
+        if (!validateDustAddress(address, networkId)) {
+            logger.error('[Wallet]', 'Invalid Dust address format', { address, networkId });
             setMidnightState({
                 isConnected: false,
                 address: null,
@@ -451,7 +457,29 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                 walletName: null,
                 api: null,
                 isLoading: false,
-                error: 'Invalid Midnight address format',
+                error: 'Invalid Midnight Dust address format',
+                dustAddress: null,
+                dustBalance: null,
+            });
+            return;
+        }
+
+        // Convert Dust address from bech32m to bytes format
+        const coinPublicKey = getDustAddressBytes(address, networkId);
+
+        if (!coinPublicKey) {
+            logger.error('[Wallet]', 'Failed to convert Dust address to bytes');
+            setMidnightState({
+                isConnected: false,
+                address: null,
+                coinPublicKey: null,
+                balance: null,
+                walletName: null,
+                api: null,
+                isLoading: false,
+                error: 'Failed to convert Dust address to bytes',
+                dustAddress: null,
+                dustBalance: null,
             });
             return;
         }
@@ -465,6 +493,8 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             api: null,
             isLoading: false,
             error: null,
+            dustAddress: null, // Manual address doesn't have wallet API access
+            dustBalance: null, // Manual address doesn't have wallet API access
         });
     };
 
@@ -487,6 +517,8 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             api: null,
             isLoading: false,
             error: null,
+            dustAddress: null, // Updated addresses are treated as manual, no wallet API access
+            dustBalance: null, // Updated addresses are treated as manual, no wallet API access
         });
 
         logger.log('✅ Midnight wallet state updated successfully');

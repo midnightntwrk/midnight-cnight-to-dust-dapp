@@ -6,7 +6,12 @@ import { Network, ProtocolParameters } from '@lucid-evolution/lucid';
 import { protocolParametersForLucid } from './protocolParameters';
 
 // Validate environment variables at module load time (server-side only)
-if (typeof window === 'undefined') {
+// Skip validation during build time (Next.js build process)
+// During build, Next.js analyzes routes but env vars may not be set yet
+const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' ||
+                    (process.env.NODE_ENV === 'production' && !process.env.NEXT_RUNTIME);
+
+if (typeof window === 'undefined' && !isBuildTime) {
     try {
         validateEnvOrThrow();
     } catch (error) {
@@ -112,6 +117,11 @@ const getCurrentNetworkConfig = (): NetworkConfig => {
         const network = getCurrentNetwork();
         const config = networkConfigs[network];
 
+        // Skip validation during build time
+        if (isBuildTime) {
+            return config;
+        }
+
         if (typeof window === 'undefined' && !config.BLOCKFROST_KEY) {
             throw new Error(`Missing required environment variable: BLOCKFROST_KEY for network: ${network} in ${toJson(config)}`);
         }
@@ -171,7 +181,8 @@ const initializeLucidWithBlockfrostClientSide = async () => {
 
 //---------------------------------------------------
 
-export const CARDANO_NET = process.env.NEXT_PUBLIC_CARDANO_NET!;
+// During build, provide a default value if not set
+export const CARDANO_NET = process.env.NEXT_PUBLIC_CARDANO_NET || 'Preview';
 
 export const LUCID_NETWORK_MAINNET_NAME = 'Mainnet';
 export const LUCID_NETWORK_PREVIEW_NAME = 'Preview';
@@ -196,7 +207,20 @@ export const isMainnet = CARDANO_NET === LUCID_NETWORK_MAINNET_NAME;
 
 //---------------------------------------------------
 // Export current network constants
-const config = getCurrentNetworkConfig();
+// During build time, use default values to avoid errors
+// At runtime, these will be properly validated and set
+let config: NetworkConfig;
+if (isBuildTime) {
+    // During build, use Preview config directly without validation
+    config = networkConfigs.Preview;
+} else {
+    try {
+        config = getCurrentNetworkConfig();
+    } catch (error) {
+        logger.error('[Network]', 'Error getting current network config:', error);
+        throw error;
+    }
+}
 
 export const BLOCKFROST_URL = config.BLOCKFROST_URL;
 export const BLOCKCHAIN_EXPLORER_URL = config.BLOCKCHAIN_EXPLORER_URL;

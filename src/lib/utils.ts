@@ -1,6 +1,9 @@
 import { UTxO } from '@lucid-evolution/lucid';
 import { bech32m } from 'bech32';
 import { logger } from './logger';
+import { MidnightBech32m, DustAddress } from '@midnight-ntwrk/wallet-sdk-address-format';
+import type { NetworkId } from '@midnight-ntwrk/wallet-sdk-address-format';
+import { isMainnet } from '@/config/network';
 
 // Helper function to convert to JSON for logging
 export const toJson = (obj: object): string => {
@@ -8,7 +11,47 @@ export const toJson = (obj: object): string => {
 };
 
 /**
+ * Convert Dust address to bytes format using the official SDK
+ * 
+ * WARNING: This function is specifically for Dust addresses. Do NOT use with shielded addresses.
+ * For shielded addresses, use extractCoinPublicKeyFromMidnightAddress instead.
+ * 
+ * @param address - Dust address string (bech32m encoded)
+ * @param networkId - The Midnight network ID ('mainnet' or 'preview')
+ * @returns Dust address bytes as hex string (for registration) or null if invalid
+ */
+export const getDustAddressBytes = (address: string, networkId: NetworkId): string | null => {
+    try {
+        // Parse and decode using the official SDK
+        const parsed = MidnightBech32m.parse(address.trim());
+        const dustAddress = parsed.decode(DustAddress, networkId);
+        
+        // Serialize to get bytes
+        const bytes = dustAddress.serialize();
+        
+        // Convert to hex string
+        const hexString = bytes.toString('hex');
+        
+        logger.debug('[Utils]', 'Converted Dust address to bytes', {
+            address: address.trim(),
+            networkId,
+            bytesLength: bytes.length,
+            hexLength: hexString.length,
+        });
+        
+        return hexString;
+    } catch (error) {
+        logger.error('[Utils]', 'Failed to convert Dust address to bytes', error);
+        return null;
+    }
+};
+
+/**
  * Extract coin public key from a Midnight shielded address
+ * 
+ * WARNING: This function is ONLY for Midnight shielded addresses (mn_shield-addr_...).
+ * Do NOT use this function with Dust addresses. For Dust addresses, use getDustAddressBytes instead.
+ * 
  * Midnight shielded addresses are Bech32m-encoded and contain:
  * - First 32 bytes: coin public key
  * - Remaining bytes: encryption public key (up to 36 bytes)
@@ -106,4 +149,45 @@ export const formatNumber = (value: number): string => {
         return (value / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
     }
     return value.toFixed(2);
+};
+
+/**
+ * Validate a Midnight Dust address using the official SDK
+ * @param address - The Dust address string to validate
+ * @param networkId - The Midnight network ID ('mainnet' or 'preview')
+ * @returns true if the address is a valid Dust address for the given network, false otherwise
+ */
+export const validateDustAddress = (address: string, networkId: NetworkId): boolean => {
+    if (!address || !address.trim()) {
+        return false;
+    }
+
+    try {
+        // Parse and decode the address as a Dust address
+        const parsed = MidnightBech32m.parse(address.trim());
+        const dustAddress = parsed.decode(DustAddress, networkId);
+        
+        // If we get here, it's a valid Dust address
+        logger.debug('[Utils]', 'Valid Dust address', {
+            address: address.trim(),
+            networkId,
+        });
+        
+        return true;
+    } catch (error) {
+        logger.debug('[Utils]', 'Invalid Dust address', {
+            address: address.trim(),
+            networkId,
+            error: error instanceof Error ? error.message : String(error),
+        });
+        return false;
+    }
+};
+
+/**
+ * Get the Midnight network ID based on the current Cardano network
+ * @returns 'mainnet' for Cardano Mainnet, 'preview' for testnets
+ */
+export const getMidnightNetworkId = (): NetworkId => {
+    return isMainnet ? 'mainnet' : 'preview';
 };

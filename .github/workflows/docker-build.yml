@@ -13,7 +13,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ghcr.io/protofire/midnight-cnight-to-dust-dapp
+  IMAGE_NAME: midnightntwrk/midnight-cnight-to-dust-dapp
 
 jobs:
   build:
