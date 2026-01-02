@@ -21,7 +21,7 @@ export default defineConfig({
     // Coverage configuration
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
+      reporter: ['text', 'json', 'json-summary', 'html', 'lcov'],
 
       // Only include source files
       include: ['src/hooks/**/*.{ts,tsx}', 'src/contexts/**/*.{ts,tsx}', 'src/app/api/**/*.ts', 'src/lib/**/*.ts'],

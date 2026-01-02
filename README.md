@@ -1,7 +1,7 @@
 # Midnight NIGHT to DUST DApp
 
 [![CI](https://github.com/midnightntwrk/midnight-cnight-to-dust-dapp/actions/workflows/ci.yml/badge.svg)](https://github.com/midnightntwrk/midnight-cnight-to-dust-dapp/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/midnightntwrk/midnight-cnight-to-dust-dapp/graph/badge.svg)](https://codecov.io/gh/midnightntwrk/midnight-cnight-to-dust-dapp)
+[![Coverage](https://img.shields.io/badge/coverage-report-blue)](https://github.com/midnightntwrk/midnight-cnight-to-dust-dapp/actions/workflows/ci.yml)
 
 A cross-chain decentralized application that enables DUST token generation on the Midnight network based on NIGHT token holdings on Cardano. The application creates an on-chain mapping between Cardano addresses and Midnight addresses through smart contract transactions.
 
