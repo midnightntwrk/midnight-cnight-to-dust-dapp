@@ -2,7 +2,8 @@ module.exports = {
   semi: true,
   trailingComma: 'es5',
   singleQuote: true,
-  printWidth: 180, // Large number to effectively disable line wrapping
+  preserveEslintComments: true,
+  printWidth: 120,
   tabWidth: 2,
   endOfLine: 'lf',
 };
