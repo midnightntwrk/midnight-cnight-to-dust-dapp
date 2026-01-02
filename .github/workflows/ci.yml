@@ -57,7 +57,7 @@ jobs:
         run: yarn test:coverage --run
 
       - name: Coverage report
-        uses: davelosert/vitest-coverage-report-action@78f0b0f5097ad5aefb68b1b0e8660fb4a9c1aafa #v2.8.1
+        uses: davelosert/vitest-coverage-report-action@5b6122e3a819a3be7b27fc961b7faafb3bf00e4d #v2.9.0
         if: always()
         with:
           json-summary-path: ./coverage/coverage-summary.json
@@ -70,25 +70,6 @@ jobs:
           name: coverage-report
           path: coverage/
           retention-days: 30
-
-      - name: Extract coverage percentage
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: |
-          COVERAGE=$(jq '.total.lines.pct' coverage/coverage-summary.json)
-          echo "COVERAGE_PCT=$COVERAGE" >> $GITHUB_ENV
-
-      - name: Update coverage badge
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: schneegans/dynamic-badges-action@e9a478b16159b4d31420099ba146cdc50f134483 #v1.7.0
-        with:
-          auth: ${{ secrets.GIST_TOKEN }}
-          gistID: ${{ vars.COVERAGE_GIST_ID }}
-          filename: coverage-badge.json
-          label: coverage
-          message: ${{ env.COVERAGE_PCT }}%
-          valColorRange: ${{ env.COVERAGE_PCT }}
-          minColorRange: 50
-          maxColorRange: 90
 
   build:
     name: Build
