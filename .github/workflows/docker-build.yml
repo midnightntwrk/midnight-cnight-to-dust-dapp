@@ -8,7 +8,7 @@ on:
       - completed
     branches:
       - main
-      - develop
+      - 'release/*'
   workflow_dispatch:
 
 env:

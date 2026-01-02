@@ -88,9 +88,16 @@ jobs:
           NEXT_PUBLIC_INDEXER_ENDPOINT: https://indexer.preview.midnight.network/api/v3/graphql
           BLOCKFROST_KEY_PREVIEW: ${{ secrets.BLOCKFROST_KEY_PREVIEW }}
 
+      - name: Verify build output
+        run: |
+          echo "Build output contents:"
+          ls -la .next/ || echo "ERROR: .next directory not found!"
+          ls -la .next/standalone/ || echo "ERROR: .next/standalone directory not found!"
+
       - name: Upload build artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f #v6.0.0
         with:
           name: build
           path: .next
           retention-days: 7
+          if-no-files-found: error
