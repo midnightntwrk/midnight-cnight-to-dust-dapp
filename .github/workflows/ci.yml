@@ -38,8 +38,8 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
       contents: read
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #v6.0.1
@@ -56,13 +56,39 @@ jobs:
       - name: Run tests with coverage
         run: yarn test:coverage --run
 
-      - name: Upload coverage
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de #v5.5.2
+      - name: Coverage report
+        uses: davelosert/vitest-coverage-report-action@78f0b0f5097ad5aefb68b1b0e8660fb4a9c1aafa #v2.8.1
         if: always()
         with:
-          use_oidc: true
-          files: ./coverage/lcov.info
-          fail_ci_if_error: false
+          json-summary-path: ./coverage/coverage-summary.json
+          json-final-path: ./coverage/coverage-final.json
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f #v6.0.0
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+      - name: Extract coverage percentage
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          COVERAGE=$(jq '.total.lines.pct' coverage/coverage-summary.json)
+          echo "COVERAGE_PCT=$COVERAGE" >> $GITHUB_ENV
+
+      - name: Update coverage badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: schneegans/dynamic-badges-action@e9a478b16159b4d31420099ba146cdc50f134483 #v1.7.0
+        with:
+          auth: ${{ secrets.GIST_TOKEN }}
+          gistID: ${{ vars.COVERAGE_GIST_ID }}
+          filename: coverage-badge.json
+          label: coverage
+          message: ${{ env.COVERAGE_PCT }}%
+          valColorRange: ${{ env.COVERAGE_PCT }}
+          minColorRange: 50
+          maxColorRange: 90
 
   build:
     name: Build
