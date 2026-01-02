@@ -1,51 +1,46 @@
-# Dependencies
+# Git
+.git
+.gitignore
+.github
+
+# Dependencies (will be installed fresh in container)
 node_modules
-.pnp
-.pnp.js
 
 # Build outputs
 .next
 out
-dist
-.cache
 build
+coverage
 
 # Environment files
-.env
-.env.*
-!.env.example
+.env*
 !EXAMPLE.env
 
-# Git
-.git
-.gitignore
+# Documentation
+*.md
+docs
+internal_docs
 
-# IDE
+# IDE and OS
 .vscode
 .idea
-*.swp
-*.swo
-*~
-
-# OS
 .DS_Store
-Thumbs.db
 
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-*.log
+# Docker
+Dockerfile
+docker-compose*.yml
 
 # Testing
-coverage
-.nyc_output
+**/__tests__
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+vitest.config.mts
+vitest.setup.mts
 
 # Misc
-*.local
-.eslintcache
-
-# Documentation
-README.md
-docs/
-*.md
+*.log
+*.pem
+.vercel
+_OLD

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # Stage 1: Dependencies
-FROM node:20-alpine AS deps
+FROM node:20.19.0-alpine3.20 AS deps
 WORKDIR /app
 
 # Install dependencies with cache mount
@@ -10,7 +10,7 @@ RUN --mount=type=cache,target=/root/.yarn \
     yarn install --frozen-lockfile --production=false
 
 # Stage 2: Builder
-FROM node:20-alpine AS builder
+FROM node:20.19.0-alpine3.20 AS builder
 WORKDIR /app
 
 # Copy dependencies and source code
@@ -22,7 +22,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN yarn build
 
 # Stage 3: Runner
-FROM node:20-alpine AS runner
+FROM node:20.19.0-alpine3.20 AS runner
 WORKDIR /app
 
 # Create non-root user

@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run ESLint
+        run: yarn lint
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run tests
+        run: yarn test --run
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build application
+        run: yarn build
+        env:
+          NEXT_PUBLIC_CARDANO_NET: Preview
+          NEXT_PUBLIC_BLOCKFROST_URL_PREVIEW: https://cardano-preview.blockfrost.io/api/v0
+          NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_PREVIEW: https://preview.cexplorer.io/
+          NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_POLICY_ID: "03cf16101d110dcad9cacb225f0d1e63a8809979e7feb60426995414"
+          NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME: ""
+          NEXT_PUBLIC_INDEXER_ENDPOINT: https://indexer.preview.midnight.network/api/v3/graphql
+          BLOCKFROST_KEY_PREVIEW: ${{ secrets.BLOCKFROST_KEY_PREVIEW }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: .next
+          retention-days: 7
+
