@@ -21,6 +21,7 @@ User clicks "CHANGE ADDRESS" button in the dashboard's Midnight Wallet Card.
 **Location**: `src/components/dashboard/MidnightWalletCard.tsx:276-295`
 
 The button is disabled if:
+
 - Registration UTXO is still loading
 - No registration UTXO found
 - Another transaction is currently running
@@ -37,12 +38,12 @@ The modal prompts the user to enter a new Midnight shielded address in a textare
 
 ```typescript
 const validateBech32Address = (address: string): boolean => {
-    try {
-        bech32m.decode(address, 200);
-        return true;
-    } catch {
-        return false;
-    }
+  try {
+    bech32m.decode(address, 200);
+    return true;
+  } catch {
+    return false;
+  }
 };
 ```
 
@@ -58,11 +59,11 @@ When the user clicks "CHANGE ADDRESS", the modal extracts the coin public key fr
 const newCoinPublicKey = extractCoinPublicKeyFromMidnightAddress(newAddress.trim());
 
 if (!newCoinPublicKey) {
-    showToast({
-        message: 'Failed to extract coin public key from address.',
-        type: 'error'
-    });
-    return;
+  showToast({
+    message: 'Failed to extract coin public key from address.',
+    type: 'error',
+  });
+  return;
 }
 ```
 
@@ -115,15 +116,18 @@ The handler receives the new address parameters rather than using the currently 
 The `buildUpdateTransaction` function constructs a Cardano transaction with the following structure:
 
 ### Stake Registration Check
+
 - First checks if DUST Generator stake address is registered
 - If not registered: executes stake registration transaction only
 - If already registered: proceeds with update transaction
 
 ### Contract Instantiation
+
 - DUST Generator contract: `new Contracts.CnightGeneratesDustCnightGeneratesDustElse()`
 - Validator and stake addresses derived from contract script
 
 ### Consumed Input (Update Only)
+
 - Existing registration UTXO from DUST Generator
 - Redeemer: `Data.void()` (unit type for update)
 
@@ -136,10 +140,10 @@ Creates a new registration UTXO with:
 ```typescript
 // Build updated datum
 const updatedRegistrationDatumData: Contracts.DustMappingDatum = {
-    c_wallet: {
-        VerificationKey: [stakeKeyHash!], // Stake key hash (28 bytes hex string)
-    },
-    dust_address: newDustPKH,             // DUST PKH (32 bytes hex string)
+  c_wallet: {
+    VerificationKey: [stakeKeyHash!], // Stake key hash (28 bytes hex string)
+  },
+  dust_address: newDustPKH, // DUST PKH (32 bytes hex string)
 };
 
 // Preserve the existing DUST NFT
@@ -147,16 +151,17 @@ const dustNFTAssetName = getPolicyId(dustGenerator.Script) + '';
 
 // Create new UTXO
 txBuilder.pay.ToContract(
-    dustGeneratorAddress,
-    { kind: 'inline', value: serializedUpdatedRegistrationDatum },
-    {
-        lovelace: LOVELACE_FOR_REGISTRATION,
-        [dustNFTAssetName]: 1n,
-    }
+  dustGeneratorAddress,
+  { kind: 'inline', value: serializedUpdatedRegistrationDatum },
+  {
+    lovelace: LOVELACE_FOR_REGISTRATION,
+    [dustNFTAssetName]: 1n,
+  }
 );
 ```
 
 **Key Points**:
+
 - `c_wallet.VerificationKey[0]` contains the stake key hash (unchanged for same wallet)
 - `dust_address` is updated with the new value
 - The same DUST NFT is preserved from the consumed UTXO
@@ -167,16 +172,13 @@ txBuilder.pay.ToContract(
 **Location**: `src/lib/dustTransactionsUtils.ts:474-478`
 
 ```typescript
-txBuilder.withdraw(
-    dustGeneratorStakeAddress,
-    0n,
-    Data.void()
-);
+txBuilder.withdraw(dustGeneratorStakeAddress, 0n, Data.void());
 ```
 
 Withdrawal from the script stake address with 0 ADA amount.
 
 ### Scripts Attached (Update Only)
+
 ```typescript
 txBuilder.attach.SpendingValidator(blazeToLucidScript(dustGenerator.Script));
 txBuilder.attach.WithdrawalValidator(blazeToLucidScript(dustGenerator.Script));
@@ -193,6 +195,7 @@ const signedTx = await completedTx.sign.withWallet().complete();
 ```
 
 The user sees a wallet popup displaying:
+
 - Fee estimate
 - Input: Existing registration UTXO
 - Withdrawal: 0 ADA from stake address
@@ -223,9 +226,9 @@ Once the transaction succeeds:
 
 ```typescript
 if (transactionState === 'success') {
-    transaction.resetTransaction();
-    refetchGenerationStatus();     // Refresh generation status from indexer
-    findRegistrationUtxo();        // Find new registration UTXO
+  transaction.resetTransaction();
+  refetchGenerationStatus(); // Refresh generation status from indexer
+  findRegistrationUtxo(); // Find new registration UTXO
 }
 ```
 
@@ -285,6 +288,7 @@ User clicks "GO TO DASHBOARD"
 ## Progress Indicators
 
 During transaction execution, the modal displays loading states:
+
 - Building transaction (20%)
 - Signing transaction (40%)
 - Submitting transaction (60%)
@@ -293,6 +297,7 @@ During transaction execution, the modal displays loading states:
 ## Transaction Comparison
 
 ### Initial Registration
+
 ```
 Inputs:
   - User's wallet UTXOs (for fees)
@@ -306,6 +311,7 @@ Outputs:
 ```
 
 ### Update Registration
+
 ```
 Inputs:
   - Existing registration UTXO (consumed)
@@ -323,6 +329,7 @@ The key difference is that update **consumes** the existing UTXO and **preserves
 ## On-Chain Result
 
 Before update:
+
 ```
 UTXO at DUST Mapping Validator:
   Assets: 1.586080 ADA + 1 Auth Token
@@ -332,6 +339,7 @@ UTXO at DUST Mapping Validator:
 ```
 
 After update:
+
 ```
 UTXO at DUST Mapping Validator:
   Assets: 1.586080 ADA + 1 Auth Token (same token)

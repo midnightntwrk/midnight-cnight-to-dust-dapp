@@ -1,26 +1,17 @@
-"use client";
+'use client';
 
-import React from "react";
-import {
-  Navbar,
-  NavbarBrand,
-  NavbarContent,
-  NavbarItem,
-  NavbarMenuToggle,
-  NavbarMenu,
-  NavbarMenuItem,
-  Link,
-} from "@heroui/react";
+import React from 'react';
+import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenuToggle, NavbarMenu, NavbarMenuItem, Link } from '@heroui/react';
 import { useWalletContext } from '@/contexts/WalletContext';
-import Image from "next/image";
+import Image from 'next/image';
 
 export default function MidnightNavbar() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const { cardano, midnight } = useWalletContext();
 
   const menuItems = [
-    { name: "Home", href: "/" },
-    { name: "Dashboard", href: "/dashboard" },
+    { name: 'Home', href: '/' },
+    { name: 'Dashboard', href: '/dashboard' },
   ];
 
   // Calculate wallet status
@@ -38,10 +29,7 @@ export default function MidnightNavbar() {
   return (
     <Navbar onMenuOpenChange={setIsMenuOpen} maxWidth="xl">
       <NavbarContent>
-        <NavbarMenuToggle
-          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-          className="sm:hidden"
-        />
+        <NavbarMenuToggle aria-label={isMenuOpen ? 'Close menu' : 'Open menu'} className="sm:hidden" />
         <NavbarBrand className="flex items-center gap-4" as={Link} href="/">
           <Image src="/assets/midnight_logo.svg" alt="logo" width={50} height={50} />
           <p className="font-bold text-inherit text-white">NIGHT to DUST</p>
@@ -83,12 +71,7 @@ export default function MidnightNavbar() {
       <NavbarMenu>
         {menuItems.map((item, index) => (
           <NavbarMenuItem key={`${item.name}-${index}`}>
-            <Link
-              className="w-full"
-              color="foreground"
-              href={item.href}
-              size="lg"
-            >
+            <Link className="w-full" color="foreground" href={item.href} size="lg">
               {item.name}
             </Link>
           </NavbarMenuItem>
@@ -102,4 +85,3 @@ export default function MidnightNavbar() {
     </Navbar>
   );
 }
-

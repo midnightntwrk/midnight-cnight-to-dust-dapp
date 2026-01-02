@@ -1,7 +1,7 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  output: 'standalone',
   reactStrictMode: true, // Re-enabled with proper cleanup functions to prevent issues
   webpack: (config, { isServer }) => {
     config.experiments = {

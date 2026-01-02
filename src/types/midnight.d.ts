@@ -5,9 +5,9 @@ import { InitialAPI, ConnectedAPI } from '@midnight-ntwrk/dapp-connector-api';
 export type { InitialAPI, ConnectedAPI };
 
 declare global {
-    interface Window {
-        midnight?: {
-            [key: string]: InitialAPI;
-        };
-    }
+  interface Window {
+    midnight?: {
+      [key: string]: InitialAPI;
+    };
+  }
 }

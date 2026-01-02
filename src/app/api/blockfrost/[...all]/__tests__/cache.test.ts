@@ -122,7 +122,7 @@ describe('Blockfrost Cache Implementation', () => {
 
       expect(cache.size).toBe(3);
       expect(cache.has('key1')).toBe(false); // Oldest removed
-      expect(cache.has('key4')).toBe(true);  // Newest added
+      expect(cache.has('key4')).toBe(true); // Newest added
     });
   });
 
@@ -172,8 +172,8 @@ describe('Blockfrost Cache Implementation', () => {
 
       // Add entries with different expiration times
       cache.set('expired1', { expiresAt: now - 1000 }); // Already expired
-      cache.set('expired2', { expiresAt: now - 500 });  // Already expired
-      cache.set('valid', { expiresAt: now + 10000 });   // Still valid
+      cache.set('expired2', { expiresAt: now - 500 }); // Already expired
+      cache.set('valid', { expiresAt: now + 10000 }); // Still valid
 
       // Cleanup logic
       let removedCount = 0;

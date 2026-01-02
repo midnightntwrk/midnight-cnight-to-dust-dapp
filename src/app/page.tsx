@@ -8,5 +8,5 @@ const DynamicHome = dynamicImport(() => import('@/components/HomeMain'), { ssr: 
 export const dynamic = 'force-dynamic';
 
 export default function Page() {
-    return <DynamicHome />;
+  return <DynamicHome />;
 }

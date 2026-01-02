@@ -17,21 +17,18 @@ describe('Exponential Backoff Logic', () => {
     it('should calculate correct backoff intervals', () => {
       const attempts = [1, 2, 3, 4, 5, 6, 7, 8];
       const expectedIntervals = [
-        3000,    // Attempt 1: 3s
-        4500,    // Attempt 2: 3s × 1.5 = 4.5s
-        6750,    // Attempt 3: 3s × 1.5² = 6.75s
-        10125,   // Attempt 4: 3s × 1.5³ = 10.125s
+        3000, // Attempt 1: 3s
+        4500, // Attempt 2: 3s × 1.5 = 4.5s
+        6750, // Attempt 3: 3s × 1.5² = 6.75s
+        10125, // Attempt 4: 3s × 1.5³ = 10.125s
         15187.5, // Attempt 5: 3s × 1.5⁴ = 15.1875s
         22781.25, // Attempt 6: 3s × 1.5⁵ = 22.78125s
-        30000,   // Attempt 7: Capped at MAX (30s)
-        30000,   // Attempt 8: Capped at MAX (30s)
+        30000, // Attempt 7: Capped at MAX (30s)
+        30000, // Attempt 8: Capped at MAX (30s)
       ];
 
       attempts.forEach((attempt, index) => {
-        const interval = Math.min(
-          INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, attempt - 1),
-          MAX_INTERVAL_MS
-        );
+        const interval = Math.min(INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, attempt - 1), MAX_INTERVAL_MS);
 
         expect(interval).toBeCloseTo(expectedIntervals[index], 1);
       });
@@ -39,20 +36,14 @@ describe('Exponential Backoff Logic', () => {
 
     it('should never exceed MAX_INTERVAL_MS', () => {
       const largeAttempt = 100;
-      const interval = Math.min(
-        INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, largeAttempt - 1),
-        MAX_INTERVAL_MS
-      );
+      const interval = Math.min(INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, largeAttempt - 1), MAX_INTERVAL_MS);
 
       expect(interval).toBe(MAX_INTERVAL_MS);
     });
 
     it('should start with INITIAL_INTERVAL_MS on first attempt', () => {
       const attempt = 1;
-      const interval = Math.min(
-        INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, attempt - 1),
-        MAX_INTERVAL_MS
-      );
+      const interval = Math.min(INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, attempt - 1), MAX_INTERVAL_MS);
 
       expect(interval).toBe(INITIAL_INTERVAL_MS);
     });
@@ -64,10 +55,7 @@ describe('Exponential Backoff Logic', () => {
 
       while (totalTime < MAX_DURATION_MS) {
         attemptCount++;
-        const interval = Math.min(
-          INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, attemptCount - 1),
-          MAX_INTERVAL_MS
-        );
+        const interval = Math.min(INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, attemptCount - 1), MAX_INTERVAL_MS);
         totalTime += interval;
 
         if (totalTime >= MAX_DURATION_MS) break;
@@ -87,19 +75,16 @@ describe('Exponential Backoff Logic', () => {
     it('should calculate correct backoff intervals', () => {
       const attempts = [1, 2, 3, 4, 5, 6];
       const expectedIntervals = [
-        10000,   // Attempt 1: 10s
-        13000,   // Attempt 2: 10s × 1.3 = 13s
-        16900,   // Attempt 3: 10s × 1.3² = 16.9s
-        21970,   // Attempt 4: 10s × 1.3³ = 21.97s
-        28561,   // Attempt 5: 10s × 1.3⁴ = 28.561s
-        30000,   // Attempt 6: Capped at MAX (30s)
+        10000, // Attempt 1: 10s
+        13000, // Attempt 2: 10s × 1.3 = 13s
+        16900, // Attempt 3: 10s × 1.3² = 16.9s
+        21970, // Attempt 4: 10s × 1.3³ = 21.97s
+        28561, // Attempt 5: 10s × 1.3⁴ = 28.561s
+        30000, // Attempt 6: Capped at MAX (30s)
       ];
 
       attempts.forEach((attempt, index) => {
-        const interval = Math.min(
-          INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, attempt - 1),
-          MAX_INTERVAL_MS
-        );
+        const interval = Math.min(INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, attempt - 1), MAX_INTERVAL_MS);
 
         expect(interval).toBeCloseTo(expectedIntervals[index], 0);
       });
@@ -112,10 +97,7 @@ describe('Exponential Backoff Logic', () => {
 
       while (totalTime < MAX_DURATION_MS) {
         attemptCount++;
-        const interval = Math.min(
-          INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, attemptCount - 1),
-          MAX_INTERVAL_MS
-        );
+        const interval = Math.min(INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, attemptCount - 1), MAX_INTERVAL_MS);
         totalTime += interval;
 
         if (totalTime >= MAX_DURATION_MS) break;
@@ -128,10 +110,7 @@ describe('Exponential Backoff Logic', () => {
 
     it('should reach MAX_INTERVAL_MS by attempt 6', () => {
       const attempt = 6;
-      const interval = Math.min(
-        INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, attempt - 1),
-        MAX_INTERVAL_MS
-      );
+      const interval = Math.min(INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, attempt - 1), MAX_INTERVAL_MS);
 
       expect(interval).toBe(MAX_INTERVAL_MS);
     });
@@ -139,8 +118,8 @@ describe('Exponential Backoff Logic', () => {
 
   describe('Backoff Comparison', () => {
     it('UTXO polling should be more aggressive than transaction polling', () => {
-      const utxoInitial = 3000;  // 3s
-      const txInitial = 10000;   // 10s
+      const utxoInitial = 3000; // 3s
+      const txInitial = 10000; // 10s
 
       expect(utxoInitial).toBeLessThan(txInitial);
     });

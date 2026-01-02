@@ -8,5 +8,5 @@ const DynamicDashboard = dynamicImport(() => import('@/components/DashboardMain'
 export const dynamic = 'force-dynamic';
 
 export default function DashboardPage() {
-    return <DynamicDashboard />;
+  return <DynamicDashboard />;
 }

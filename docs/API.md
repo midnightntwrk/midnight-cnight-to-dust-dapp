@@ -7,17 +7,21 @@ The application provides three API routes that serve as proxies and interfaces b
 ## Route 1: Blockfrost Proxy
 
 ### Endpoint
+
 ```
 /api/blockfrost/*
 ```
 
 ### Purpose
+
 Secure proxy that forwards requests to Blockfrost API while hiding the API key from client-side code. This catch-all route handles any Blockfrost endpoint by extracting the path after `/api/blockfrost/` and proxying it to the configured Blockfrost URL.
 
 ### Location
+
 `src/app/api/blockfrost/[...all]/route.ts`
 
 ### Supported Methods
+
 - GET
 - POST
 - PUT
@@ -39,11 +43,13 @@ The proxy performs the following operations:
 ### Example Usage
 
 Client request:
+
 ```typescript
-fetch('/api/blockfrost/addresses/addr1.../utxos')
+fetch('/api/blockfrost/addresses/addr1.../utxos');
 ```
 
 Proxied to:
+
 ```
 https://cardano-preview.blockfrost.io/api/v0/addresses/addr1.../utxos
 ```
@@ -51,6 +57,7 @@ https://cardano-preview.blockfrost.io/api/v0/addresses/addr1.../utxos
 ### Error Handling
 
 Returns JSON error response with status 500 on failure:
+
 ```json
 {
   "error": "Error message",
@@ -59,6 +66,7 @@ Returns JSON error response with status 500 on failure:
 ```
 
 Error logs include:
+
 - Error message
 - Request duration in milliseconds
 - Request pathname
@@ -67,6 +75,7 @@ Error logs include:
 ### Configuration
 
 Requires environment variables per network:
+
 - `BLOCKFROST_KEY_MAINNET`
 - `BLOCKFROST_KEY_PREVIEW`
 - `BLOCKFROST_KEY_PREPROD`
@@ -83,39 +92,47 @@ The active key is selected based on `NEXT_PUBLIC_CARDANO_NET` environment variab
 ## Route 2: DUST Generation Status (Single Key)
 
 ### Endpoint
+
 ```
 GET /api/dust/generation-status/[key]
 ```
 
 ### Purpose
+
 Queries the Midnight Indexer for DUST generation status of a specific Cardano stake key. Returns registration status, DUST address, generation rate, and current capacity.
 
 ### Location
+
 `src/app/api/dust/generation-status/[key]/route.ts`
 
 ### Parameters
 
 **Path Parameter**:
+
 - `key` (required): Cardano stake key in hex format
 
 ### Response Format
 
 **Success (200)**:
+
 ```json
 {
   "success": true,
-  "data": [{
-    "cardanoStakeKey": "ae78b8d48d620fdf...",
-    "dustAddress": "5aafc844e5b89509...",
-    "registered": true,
-    "nightBalance": "1000000",
-    "generationRate": "8267000000",
-    "currentCapacity": "2500000000000000000"
-  }]
+  "data": [
+    {
+      "cardanoStakeKey": "ae78b8d48d620fdf...",
+      "dustAddress": "5aafc844e5b89509...",
+      "registered": true,
+      "nightBalance": "1000000",
+      "generationRate": "8267000000",
+      "currentCapacity": "2500000000000000000"
+    }
+  ]
 }
 ```
 
 **Not Found (404)**:
+
 ```json
 {
   "error": "Stake key not found",
@@ -124,6 +141,7 @@ Queries the Midnight Indexer for DUST generation status of a specific Cardano st
 ```
 
 **Error (500)**:
+
 ```json
 {
   "error": "Failed to fetch stake key",
@@ -143,12 +161,14 @@ When `SIMULATION_MODE=true` environment variable is set, returns mock data for t
 ```json
 {
   "success": true,
-  "data": [{
-    "cardanoStakeKey": "provided-key",
-    "dustAddress": "mn1qg5ks9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mc",
-    "registered": true,
-    "generationRate": "2.5"
-  }]
+  "data": [
+    {
+      "cardanoStakeKey": "provided-key",
+      "dustAddress": "mn1qg5ks9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mc",
+      "registered": true,
+      "generationRate": "2.5"
+    }
+  ]
 }
 ```
 
@@ -174,12 +194,14 @@ query GetDustGenerationStatus($cardanoStakeKeys: [HexEncoded!]!) {
 ### Configuration
 
 Requires environment variable:
+
 - `INDEXER_ENDPOINT`: GraphQL endpoint URL (e.g., `http://localhost:8088/api/v3/graphql`)
 - `SIMULATION_MODE`: Optional boolean to enable mock responses
 
 ### CORS Support
 
 Includes OPTIONS handler for CORS preflight requests:
+
 ```typescript
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Methods: GET, OPTIONS
@@ -193,14 +215,17 @@ Access-Control-Allow-Headers: Content-Type
 ## Route 3: DUST Generation Status (Multiple Keys)
 
 ### Endpoint
+
 ```
 GET /api/dust/generation-status
 ```
 
 ### Purpose
+
 Queries the Midnight Indexer for multiple Cardano stake keys. This route is a batch version of the single-key endpoint.
 
 ### Location
+
 `src/app/api/dust/generation-status/route.ts`
 
 ### Implementation Details
@@ -209,7 +234,7 @@ Currently queries the indexer with a placeholder stake key:
 
 ```typescript
 const graph = new Subgraph(process.env.INDEXER_ENDPOINT!);
-const generationStatus = await graph.getDustGenerationStatus(["0x00"]);
+const generationStatus = await graph.getDustGenerationStatus(['0x00']);
 ```
 
 ### Response Format
@@ -243,6 +268,7 @@ const generationStatus = await graph.getDustGenerationStatus(["0x00"]);
 ## GraphQL Client
 
 ### Location
+
 `src/lib/subgraph/query.ts`
 
 ### Class: Subgraph
@@ -257,21 +283,26 @@ const status = await subgraph.getDustGenerationStatus(stakeKeys);
 ### Method: getDustGenerationStatus
 
 **Parameters**:
+
 - `cardanoStakeKeys: string[]` - Array of Cardano stake keys (max 10 for DOS protection)
 
 **Returns**:
+
 ```typescript
-Promise<{
-  cardanoStakeKey: string;
-  dustAddress: string | null;
-  registered: boolean;
-  nightBalance: string;
-  generationRate: string;
-  currentCapacity: string;
-}[]>
+Promise<
+  {
+    cardanoStakeKey: string;
+    dustAddress: string | null;
+    registered: boolean;
+    nightBalance: string;
+    generationRate: string;
+    currentCapacity: string;
+  }[]
+>;
 ```
 
 **Query Structure**:
+
 ```graphql
 query GetDustGenerationStatus($cardanoStakeKeys: [HexEncoded!]!) {
   dustGenerationStatus(cardanoStakeKeys: $cardanoStakeKeys) {
@@ -288,6 +319,7 @@ query GetDustGenerationStatus($cardanoStakeKeys: [HexEncoded!]!) {
 ### Configuration
 
 The client is initialized with:
+
 - `uri`: Indexer GraphQL endpoint
 - `cache: "no-store"`: Disables caching for real-time data
 
@@ -336,11 +368,13 @@ All API routes follow consistent error handling:
 ## Performance Considerations
 
 ### Blockfrost Proxy
+
 - Streams response bodies (no buffering)
 - Preserves cache headers from Blockfrost
 - Minimal overhead (single proxy hop)
 
 ### Indexer Routes
+
 - GraphQL client configured with no-store cache
 - Batch query support (max 10 keys)
 - Database indexes on cardano_address and dust_address
@@ -365,6 +399,7 @@ SIMULATION_MODE=true
 ```
 
 This allows:
+
 - Frontend development without indexer
 - UI/UX testing with mock data
 - Integration testing without blockchain queries
@@ -372,6 +407,7 @@ This allows:
 ### Production Testing
 
 Required configuration:
+
 ```bash
 NEXT_PUBLIC_CARDANO_NET=Preview
 BLOCKFROST_KEY_PREVIEW=your_key
@@ -379,5 +415,6 @@ INDEXER_ENDPOINT=http://localhost:8088/api/v3/graphql
 ```
 
 Test endpoints:
+
 - `GET /api/blockfrost/blocks/latest`
 - `GET /api/dust/generation-status/ae78b8d48d620fdf...`
