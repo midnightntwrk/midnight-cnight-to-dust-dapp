@@ -166,17 +166,17 @@ GraphQL-based API for querying registration status from the Midnight Indexer.
 
 ```json
 {
-    "success": true,
-    "data": [
-        {
-            "cardanoRewardAddress": "stake1...",
-            "dustAddress": "mn1q...",
-            "registered": true,
-            "nightBalance": "1000000",
-            "generationRate": "8267000000",
-            "currentCapacity": "2500000000000000000"
-        }
-    ]
+  "success": true,
+  "data": [
+    {
+      "cardanoRewardAddress": "stake1...",
+      "dustAddress": "mn1q...",
+      "registered": true,
+      "nightBalance": "1000000",
+      "generationRate": "8267000000",
+      "currentCapacity": "2500000000000000000"
+    }
+  ]
 }
 ```
 
@@ -275,8 +275,8 @@ See [**DAPP_INTEGRATION_GUIDE.md**](./DAPP_INTEGRATION_GUIDE.md) for complete sm
 - **UI:** HeroUI component library with Tailwind CSS 4.x
 - **Type Safety:** TypeScript with strict mode
 - **Blockchain:**
-    - Cardano: Lucid Evolution v0.4.29 for transaction building
-    - Midnight: Wallet API v5.0.0 for shielded address support
+  - Cardano: Lucid Evolution v0.4.29 for transaction building
+  - Midnight: Wallet API v5.0.0 for shielded address support
 - **State Management:** React Context API
 - **Data Fetching:** GraphQL via graphql-request, REST endpoints
 

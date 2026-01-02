@@ -6,12 +6,12 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-    --color-brand-primary: #0000fe;
-    --color-brand-primary-hover: #0000cc;
+  --color-brand-primary: #0000fe;
+  --color-brand-primary-hover: #0000cc;
 }
 
 body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: 'Outfit', sans-serif;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Outfit', sans-serif;
 }

@@ -137,14 +137,14 @@ The transaction builder constructs a Cardano transaction with the following stru
 
 - Assets: `LOVELACE_FOR_REGISTRATION` ADA + 1 DUST NFT
 - Inline Datum: `DustMappingDatum` with structure:
-    ```
-    {
-      c_wallet: {
-        VerificationKey: [stakeKeyHash]  // Stake key hash (28 bytes hex string)
-      },
-      dust_address: newDustPKH           // DUST PKH (32 bytes hex string)
-    }
-    ```
+  ```
+  {
+    c_wallet: {
+      VerificationKey: [stakeKeyHash]  // Stake key hash (28 bytes hex string)
+    },
+    dust_address: newDustPKH           // DUST PKH (32 bytes hex string)
+  }
+  ```
 
 ### Scripts Attached
 
@@ -185,27 +185,27 @@ The system polls Blockfrost every 15 seconds to check transaction confirmation s
 
 ```typescript
 const pollTransactionConfirmation = async (lucid, txHash) => {
-    const maxAttempts = 60; // 15 minutes maximum
+  const maxAttempts = 60; // 15 minutes maximum
 
-    const pollInterval = setInterval(async () => {
-        attempts++;
-        const progress = 60 + (attempts / maxAttempts) * 40;
-        setTransactionProgress(progress);
+  const pollInterval = setInterval(async () => {
+    attempts++;
+    const progress = 60 + (attempts / maxAttempts) * 40;
+    setTransactionProgress(progress);
 
-        const txInfo = await lucid.awaitTx(txHash, 3000);
+    const txInfo = await lucid.awaitTx(txHash, 3000);
 
-        if (txInfo) {
-            clearInterval(pollInterval);
-            setTransactionProgress(100);
-            setTransactionState('success');
-            return;
-        }
+    if (txInfo) {
+      clearInterval(pollInterval);
+      setTransactionProgress(100);
+      setTransactionState('success');
+      return;
+    }
 
-        if (attempts >= maxAttempts) {
-            setTransactionError('Transaction confirmation timeout');
-            setTransactionState('error');
-        }
-    }, 15000);
+    if (attempts >= maxAttempts) {
+      setTransactionError('Transaction confirmation timeout');
+      setTransactionState('error');
+    }
+  }, 15000);
 };
 ```
 
@@ -219,9 +219,9 @@ After transaction confirmation, the system polls for the newly created registrat
 
 ```typescript
 if (transactionState === 'success') {
-    transaction.resetTransaction();
-    refetchGenerationStatus();
-    await pollRegistrationUtxo();
+  transaction.resetTransaction();
+  refetchGenerationStatus();
+  await pollRegistrationUtxo();
 }
 ```
 
@@ -242,48 +242,48 @@ The search process:
 
 ```typescript
 const searchRegistrationUtxo = async () => {
-    // Get DUST Generator contract
-    const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
-    const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
+  // Get DUST Generator contract
+  const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
+  const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
 
-    // Get current user's Cardano PKH
-    const cardanoPKH = getAddressDetails(cardanoAddress)?.paymentCredential?.hash;
+  // Get current user's Cardano PKH
+  const cardanoPKH = getAddressDetails(cardanoAddress)?.paymentCredential?.hash;
 
-    // Construct the expected NFT asset name
-    const dustNFTTokenName = '';
-    const dustNFTAssetName = getPolicyId(dustGenerator.Script) + dustNFTTokenName;
+  // Construct the expected NFT asset name
+  const dustNFTTokenName = '';
+  const dustNFTAssetName = getPolicyId(dustGenerator.Script) + dustNFTTokenName;
 
-    // Query UTXOs at the mapping validator address using Blockfrost proxy
-    const response = await fetch(`/api/blockfrost/addresses/${dustGeneratorAddress}/utxos/${dustNFTAssetName}`);
-    const utxos = await response.json();
+  // Query UTXOs at the mapping validator address using Blockfrost proxy
+  const response = await fetch(`/api/blockfrost/addresses/${dustGeneratorAddress}/utxos/${dustNFTAssetName}`);
+  const utxos = await response.json();
 
-    // Filter UTXOs that contain the DUST Auth Token
-    const validUtxos = utxos.filter((utxo) => {
-        const hasAuthToken = utxo.amount?.some((asset) => asset.unit === dustNFTAssetName && asset.quantity === '1');
-        const hasInlineDatum = utxo.inline_datum !== null;
-        return hasAuthToken && hasInlineDatum;
-    });
+  // Filter UTXOs that contain the DUST Auth Token
+  const validUtxos = utxos.filter((utxo) => {
+    const hasAuthToken = utxo.amount?.some((asset) => asset.unit === dustNFTAssetName && asset.quantity === '1');
+    const hasInlineDatum = utxo.inline_datum !== null;
+    return hasAuthToken && hasInlineDatum;
+  });
 
-    // Check each valid UTXO's datum to find matching registration
-    for (const utxo of validUtxos) {
-        // Deserialize the inline datum
-        const datumData = Data.from(utxo.inline_datum);
+  // Check each valid UTXO's datum to find matching registration
+  for (const utxo of validUtxos) {
+    // Deserialize the inline datum
+    const datumData = Data.from(utxo.inline_datum);
 
-        // Check if datumData is a Constr with the expected structure
-        if (datumData instanceof Constr && datumData.index === 0 && datumData.fields.length === 2) {
-            const [datumCardanoPKHConstr, dustPKHFromDatum] = datumData.fields;
+    // Check if datumData is a Constr with the expected structure
+    if (datumData instanceof Constr && datumData.index === 0 && datumData.fields.length === 2) {
+      const [datumCardanoPKHConstr, dustPKHFromDatum] = datumData.fields;
 
-            if (datumCardanoPKHConstr instanceof Constr && datumCardanoPKHConstr.index === 0 && datumCardanoPKHConstr.fields.length === 1) {
-                const datumCardanoPKH = datumCardanoPKHConstr.fields[0];
+      if (datumCardanoPKHConstr instanceof Constr && datumCardanoPKHConstr.index === 0 && datumCardanoPKHConstr.fields.length === 1) {
+        const datumCardanoPKH = datumCardanoPKHConstr.fields[0];
 
-                if (datumCardanoPKH === cardanoPKH && dustPKHFromDatum === dustPKH) {
-                    return utxo;
-                }
-            }
+        if (datumCardanoPKH === cardanoPKH && dustPKHFromDatum === dustPKH) {
+          return utxo;
         }
+      }
     }
+  }
 
-    return null;
+  return null;
 };
 ```
 
@@ -297,23 +297,23 @@ Once the registration UTXO is found and stored in state, a React effect detects 
 
 ```typescript
 useEffect(() => {
-    if (isAutoReconnecting || isLoadingRegistrationUtxo) {
-        return;
-    }
+  if (isAutoReconnecting || isLoadingRegistrationUtxo) {
+    return;
+  }
 
-    if (!cardanoState.isConnected) {
-        return;
-    }
+  if (!cardanoState.isConnected) {
+    return;
+  }
 
-    if (registrationUtxo) {
-        if (pathname !== '/dashboard') {
-            router.push('/dashboard');
-        }
-    } else {
-        if (pathname === '/dashboard') {
-            router.push('/');
-        }
+  if (registrationUtxo) {
+    if (pathname !== '/dashboard') {
+      router.push('/dashboard');
     }
+  } else {
+    if (pathname === '/dashboard') {
+      router.push('/');
+    }
+  }
 }, [registrationUtxo, isLoadingRegistrationUtxo, cardanoState.isConnected, pathname, router]);
 ```
 
@@ -413,10 +413,10 @@ The Midnight dust address is stored directly as a 32-byte hex string:
 
 ```typescript
 const dustMappingDatum: Contracts.DustMappingDatum = {
-    c_wallet: {
-        VerificationKey: [stakeKeyHash!], // Stake key hash (28 bytes hex string)
-    },
-    dust_address: dustPKH, // DUST PKH (32 bytes hex string)
+  c_wallet: {
+    VerificationKey: [stakeKeyHash!], // Stake key hash (28 bytes hex string)
+  },
+  dust_address: dustPKH, // DUST PKH (32 bytes hex string)
 };
 ```
 
@@ -433,16 +433,16 @@ const datumData = Data.from(utxo.inline_datum);
 
 // Check if datumData is a Constr with the expected structure
 if (datumData instanceof Constr && datumData.index === 0 && datumData.fields.length === 2) {
-    const [datumStakeKeyHashConstr, dustPKHFromDatum] = datumData.fields;
+  const [datumStakeKeyHashConstr, dustPKHFromDatum] = datumData.fields;
 
-    if (datumStakeKeyHashConstr instanceof Constr && datumStakeKeyHashConstr.index === 0 && datumStakeKeyHashConstr.fields.length === 1) {
-        const datumStakeKeyHash = datumStakeKeyHashConstr.fields[0];
+  if (datumStakeKeyHashConstr instanceof Constr && datumStakeKeyHashConstr.index === 0 && datumStakeKeyHashConstr.fields.length === 1) {
+    const datumStakeKeyHash = datumStakeKeyHashConstr.fields[0];
 
-        // Match credentials
-        if (datumStakeKeyHash === stakeKeyHash && dustPKHFromDatum === dustPKH) {
-            return utxo;
-        }
+    // Match credentials
+    if (datumStakeKeyHash === stakeKeyHash && dustPKHFromDatum === dustPKH) {
+      return utxo;
     }
+  }
 }
 ```
 

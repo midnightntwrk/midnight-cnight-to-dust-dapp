@@ -3,5 +3,5 @@
 import Dashboard from './Dashboard';
 
 export default function DashboardMain() {
-    return <Dashboard />;
+  return <Dashboard />;
 }

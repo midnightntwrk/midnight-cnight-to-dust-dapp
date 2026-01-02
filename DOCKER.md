@@ -116,9 +116,9 @@ This repository includes a GitHub Actions workflow (`.github/workflows/docker-bu
 
 - Builds Docker images on push to main/develop
 - Pushes images to Docker Hub with tags:
-    - `:latest` (main branch)
-    - `:sha-<commit>` (all branches)
-    - `:pr-<number>` (pull requests)
+  - `:latest` (main branch)
+  - `:sha-<commit>` (all branches)
+  - `:pr-<number>` (pull requests)
 
 ### Setup Required
 
@@ -133,22 +133,22 @@ Add these secrets in GitHub repository settings:
 
 ```yaml
 services:
-    cnight-dapp:
-        image: protofire/midnight-cnight-to-dust-dapp:latest
-        ports:
-            - '3000:3000'
-        environment:
-            - NODE_ENV=production
-        env_file:
-            - .env.production
-        restart: unless-stopped
-        deploy:
-            resources:
-                limits:
-                    cpus: '1.0'
-                    memory: 512M
-                reservations:
-                    memory: 256M
+  cnight-dapp:
+    image: protofire/midnight-cnight-to-dust-dapp:latest
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env.production
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          memory: 256M
 ```
 
 ### Running on Custom Port

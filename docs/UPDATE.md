@@ -38,12 +38,12 @@ The modal prompts the user to enter a new Midnight shielded address in a textare
 
 ```typescript
 const validateBech32Address = (address: string): boolean => {
-    try {
-        bech32m.decode(address, 200);
-        return true;
-    } catch {
-        return false;
-    }
+  try {
+    bech32m.decode(address, 200);
+    return true;
+  } catch {
+    return false;
+  }
 };
 ```
 
@@ -59,11 +59,11 @@ When the user clicks "CHANGE ADDRESS", the modal extracts the coin public key fr
 const newCoinPublicKey = extractCoinPublicKeyFromMidnightAddress(newAddress.trim());
 
 if (!newCoinPublicKey) {
-    showToast({
-        message: 'Failed to extract coin public key from address.',
-        type: 'error',
-    });
-    return;
+  showToast({
+    message: 'Failed to extract coin public key from address.',
+    type: 'error',
+  });
+  return;
 }
 ```
 
@@ -140,10 +140,10 @@ Creates a new registration UTXO with:
 ```typescript
 // Build updated datum
 const updatedRegistrationDatumData: Contracts.DustMappingDatum = {
-    c_wallet: {
-        VerificationKey: [stakeKeyHash!], // Stake key hash (28 bytes hex string)
-    },
-    dust_address: newDustPKH, // DUST PKH (32 bytes hex string)
+  c_wallet: {
+    VerificationKey: [stakeKeyHash!], // Stake key hash (28 bytes hex string)
+  },
+  dust_address: newDustPKH, // DUST PKH (32 bytes hex string)
 };
 
 // Preserve the existing DUST NFT
@@ -151,12 +151,12 @@ const dustNFTAssetName = getPolicyId(dustGenerator.Script) + '';
 
 // Create new UTXO
 txBuilder.pay.ToContract(
-    dustGeneratorAddress,
-    { kind: 'inline', value: serializedUpdatedRegistrationDatum },
-    {
-        lovelace: LOVELACE_FOR_REGISTRATION,
-        [dustNFTAssetName]: 1n,
-    }
+  dustGeneratorAddress,
+  { kind: 'inline', value: serializedUpdatedRegistrationDatum },
+  {
+    lovelace: LOVELACE_FOR_REGISTRATION,
+    [dustNFTAssetName]: 1n,
+  }
 );
 ```
 
@@ -226,9 +226,9 @@ Once the transaction succeeds:
 
 ```typescript
 if (transactionState === 'success') {
-    transaction.resetTransaction();
-    refetchGenerationStatus(); // Refresh generation status from indexer
-    findRegistrationUtxo(); // Find new registration UTXO
+  transaction.resetTransaction();
+  refetchGenerationStatus(); // Refresh generation status from indexer
+  findRegistrationUtxo(); // Find new registration UTXO
 }
 ```
 

@@ -60,8 +60,8 @@ Returns JSON error response with status 500 on failure:
 
 ```json
 {
-    "error": "Error message",
-    "timestamp": "2024-01-01T00:00:00.000Z"
+  "error": "Error message",
+  "timestamp": "2024-01-01T00:00:00.000Z"
 }
 ```
 
@@ -117,17 +117,17 @@ Queries the Midnight Indexer for DUST generation status of a specific Cardano st
 
 ```json
 {
-    "success": true,
-    "data": [
-        {
-            "cardanoStakeKey": "ae78b8d48d620fdf...",
-            "dustAddress": "5aafc844e5b89509...",
-            "registered": true,
-            "nightBalance": "1000000",
-            "generationRate": "8267000000",
-            "currentCapacity": "2500000000000000000"
-        }
-    ]
+  "success": true,
+  "data": [
+    {
+      "cardanoStakeKey": "ae78b8d48d620fdf...",
+      "dustAddress": "5aafc844e5b89509...",
+      "registered": true,
+      "nightBalance": "1000000",
+      "generationRate": "8267000000",
+      "currentCapacity": "2500000000000000000"
+    }
+  ]
 }
 ```
 
@@ -135,8 +135,8 @@ Queries the Midnight Indexer for DUST generation status of a specific Cardano st
 
 ```json
 {
-    "error": "Stake key not found",
-    "message": "No block exists at stake key {key}"
+  "error": "Stake key not found",
+  "message": "No block exists at stake key {key}"
 }
 ```
 
@@ -144,9 +144,9 @@ Queries the Midnight Indexer for DUST generation status of a specific Cardano st
 
 ```json
 {
-    "error": "Failed to fetch stake key",
-    "message": "Error details",
-    "details": "Stack trace (development only)"
+  "error": "Failed to fetch stake key",
+  "message": "Error details",
+  "details": "Stack trace (development only)"
 }
 ```
 
@@ -160,15 +160,15 @@ When `SIMULATION_MODE=true` environment variable is set, returns mock data for t
 
 ```json
 {
-    "success": true,
-    "data": [
-        {
-            "cardanoStakeKey": "provided-key",
-            "dustAddress": "mn1qg5ks9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mc",
-            "registered": true,
-            "generationRate": "2.5"
-        }
-    ]
+  "success": true,
+  "data": [
+    {
+      "cardanoStakeKey": "provided-key",
+      "dustAddress": "mn1qg5ks9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mcq9wrqhwjv3k2g2h8mc",
+      "registered": true,
+      "generationRate": "2.5"
+    }
+  ]
 }
 ```
 
@@ -180,14 +180,14 @@ Queries the Midnight Indexer GraphQL endpoint:
 
 ```graphql
 query GetDustGenerationStatus($cardanoStakeKeys: [HexEncoded!]!) {
-    dustGenerationStatus(cardanoStakeKeys: $cardanoStakeKeys) {
-        cardanoStakeKey
-        dustAddress
-        registered
-        nightBalance
-        generationRate
-        currentCapacity
-    }
+  dustGenerationStatus(cardanoStakeKeys: $cardanoStakeKeys) {
+    cardanoStakeKey
+    dustAddress
+    registered
+    nightBalance
+    generationRate
+    currentCapacity
+  }
 }
 ```
 
@@ -241,18 +241,18 @@ const generationStatus = await graph.getDustGenerationStatus(['0x00']);
 
 ```json
 {
-    "data": {
-        "generationStatus": [
-            {
-                "cardanoStakeKey": "...",
-                "dustAddress": "...",
-                "registered": true,
-                "nightBalance": "...",
-                "generationRate": "...",
-                "currentCapacity": "..."
-            }
-        ]
-    }
+  "data": {
+    "generationStatus": [
+      {
+        "cardanoStakeKey": "...",
+        "dustAddress": "...",
+        "registered": true,
+        "nightBalance": "...",
+        "generationRate": "...",
+        "currentCapacity": "..."
+      }
+    ]
+  }
 }
 ```
 
@@ -290,14 +290,14 @@ const status = await subgraph.getDustGenerationStatus(stakeKeys);
 
 ```typescript
 Promise<
-    {
-        cardanoStakeKey: string;
-        dustAddress: string | null;
-        registered: boolean;
-        nightBalance: string;
-        generationRate: string;
-        currentCapacity: string;
-    }[]
+  {
+    cardanoStakeKey: string;
+    dustAddress: string | null;
+    registered: boolean;
+    nightBalance: string;
+    generationRate: string;
+    currentCapacity: string;
+  }[]
 >;
 ```
 
@@ -305,14 +305,14 @@ Promise<
 
 ```graphql
 query GetDustGenerationStatus($cardanoStakeKeys: [HexEncoded!]!) {
-    dustGenerationStatus(cardanoStakeKeys: $cardanoStakeKeys) {
-        cardanoStakeKey
-        dustAddress
-        registered
-        nightBalance
-        generationRate
-        currentCapacity
-    }
+  dustGenerationStatus(cardanoStakeKeys: $cardanoStakeKeys) {
+    cardanoStakeKey
+    dustAddress
+    registered
+    nightBalance
+    generationRate
+    currentCapacity
+  }
 }
 ```
 
@@ -330,14 +330,14 @@ The client is initialized with:
 The application uses a dual-source approach:
 
 1. **Blockfrost Proxy** (Active)
-    - Transaction confirmation polling
-    - Registration UTXO searches
-    - Direct blockchain queries
+   - Transaction confirmation polling
+   - Registration UTXO searches
+   - Direct blockchain queries
 
 2. **Indexer Integration** (Prepared, Not Active)
-    - GraphQL schema aligned with indexer
-    - API routes implemented
-    - Frontend hooks ready (with hardcoded keys)
+   - GraphQL schema aligned with indexer
+   - API routes implemented
+   - Frontend hooks ready (with hardcoded keys)
 
 ### Activation Steps
 

@@ -24,23 +24,10 @@ export default defineConfig({
       reporter: ['text', 'json', 'html', 'lcov'],
 
       // Only include source files
-      include: [
-        'src/hooks/**/*.{ts,tsx}',
-        'src/contexts/**/*.{ts,tsx}',
-        'src/app/api/**/*.ts',
-        'src/lib/**/*.ts',
-      ],
+      include: ['src/hooks/**/*.{ts,tsx}', 'src/contexts/**/*.{ts,tsx}', 'src/app/api/**/*.ts', 'src/lib/**/*.ts'],
 
       // Exclude test files and types
-      exclude: [
-        '**/__tests__/**',
-        '**/*.test.{ts,tsx}',
-        '**/*.spec.{ts,tsx}',
-        '**/node_modules/**',
-        '**/types/**',
-        '**/config/**',
-        '**/*.d.ts',
-      ],
+      exclude: ['**/__tests__/**', '**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}', '**/node_modules/**', '**/types/**', '**/config/**', '**/*.d.ts'],
 
       // Coverage thresholds
       thresholds: {

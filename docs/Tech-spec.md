@@ -153,22 +153,22 @@ Following Midnight's privacy-first approach, the DApp ensures:
 **Critical dependencies requiring coordination:**
 
 1. **Cardano mapping validator contract**
-    - Smart contract deployment details
-    - Contract interface and ABI specifications
-    - Integration documentation and examples
-    - Testnet deployment endpoints
+   - Smart contract deployment details
+   - Contract interface and ABI specifications
+   - Integration documentation and examples
+   - Testnet deployment endpoints
 
 2. **DUST generation data access**
-    - API endpoints or GraphQL schema
-    - Authentication and authorization mechanisms
-    - Real-time update protocols (WebSocket/polling)
-    - Data format specifications and examples
+   - API endpoints or GraphQL schema
+   - Authentication and authorization mechanisms
+   - Real-time update protocols (WebSocket/polling)
+   - Data format specifications and examples
 
 3. **Cross-chain event handling (documentation)**
-    - CMST (Cardano-based Midnight System Transactions) integration
-    - Event listening and processing patterns
-    - Error handling and retry mechanisms
-    - Synchronization protocols between networks
+   - CMST (Cardano-based Midnight System Transactions) integration
+   - Event listening and processing patterns
+   - Error handling and retry mechanisms
+   - Synchronization protocols between networks
 
 ### **External dependencies**
 
@@ -194,8 +194,8 @@ User Story: _"I want to connect my Cardano wallet to the DApp."_
 3. DApp requests access using CIP-30 compatible wallets (e.g., Lace, Eternl, Nami).
 4. System retrieves wallet address and verifies connection.
 5. DApp checks the backend for existing mapping status.
-    - If registered → Proceed to View DUST Status workflow.
-    - If not registered → Proceed to Register Mapping workflow.
+   - If registered → Proceed to View DUST Status workflow.
+   - If not registered → Proceed to Register Mapping workflow.
 
 ### **2\. Register Mapping**
 
@@ -203,8 +203,8 @@ User Story: _"I want to register a mapping between my Cardano wallet and my Midn
 
 1. User enters or selects a Midnight DUST address.
 2. DApp validates:
-    - The connected Cardano wallet holds cNIGHT tokens.
-    - The Midnight address format is valid.
+   - The connected Cardano wallet holds cNIGHT tokens.
+   - The Midnight address format is valid.
 
 3. User confirms mapping.
 4. Wallet prompts for transaction signing to store mapping on-chain.
@@ -238,8 +238,8 @@ User Story: _"I want to recover or re-register after address loss, accidental de
 
 1. User connects to the Cardano wallet.
 2. Backend detects:
-    - Missing or outdated mapping record.
-    - Chain reorganization affecting registration UTxO.
+   - Missing or outdated mapping record.
+   - Chain reorganization affecting registration UTxO.
 3. DApp prompts the user to re-enter or confirm their Midnight DUST address.
 4. User signs a re-registration transaction.
 5. Backend verifies UTxO and mapping, then restores DUST production.
@@ -250,13 +250,13 @@ User Story: _"I want to see how much DUST I've generated from my cNIGHT holdings
 
 1. User accesses the dashboard.
 2. Backend sends:
-    - Total generated DUST balance.
-    - Status of current production (active/inactive).
+   - Total generated DUST balance.
+   - Status of current production (active/inactive).
 3. DApp decrypts balance locally using a viewing key.
 4. Dashboard displays:
-    - Current DUST balance.
-    - Generation rate and decay timeline.
-    - Graph of production history.
+   - Current DUST balance.
+   - Generation rate and decay timeline.
+   - Graph of production history.
 
 ### **7\. Display UTxO Status and Activation**
 
@@ -265,8 +265,8 @@ User Story: _"I want to see which of my UTxOs are producing DUST."_
 1. From the dashboard, user opens UTxO Details.
 2. Backend provides a list of UTxOs and their production status.
 3. DApp shows:
-    - Active UTxOs generating DUST.
-    - Inactive UTxOs and reasons (e.g., not eligible, deregistered).
+   - Active UTxOs generating DUST.
+   - Inactive UTxOs and reasons (e.g., not eligible, deregistered).
 4. User can filter or sort UTxOs for clarity.
 
 **UI Definitions**

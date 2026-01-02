@@ -56,15 +56,15 @@ When the user clicks "STOP GENERATION", the modal invokes the parent handler:
 
 ```typescript
 const handleStop = async () => {
-    try {
-        await onStopGeneration();
-    } catch (error) {
-        showToast({
-            message: error instanceof Error ? error.message : 'Failed to stop generation',
-            type: 'error',
-            duration: 5000,
-        });
-    }
+  try {
+    await onStopGeneration();
+  } catch (error) {
+    showToast({
+      message: error instanceof Error ? error.message : 'Failed to stop generation',
+      type: 'error',
+      duration: 5000,
+    });
+  }
 };
 ```
 
@@ -186,8 +186,8 @@ Once the transaction succeeds:
 
 ```typescript
 if (transactionState === 'success') {
-    transaction.resetTransaction();
-    handleDisconnect();
+  transaction.resetTransaction();
+  handleDisconnect();
 }
 ```
 
@@ -197,17 +197,17 @@ The `handleDisconnect` function performs cleanup:
 
 ```typescript
 const handleDisconnect = async () => {
-    setIsDisconnecting(true);
+  setIsDisconnecting(true);
 
-    // Add small delay for better UX
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  // Add small delay for better UX
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Disconnect both wallets and clear localStorage
-    disconnectCardanoWallet();
-    disconnectMidnightWallet();
+  // Disconnect both wallets and clear localStorage
+  disconnectCardanoWallet();
+  disconnectMidnightWallet();
 
-    // Redirect to home
-    router.push('/');
+  // Redirect to home
+  router.push('/');
 };
 ```
 
@@ -227,23 +227,23 @@ Once the user is redirected to the home page, the routing effect prevents re-ent
 
 ```typescript
 useEffect(() => {
-    if (isAutoReconnecting || isLoadingRegistrationUtxo) {
-        return;
-    }
+  if (isAutoReconnecting || isLoadingRegistrationUtxo) {
+    return;
+  }
 
-    if (!cardanoState.isConnected) {
-        return;
-    }
+  if (!cardanoState.isConnected) {
+    return;
+  }
 
-    if (registrationUtxo) {
-        if (pathname !== '/dashboard') {
-            router.push('/dashboard');
-        }
-    } else {
-        if (pathname === '/dashboard') {
-            router.push('/');
-        }
+  if (registrationUtxo) {
+    if (pathname !== '/dashboard') {
+      router.push('/dashboard');
     }
+  } else {
+    if (pathname === '/dashboard') {
+      router.push('/');
+    }
+  }
 }, [registrationUtxo, isLoadingRegistrationUtxo, cardanoState.isConnected, pathname, router]);
 ```
 
