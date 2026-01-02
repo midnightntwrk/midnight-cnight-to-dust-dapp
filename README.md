@@ -81,6 +81,7 @@ The application supports three main transaction types for managing address mappi
 Creates a new on-chain mapping between a Cardano address and a Midnight address.
 
 **Key Steps:**
+
 1. Connect Cardano wallet
 2. Connect Midnight wallet or enter Midnight address manually
 3. Execute registration transaction (mints authentication token, creates registration UTXO)
@@ -88,6 +89,7 @@ Creates a new on-chain mapping between a Cardano address and a Midnight address.
 5. Automatic redirect to dashboard
 
 **Transaction Structure:**
+
 - Mints: 2 authentication tokens (minting policy + named token)
 - Output: Registration UTXO with 1.586080 ADA, auth token, and inline datum containing address mapping
 - On-chain result: UTXO at DUST Mapping Validator address proving registration
@@ -99,12 +101,14 @@ See [**REGISTRATION.md**](./docs/REGISTRATION.md) for complete technical details
 Modifies the Midnight address in an existing registration while keeping the Cardano address unchanged.
 
 **Key Steps:**
+
 1. Enter new Midnight address in dashboard
 2. Execute update transaction (consumes old UTXO, creates new one)
 3. Poll for confirmation and new UTXO
 4. Dashboard updates with new address
 
 **Transaction Structure:**
+
 - Consumes: Existing registration UTXO
 - Mints: 1 spend policy token (Constructor 1 = Update)
 - Output: New registration UTXO with updated datum (same auth token preserved)
@@ -117,12 +121,14 @@ See [**UPDATE.md**](./docs/UPDATE.md) for complete technical details.
 Permanently removes the address mapping and stops DUST generation.
 
 **Key Steps:**
+
 1. Click "Stop Generation" in dashboard
 2. Confirm deregistration warning
 3. Execute deregistration transaction (consumes UTXO, burns auth token)
 4. Automatic wallet disconnect and redirect to home
 
 **Transaction Structure:**
+
 - Consumes: Registration UTXO
 - Mints: 2 tokens (burning policy + spend policy Constructor 0 = Deregister)
 - Burns: -1 auth token (negative mint)
@@ -142,6 +148,7 @@ The application provides three API routes for blockchain interaction and registr
 Server-side proxy that forwards requests to Blockfrost API while keeping API keys secure. Supports all HTTP methods and streams responses for optimal performance.
 
 **Purpose:**
+
 - Hide Blockfrost API keys from client-side code
 - Enable client-side Lucid transaction building
 - Query blockchain data for UTXO searches and transaction confirmation
@@ -149,27 +156,32 @@ Server-side proxy that forwards requests to Blockfrost API while keeping API key
 ### DUST Generation Status API
 
 **Endpoints:**
+
 - `GET /api/dust/generation-status/[key]` - Query single stake key
 - `GET /api/dust/generation-status` - Query multiple stake keys (batch)
 
 GraphQL-based API for querying registration status from the Midnight Indexer.
 
 **Response Format:**
+
 ```json
 {
-  "success": true,
-  "data": [{
-    "cardanoRewardAddress": "stake1...",
-    "dustAddress": "mn1q...",
-    "registered": true,
-    "nightBalance": "1000000",
-    "generationRate": "8267000000",
-    "currentCapacity": "2500000000000000000"
-  }]
+    "success": true,
+    "data": [
+        {
+            "cardanoRewardAddress": "stake1...",
+            "dustAddress": "mn1q...",
+            "registered": true,
+            "nightBalance": "1000000",
+            "generationRate": "8267000000",
+            "currentCapacity": "2500000000000000000"
+        }
+    ]
 }
 ```
 
 **Field Descriptions:**
+
 - `cardanoRewardAddress`: The Cardano stake address (bech32 format: `stake1...` or `stake_test1...`)
 - `dustAddress`: The Midnight address where DUST is generated (null if not registered)
 - `registered`: Boolean flag indicating if the address mapping is active
@@ -203,6 +215,7 @@ The dashboard includes an interactive lifecycle chart that visualizes DUST gener
 - **Syncing** - Indexer is syncing registration data (amber indicator with pulse animation)
 
 **Availability:** The chart accordion is automatically disabled when:
+
 - The indexer is still syncing registration data
 - The current DUST balance is 0 (no generation has started yet)
 
@@ -262,8 +275,8 @@ See [**DAPP_INTEGRATION_GUIDE.md**](./DAPP_INTEGRATION_GUIDE.md) for complete sm
 - **UI:** HeroUI component library with Tailwind CSS 4.x
 - **Type Safety:** TypeScript with strict mode
 - **Blockchain:**
-  - Cardano: Lucid Evolution v0.4.29 for transaction building
-  - Midnight: Wallet API v5.0.0 for shielded address support
+    - Cardano: Lucid Evolution v0.4.29 for transaction building
+    - Midnight: Wallet API v5.0.0 for shielded address support
 - **State Management:** React Context API
 - **Data Fetching:** GraphQL via graphql-request, REST endpoints
 

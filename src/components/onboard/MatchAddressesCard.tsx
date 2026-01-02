@@ -45,7 +45,7 @@ export default function MatchAddressesCard({
     const hasEnoughBalance = hasMinimumBalance(cardanoBalanceADA);
 
     const isMatching = transaction.isCurrentTransaction('register') && transaction.isAnyTransactionRunning();
-    const disabled = 
+    const disabled =
         // Disable if insufficient balance
         !hasEnoughBalance ||
         // Disable during any transaction execution
@@ -98,11 +98,7 @@ export default function MatchAddressesCard({
 
                         <div className="text-gray-400 text-sm">
                             ADA Balance: <span className={`font-medium ${hasEnoughBalance ? 'text-white' : 'text-red-400'}`}>{cardanoBalanceADA} ADA</span>
-                            {!hasEnoughBalance && (
-                                <span className="text-red-400 ml-2 text-xs">
-                                    (Min. {MIN_ADA_FOR_REGISTRATION} ADA required)
-                                </span>
-                            )}
+                            {!hasEnoughBalance && <span className="text-red-400 ml-2 text-xs">(Min. {MIN_ADA_FOR_REGISTRATION} ADA required)</span>}
                         </div>
 
                         <div className="text-gray-400 text-sm">
@@ -169,11 +165,10 @@ export default function MatchAddressesCard({
                         {isMatching
                             ? 'MATCHING...'
                             : transaction.isCurrentTransaction('register') && transaction.transactionState === 'success'
-                            ? 'REGISTRATION COMPLETED ✅'
-                            : !hasEnoughBalance
-                            ? `INSUFFICIENT BALANCE (Min. ${MIN_ADA_FOR_REGISTRATION} ADA)`
-                            : 'MATCH ADDRESSES'
-                            }
+                              ? 'REGISTRATION COMPLETED ✅'
+                              : !hasEnoughBalance
+                                ? `INSUFFICIENT BALANCE (Min. ${MIN_ADA_FOR_REGISTRATION} ADA)`
+                                : 'MATCH ADDRESSES'}
                     </Button>
                 </CardBody>
             </Card>

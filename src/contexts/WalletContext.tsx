@@ -136,7 +136,12 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     // Generation status hook - queries the Midnight indexer using reward address
     // This runs in parallel with the Blockfrost-based registration UTXO check
-    const { data: generationStatus, isLoading: isCheckingRegistration, error: registrationError, refetch: refetchGenerationStatus } = useGenerationStatus(cardanoState.rewardAddress);
+    const {
+        data: generationStatus,
+        isLoading: isCheckingRegistration,
+        error: registrationError,
+        refetch: refetchGenerationStatus,
+    } = useGenerationStatus(cardanoState.rewardAddress);
 
     // Registration UTXO hook
     const {
@@ -201,7 +206,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
             const cardanoPaymentCredentialHash = cardanoAddressDetails?.paymentCredential?.hash;
             const cardanoStakeKeyHash = cardanoAddressDetails?.stakeCredential?.hash;
-            
+
             // Get reward address using lucid
             let stakeAddressBech32: string | null = null;
             try {
@@ -373,7 +378,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
             // Get Dust balance
             let dustBalance: string | null = null;
-            
+
             try {
                 if (typeof api.getDustBalance === 'function') {
                     logger.log('[Wallet]', 'Fetching Dust balance...');
@@ -395,10 +400,10 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
             // Use Dust address as the main address for this wallet connection
             const address = dustAddress;
-            logger.log('[Wallet]', '✅ Final Midnight wallet data:', { 
-                address: dustAddress, 
+            logger.log('[Wallet]', '✅ Final Midnight wallet data:', {
+                address: dustAddress,
                 coinPublicKey,
-                dustBalance 
+                dustBalance,
             });
 
             const balance = 'N/A (Shield address)';

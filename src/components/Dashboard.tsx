@@ -137,10 +137,10 @@ export default function Dashboard() {
                                 <Tooltip
                                     content={
                                         isIndexerSyncing
-                                            ? "Chart will be available once indexer syncs"
+                                            ? 'Chart will be available once indexer syncs'
                                             : dustBalance === 0
-                                            ? "Chart will be available once you start generating DUST"
-                                            : "Visual representation of your DUST generation progress over time"
+                                              ? 'Chart will be available once you start generating DUST'
+                                              : 'Visual representation of your DUST generation progress over time'
                                     }
                                     placement="top"
                                     classNames={{

@@ -29,7 +29,7 @@ const ConnectMidnightWallet: React.FC = () => {
                 <div>
                     <h3>✅ Midnight Wallet Connected</h3>
                     <p>
-                        <strong>Wallet:</strong> {walletName ? (walletInfo[walletName]?.name || walletName) : 'Unknown'}
+                        <strong>Wallet:</strong> {walletName ? walletInfo[walletName]?.name || walletName : 'Unknown'}
                     </p>
                     <p>
                         <strong>Balance:</strong> {balance}

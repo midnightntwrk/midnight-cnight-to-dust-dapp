@@ -69,7 +69,7 @@ function validateOrigin(request: NextRequest): boolean {
 
     // Check origin header first (most reliable)
     if (origin) {
-        const isAllowed = ALLOWED_ORIGINS.some(allowed => origin.startsWith(allowed));
+        const isAllowed = ALLOWED_ORIGINS.some((allowed) => origin.startsWith(allowed));
         if (isAllowed) {
             logger.debug('[BlockfrostSecurity]', `Valid origin: ${origin}`);
             return true;
@@ -78,7 +78,7 @@ function validateOrigin(request: NextRequest): boolean {
 
     // Fallback to referer header
     if (referer) {
-        const isAllowed = ALLOWED_ORIGINS.some(allowed => referer.startsWith(allowed));
+        const isAllowed = ALLOWED_ORIGINS.some((allowed) => referer.startsWith(allowed));
         if (isAllowed) {
             logger.debug('[BlockfrostSecurity]', `Valid referer: ${referer}`);
             return true;
@@ -100,9 +100,7 @@ function validateOrigin(request: NextRequest): boolean {
  */
 function addCorsHeaders(headers: Headers, origin: string | null): void {
     // Allow specific origin or fallback to first allowed origin
-    const allowedOrigin = origin && ALLOWED_ORIGINS.some(allowed => origin.startsWith(allowed))
-        ? origin
-        : ALLOWED_ORIGINS[0];
+    const allowedOrigin = origin && ALLOWED_ORIGINS.some((allowed) => origin.startsWith(allowed)) ? origin : ALLOWED_ORIGINS[0];
 
     headers.set('Access-Control-Allow-Origin', allowedOrigin);
     headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
@@ -146,17 +144,12 @@ async function handleRequest(request: NextRequest) {
     const startTime = Date.now();
     const origin = request.headers.get('origin');
 
-
-
     // SECURITY: Validate origin/referer before processing
     if (!validateOrigin(request)) {
         const headers = new Headers();
         addCorsHeaders(headers, origin);
 
-        return Response.json(
-            { error: 'Forbidden - Invalid origin' },
-            { status: 403, headers }
-        );
+        return Response.json({ error: 'Forbidden - Invalid origin' }, { status: 403, headers });
     }
 
     const { BLOCKFROST_URL, BLOCKFROST_KEY } = await import('@/config/network');
@@ -249,7 +242,7 @@ async function handleRequest(request: NextRequest) {
         // Copy important headers from the response
         const importantHeaders = ['content-type', 'content-length', 'cache-control', 'etag'];
 
-        importantHeaders.forEach(headerName => {
+        importantHeaders.forEach((headerName) => {
             const value = fetchResponse.headers.get(headerName);
             if (value) {
                 responseHeaders.set(headerName, value);
@@ -304,7 +297,6 @@ async function handleRequest(request: NextRequest) {
             statusText: fetchResponse.statusText,
             headers: responseHeaders,
         });
-
     } catch (error) {
         const duration = Date.now() - startTime;
         const isDevelopment = process.env.NODE_ENV === 'development';
@@ -314,21 +306,22 @@ async function handleRequest(request: NextRequest) {
             stack: error instanceof Error ? error.stack : undefined,
             duration: `${duration}ms`,
             pathname: pathname,
-            method: request.method
+            method: request.method,
         });
 
         // In production, return generic error message to prevent information leakage
-        const errorMessage = isDevelopment && error instanceof Error
-            ? error.message
-            : 'An error occurred while processing your request. Please try again later.';
+        const errorMessage = isDevelopment && error instanceof Error ? error.message : 'An error occurred while processing your request. Please try again later.';
 
         // Add CORS headers to error response
         const errorHeaders = new Headers();
         addCorsHeaders(errorHeaders, origin);
 
-        return Response.json({
-            error: errorMessage,
-            timestamp: new Date().toISOString()
-        }, { status: 500, headers: errorHeaders });
+        return Response.json(
+            {
+                error: errorMessage,
+                timestamp: new Date().toISOString(),
+            },
+            { status: 500, headers: errorHeaders }
+        );
     }
 }

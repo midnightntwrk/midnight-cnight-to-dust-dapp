@@ -12,7 +12,6 @@ export default function WalletsModal({
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
 }) {
-
     const walletInfo = {
         nami: { name: 'Nami', icon: '🦎' },
         eternl: { name: 'Eternl', icon: '♾️' },

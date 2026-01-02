@@ -27,7 +27,7 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
 
     const handleAddressChange = (value: string) => {
         setNewAddress(value);
-        
+
         // Validate as Dust address if not empty
         if (!value.trim()) {
             setIsValidAddress(true); // Empty is valid (not an error state)
@@ -47,13 +47,13 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
         if (!newCoinPublicKey) {
             showToast({
                 message: 'Failed to convert Dust address to bytes. Please check the address format.',
-                type: 'error'
+                type: 'error',
             });
             return;
         }
 
         logger.debug('[UpdateAddressModal]', 'Updating Midnight address', {
-            coinPublicKeyLength: newCoinPublicKey.length
+            coinPublicKeyLength: newCoinPublicKey.length,
         });
 
         try {
@@ -61,7 +61,7 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
         } catch (error) {
             showToast({
                 message: error instanceof Error ? error.message : 'Failed to update address',
-                type: 'error'
+                type: 'error',
             });
         }
     };
@@ -137,9 +137,7 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
                         </div>
                     </ModalHeader>
                     <ModalBody className="pb-6">
-                        <p className="text-gray-300 text-sm mb-4">
-                            This address will receive your generated DUST tokens. Make sure you control this address.
-                        </p>
+                        <p className="text-gray-300 text-sm mb-4">This address will receive your generated DUST tokens. Make sure you control this address.</p>
 
                         <div className="mb-4">
                             <Textarea

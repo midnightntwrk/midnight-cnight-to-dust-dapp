@@ -128,10 +128,7 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
                     // Calculate next backoff interval with exponential growth
                     // Formula: min(INITIAL * (MULTIPLIER ^ (attempt - 1)), MAX)
                     // Results: 10s → 13s → 16.9s → 22s → 28.6s → 30s → 30s...
-                    const nextInterval = Math.min(
-                        INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, attempt - 1),
-                        MAX_INTERVAL_MS
-                    );
+                    const nextInterval = Math.min(INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, attempt - 1), MAX_INTERVAL_MS);
 
                     // Schedule next poll with calculated backoff
                     const waitTime = Math.min(nextInterval, timeRemaining);
@@ -139,7 +136,6 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
 
                     // Store timeout ID so it can be cancelled
                     activePollingTimeoutRef.current = setTimeout(poll, waitTime);
-
                 } catch (err) {
                     logger.error('[Transaction]', 'Error during polling', err);
                     cleanup();

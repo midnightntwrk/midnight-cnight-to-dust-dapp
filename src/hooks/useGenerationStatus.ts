@@ -21,59 +21,62 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
     const [error, setError] = useState<string | null>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
 
-    const fetchGenerationStatus = useCallback(async (signal?: AbortSignal) => {
-        if (!rewardAddress) {
-            return;
-        }
-
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            // Reward address is already in bech32 format (stake_test1... or stake1...)
-            // URL encode it to handle special characters
-            const response = await fetch(`/api/dust/generation-status/${encodeURIComponent(rewardAddress)}`, {
-                signal: signal,
-            });
-
-            if (!response.ok) {
-                if (response.status === 404) {
-                    // User not registered - this is expected for new users
-                    setData(null);
-                    return;
-                }
-                const errorBody = await response.json().catch(() => ({}));
-                logger.error('[Indexer:GenerationStatus]', 'HTTP error', {
-                    status: response.status,
-                    statusText: response.statusText,
-                    error: errorBody,
-                });
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const result = await response.json();
-
-            if (result.success && result.data && result.data.length > 0) {
-                const statusData = result.data[0];
-                logger.debug('[Indexer:GenerationStatus]', 'Generation status retrieved', {
-                    registered: statusData.registered,
-                });
-                setData(statusData);
-            } else {
-                setData(null);
-            }
-        } catch (err) {
-            // Don't set error state if the request was aborted
-            if (err instanceof Error && err.name === 'AbortError') {
+    const fetchGenerationStatus = useCallback(
+        async (signal?: AbortSignal) => {
+            if (!rewardAddress) {
                 return;
             }
-            logger.error('[Indexer:GenerationStatus]', 'Failed to fetch generation status', err);
-            setError(err instanceof Error ? err.message : 'Failed to fetch generation status');
-            setData(null);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [rewardAddress]);
+
+            setIsLoading(true);
+            setError(null);
+
+            try {
+                // Reward address is already in bech32 format (stake_test1... or stake1...)
+                // URL encode it to handle special characters
+                const response = await fetch(`/api/dust/generation-status/${encodeURIComponent(rewardAddress)}`, {
+                    signal: signal,
+                });
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        // User not registered - this is expected for new users
+                        setData(null);
+                        return;
+                    }
+                    const errorBody = await response.json().catch(() => ({}));
+                    logger.error('[Indexer:GenerationStatus]', 'HTTP error', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        error: errorBody,
+                    });
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+
+                if (result.success && result.data && result.data.length > 0) {
+                    const statusData = result.data[0];
+                    logger.debug('[Indexer:GenerationStatus]', 'Generation status retrieved', {
+                        registered: statusData.registered,
+                    });
+                    setData(statusData);
+                } else {
+                    setData(null);
+                }
+            } catch (err) {
+                // Don't set error state if the request was aborted
+                if (err instanceof Error && err.name === 'AbortError') {
+                    return;
+                }
+                logger.error('[Indexer:GenerationStatus]', 'Failed to fetch generation status', err);
+                setError(err instanceof Error ? err.message : 'Failed to fetch generation status');
+                setData(null);
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [rewardAddress]
+    );
 
     const refetch = useCallback(() => {
         if (rewardAddress) {

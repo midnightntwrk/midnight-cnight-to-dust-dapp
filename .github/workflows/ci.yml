@@ -94,4 +94,3 @@ jobs:
           name: build
           path: .next
           retention-days: 7
-

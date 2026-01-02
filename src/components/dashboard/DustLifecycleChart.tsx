@@ -3,32 +3,13 @@
 import React, { useCallback, useMemo } from 'react';
 import { useWalletContext } from '@/contexts/WalletContext';
 import { Chip } from '@heroui/react';
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend,
-    ChartOptions,
-} from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ChartOptions } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import annotationPlugin from 'chartjs-plugin-annotation';
 import { formatNumber } from '@/lib/utils';
 
 // Register Chart.js components
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend,
-    annotationPlugin
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin);
 
 type LifecycleCase = 'generating' | 'capped' | 'decaying' | 'syncing';
 
@@ -100,7 +81,7 @@ export default function DustLifecycleChart() {
 
     // Trigger fade animation when case changes
     React.useEffect(() => {
-        setFadeKey(prev => prev + 1);
+        setFadeKey((prev) => prev + 1);
     }, [lifecycleCase]);
 
     const labels = useCallback(() => {
@@ -252,14 +233,8 @@ export default function DustLifecycleChart() {
                 label: 'Point Glow Layer 3',
                 data: yourPositionPoint(),
                 borderColor: 'transparent',
-                backgroundColor: lifecycleCase === 'decaying'
-                    ? `rgba(239, 68, 68, ${pulseOpacity * 0.1})`
-                    : `rgba(52, 199, 89, ${pulseOpacity * 0.1})`,
-                pointRadius: lifecycleCase === 'generating' || lifecycleCase === 'syncing'
-                    ? [0, 18, 0, 0]
-                    : lifecycleCase === 'capped'
-                    ? [0, 0, 18, 0]
-                    : [0, 0, 0, 0, 18, 0],
+                backgroundColor: lifecycleCase === 'decaying' ? `rgba(239, 68, 68, ${pulseOpacity * 0.1})` : `rgba(52, 199, 89, ${pulseOpacity * 0.1})`,
+                pointRadius: lifecycleCase === 'generating' || lifecycleCase === 'syncing' ? [0, 18, 0, 0] : lifecycleCase === 'capped' ? [0, 0, 18, 0] : [0, 0, 0, 0, 18, 0],
                 pointBorderWidth: 0,
                 showLine: false,
                 order: 3,
@@ -268,14 +243,8 @@ export default function DustLifecycleChart() {
                 label: 'Point Glow Layer 2',
                 data: yourPositionPoint(),
                 borderColor: 'transparent',
-                backgroundColor: lifecycleCase === 'decaying'
-                    ? `rgba(239, 68, 68, ${pulseOpacity * 0.2})`
-                    : `rgba(52, 199, 89, ${pulseOpacity * 0.2})`,
-                pointRadius: lifecycleCase === 'generating' || lifecycleCase === 'syncing'
-                    ? [0, 12, 0, 0]
-                    : lifecycleCase === 'capped'
-                    ? [0, 0, 12, 0]
-                    : [0, 0, 0, 0, 12, 0],
+                backgroundColor: lifecycleCase === 'decaying' ? `rgba(239, 68, 68, ${pulseOpacity * 0.2})` : `rgba(52, 199, 89, ${pulseOpacity * 0.2})`,
+                pointRadius: lifecycleCase === 'generating' || lifecycleCase === 'syncing' ? [0, 12, 0, 0] : lifecycleCase === 'capped' ? [0, 0, 12, 0] : [0, 0, 0, 0, 12, 0],
                 pointBorderWidth: 0,
                 showLine: false,
                 order: 2,
@@ -284,14 +253,8 @@ export default function DustLifecycleChart() {
                 label: 'Point Glow Layer 1',
                 data: yourPositionPoint(),
                 borderColor: 'transparent',
-                backgroundColor: lifecycleCase === 'decaying'
-                    ? `rgba(239, 68, 68, ${pulseOpacity * 0.4})`
-                    : `rgba(52, 199, 89, ${pulseOpacity * 0.4})`,
-                pointRadius: lifecycleCase === 'generating' || lifecycleCase === 'syncing'
-                    ? [0, 8, 0, 0]
-                    : lifecycleCase === 'capped'
-                    ? [0, 0, 8, 0]
-                    : [0, 0, 0, 0, 8, 0],
+                backgroundColor: lifecycleCase === 'decaying' ? `rgba(239, 68, 68, ${pulseOpacity * 0.4})` : `rgba(52, 199, 89, ${pulseOpacity * 0.4})`,
+                pointRadius: lifecycleCase === 'generating' || lifecycleCase === 'syncing' ? [0, 8, 0, 0] : lifecycleCase === 'capped' ? [0, 0, 8, 0] : [0, 0, 0, 0, 8, 0],
                 pointBorderWidth: 0,
                 showLine: false,
                 order: 1,
@@ -300,21 +263,11 @@ export default function DustLifecycleChart() {
             {
                 label: 'Current Position Point',
                 data: yourPositionPoint(),
-                borderColor: lifecycleCase === 'decaying'
-                    ? `rgba(239, 68, 68, ${pulseOpacity})`
-                    : `rgba(52, 199, 89, ${pulseOpacity})`,
-                backgroundColor: lifecycleCase === 'decaying'
-                    ? `rgba(239, 68, 68, ${pulseOpacity})`
-                    : `rgba(52, 199, 89, ${pulseOpacity})`,
-                pointRadius: lifecycleCase === 'generating' || lifecycleCase === 'syncing'
-                    ? [0, 5, 0, 0]
-                    : lifecycleCase === 'capped'
-                    ? [0, 0, 5, 0]
-                    : [0, 0, 0, 0, 5, 0],
+                borderColor: lifecycleCase === 'decaying' ? `rgba(239, 68, 68, ${pulseOpacity})` : `rgba(52, 199, 89, ${pulseOpacity})`,
+                backgroundColor: lifecycleCase === 'decaying' ? `rgba(239, 68, 68, ${pulseOpacity})` : `rgba(52, 199, 89, ${pulseOpacity})`,
+                pointRadius: lifecycleCase === 'generating' || lifecycleCase === 'syncing' ? [0, 5, 0, 0] : lifecycleCase === 'capped' ? [0, 0, 5, 0] : [0, 0, 0, 0, 5, 0],
                 pointBorderWidth: 2,
-                pointBorderColor: lifecycleCase === 'decaying'
-                    ? `rgba(239, 68, 68, ${pulseOpacity})`
-                    : `rgba(52, 199, 89, ${pulseOpacity})`,
+                pointBorderColor: lifecycleCase === 'decaying' ? `rgba(239, 68, 68, ${pulseOpacity})` : `rgba(52, 199, 89, ${pulseOpacity})`,
                 showLine: false,
                 order: 0,
             },
@@ -448,21 +401,13 @@ export default function DustLifecycleChart() {
             <div className="flex flex-col gap-4">
                 {/* Status Indicator */}
                 <div className="flex justify-center">
-                    <Chip
-                        color={statusConfig.color}
-                        variant="flat"
-                        size="lg"
-                        className={lifecycleCase === 'syncing' ? 'animate-pulse' : ''}
-                    >
+                    <Chip color={statusConfig.color} variant="flat" size="lg" className={lifecycleCase === 'syncing' ? 'animate-pulse' : ''}>
                         {statusConfig.label}
                     </Chip>
                 </div>
 
                 {/* Chart */}
-                <div
-                    key={fadeKey}
-                    className="rounded-lg p-6 animate-in fade-in duration-500"
-                >
+                <div key={fadeKey} className="rounded-lg p-6 animate-in fade-in duration-500">
                     <Line data={data} options={options} />
                 </div>
 
@@ -478,17 +423,13 @@ export default function DustLifecycleChart() {
 
                     <div className="flex flex-col gap-1">
                         <span className="text-gray-400 text-sm">Generation Rate</span>
-                        <span className={`text-xl font-bold ${statusConfig.textColor} ${lifecycleCase === 'syncing' ? 'animate-pulse' : ''}`}>
-                            {formatGenerationRate()} DUST/H
-                        </span>
+                        <span className={`text-xl font-bold ${statusConfig.textColor} ${lifecycleCase === 'syncing' ? 'animate-pulse' : ''}`}>{formatGenerationRate()} DUST/H</span>
                         <span className="text-blue-400 text-xs">(Shielded)</span>
                     </div>
 
                     <div className="flex flex-col gap-1">
                         <span className="text-gray-400 text-sm">Generation CAP</span>
-                        <span className="text-orange-400 text-xl font-bold">
-                            {formatNumber(generationCap)} DUST
-                        </span>
+                        <span className="text-orange-400 text-xl font-bold">{formatNumber(generationCap)} DUST</span>
                         <span className="text-blue-400 text-xs">(Shielded)</span>
                     </div>
 
@@ -501,11 +442,10 @@ export default function DustLifecycleChart() {
                             {lifecycleCase === 'generating'
                                 ? 'Generating...'
                                 : lifecycleCase === 'capped'
-                                ? '(Capped)'
-                                : lifecycleCase === 'decaying'
-                                ? '(Decaying)'
-                                : '(Syncing...)'
-                            }
+                                  ? '(Capped)'
+                                  : lifecycleCase === 'decaying'
+                                    ? '(Decaying)'
+                                    : '(Syncing...)'}
                         </span>
                     </div>
                 </div>

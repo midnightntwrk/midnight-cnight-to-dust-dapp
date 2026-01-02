@@ -3,6 +3,7 @@
 ## Quick Start
 
 ### Prerequisites
+
 - Docker 20.10+
 - Docker Compose 2.0+ (optional)
 
@@ -40,6 +41,7 @@ docker-compose down
 All environment variables are loaded from `.env` file. Copy `EXAMPLE.env` to `.env` and configure:
 
 **Required:**
+
 - `NEXT_PUBLIC_CARDANO_NET` - Network: Mainnet, Preview, Preprod
 - `BLOCKFROST_KEY_*` - Blockfrost API keys for each network
 - `NEXT_PUBLIC_*_CNIGHT_CURRENCY_POLICY_ID` - cNIGHT policy IDs
@@ -49,17 +51,20 @@ See `EXAMPLE.env` for full list of configuration options.
 ## Dockerfile Details
 
 ### Multi-stage Build
+
 1. **deps** - Installs dependencies with Yarn cache
 2. **builder** - Builds Next.js application
 3. **runner** - Minimal production image (Node 20 Alpine)
 
 ### Security Features
+
 - Runs as non-root user (nextjs:1001)
 - Minimal Alpine Linux base
 - No dev dependencies in final image
 - Healthcheck endpoint configured
 
 ### Image Size
+
 Expected final image size: ~250-300MB
 
 ## Healthcheck
@@ -76,6 +81,7 @@ Expected output: `healthy` (after ~10s startup period)
 ## Troubleshooting
 
 ### Container exits immediately
+
 ```bash
 # Check logs
 docker logs cnight-dapp
@@ -85,6 +91,7 @@ docker run -it --entrypoint /bin/sh protofire/midnight-cnight-to-dust-dapp:lates
 ```
 
 ### Environment variables not loading
+
 ```bash
 # Verify .env file exists and is readable
 cat .env
@@ -94,6 +101,7 @@ docker run -e NEXT_PUBLIC_CARDANO_NET=Preview -p 3000:3000 protofire/midnight-cn
 ```
 
 ### Build fails
+
 ```bash
 # Clear Docker build cache
 docker builder prune
@@ -105,14 +113,17 @@ docker build --no-cache -t protofire/midnight-cnight-to-dust-dapp:latest .
 ## GitHub Actions CI/CD
 
 This repository includes a GitHub Actions workflow (`.github/workflows/docker-build.yml`) that automatically:
+
 - Builds Docker images on push to main/develop
 - Pushes images to Docker Hub with tags:
-  - `:latest` (main branch)
-  - `:sha-<commit>` (all branches)
-  - `:pr-<number>` (pull requests)
+    - `:latest` (main branch)
+    - `:sha-<commit>` (all branches)
+    - `:pr-<number>` (pull requests)
 
 ### Setup Required
+
 Add these secrets in GitHub repository settings:
+
 - `DOCKER_USERNAME` - Docker Hub username
 - `DOCKER_PASSWORD` - Docker Hub access token
 
@@ -122,22 +133,22 @@ Add these secrets in GitHub repository settings:
 
 ```yaml
 services:
-  cnight-dapp:
-    image: protofire/midnight-cnight-to-dust-dapp:latest
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-    env_file:
-      - .env.production
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 512M
-        reservations:
-          memory: 256M
+    cnight-dapp:
+        image: protofire/midnight-cnight-to-dust-dapp:latest
+        ports:
+            - '3000:3000'
+        environment:
+            - NODE_ENV=production
+        env_file:
+            - .env.production
+        restart: unless-stopped
+        deploy:
+            resources:
+                limits:
+                    cpus: '1.0'
+                    memory: 512M
+                reservations:
+                    memory: 256M
 ```
 
 ### Running on Custom Port

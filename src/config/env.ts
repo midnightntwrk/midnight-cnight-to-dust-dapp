@@ -1,6 +1,6 @@
 /**
  * Environment Variable Validation
- * 
+ *
  * Centralized validation for all required environment variables.
  * Fails fast at startup with clear error messages.
  */
@@ -37,11 +37,7 @@ function validateUrl(name: string, value: string): string | null {
 /**
  * Validates that a value is one of the allowed options
  */
-function validateEnum<T extends string>(
-    name: string,
-    value: string | undefined,
-    allowedValues: readonly T[]
-): string | null {
+function validateEnum<T extends string>(name: string, value: string | undefined, allowedValues: readonly T[]): string | null {
     if (!value) {
         return `Missing required environment variable: ${name}`;
     }
@@ -93,11 +89,7 @@ export function validateEnv(): ValidationResult {
 
     // Validate network selection
     const cardanoNet = process.env.NEXT_PUBLIC_CARDANO_NET;
-    const networkError = validateEnum(
-        'NEXT_PUBLIC_CARDANO_NET',
-        cardanoNet,
-        ['Mainnet', 'Preview', 'Preprod', 'Emulator', 'Custom'] as const
-    );
+    const networkError = validateEnum('NEXT_PUBLIC_CARDANO_NET', cardanoNet, ['Mainnet', 'Preview', 'Preprod', 'Emulator', 'Custom'] as const);
     if (networkError) {
         errors.push(networkError);
         // If network is invalid, we can't continue with network-specific validation
@@ -140,7 +132,7 @@ export function validateEnv(): ValidationResult {
  */
 export function validateEnvOrThrow(): void {
     const result = validateEnv();
-    
+
     if (!result.isValid) {
         const errorMessage = [
             '❌ Environment variable validation failed:',
@@ -154,4 +146,3 @@ export function validateEnvOrThrow(): void {
         throw new Error(errorMessage);
     }
 }
-

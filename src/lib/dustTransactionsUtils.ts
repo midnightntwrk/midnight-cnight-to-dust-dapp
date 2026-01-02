@@ -116,7 +116,7 @@ export class DustTransactionsUtils {
 
         // Add signers: payment address + stake address
         txBuilder.addSigner(await lucid.wallet().address());
-        
+
         // Add stake address as signer to validate stake key hash
         const stakeAddress = await lucid.wallet().rewardAddress();
         if (stakeAddress) {
@@ -278,16 +278,16 @@ export class DustTransactionsUtils {
         try {
             // Use backend Blockfrost proxy - same pattern as useRegistrationUtxo
             const response = await fetch(`/api/blockfrost/accounts/${stakeAddress}`);
-            
+
             if (response.status === 200) {
                 const accountData = await response.json();
-                // Stake address is registered if it has EVER been active (has active_epoch) 
+                // Stake address is registered if it has EVER been active (has active_epoch)
                 // OR currently has a pool delegation
                 const isRegistered = accountData.active_epoch !== null || accountData.pool_id !== null;
                 logger.log('[DustTransactions]', `📊 Stake address registration status: ${isRegistered}`, {
                     active: accountData.active,
                     active_epoch: accountData.active_epoch,
-                    pool_id: accountData.pool_id
+                    pool_id: accountData.pool_id,
                 });
                 return isRegistered;
             } else if (response.status === 404) {
@@ -499,7 +499,7 @@ export class DustTransactionsUtils {
 
         // Add signers: payment address + stake address
         txBuilder.addSigner(await lucid.wallet().address());
-        
+
         // Add stake address as signer to validate stake key hash
         const stakeAddress = await lucid.wallet().rewardAddress();
         if (stakeAddress) {

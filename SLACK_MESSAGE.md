@@ -10,10 +10,10 @@ Just shipped a major update to our Midnight wallet integration:
 • Enhanced dashboard showing wallet data directly
 
 🔧 **Key Improvements:**
+
 - Registration now uses Dust addresses (not unshielded)
 - All address inputs validate using official SDK
 - Better UX with clear data source indicators
 - Future-proof wallet discovery system
 
 Ready for review! 🎯
-

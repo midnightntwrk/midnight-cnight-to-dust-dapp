@@ -21,6 +21,7 @@ User clicks "STOP GENERATION" button in the dashboard's Midnight Wallet Card.
 **Location**: `src/components/dashboard/MidnightWalletCard.tsx:315`
 
 The button is disabled if:
+
 - Registration UTXO is still loading
 - No registration UTXO found
 - Another transaction is currently running
@@ -32,6 +33,7 @@ The button is disabled if:
 The modal displays a warning to the user before proceeding with deregistration.
 
 **Modal Features**:
+
 - Shows the DUST address that will stop receiving tokens
 - Provides copy-to-clipboard functionality for the address
 - Warning message explaining the consequences
@@ -60,7 +62,7 @@ const handleStop = async () => {
         showToast({
             message: error instanceof Error ? error.message : 'Failed to stop generation',
             type: 'error',
-            duration: 5000
+            duration: 5000,
         });
     }
 };
@@ -85,11 +87,7 @@ If any validation fails, the process terminates with an appropriate error messag
 **Location**: `src/components/dashboard/MidnightWalletCard.tsx:106-110`
 
 ```typescript
-const unregistrationExecutor = DustTransactionsUtils.createUnregistrationExecutor(
-    cardano.lucid as LucidEvolution,
-    dustPKHValue,
-    registrationUtxo
-);
+const unregistrationExecutor = DustTransactionsUtils.createUnregistrationExecutor(cardano.lucid as LucidEvolution, dustPKHValue, registrationUtxo);
 ```
 
 This factory method returns a function that will build, sign, and submit the transaction.
@@ -99,15 +97,11 @@ This factory method returns a function that will build, sign, and submit the tra
 **Location**: `src/components/dashboard/MidnightWalletCard.tsx:112-117`
 
 ```typescript
-const transactionState = await transaction.executeTransaction(
-    'unregister',
-    unregistrationExecutor,
-    {},
-    cardano.lucid as LucidEvolution
-);
+const transactionState = await transaction.executeTransaction('unregister', unregistrationExecutor, {}, cardano.lucid as LucidEvolution);
 ```
 
 The `TransactionContext` manages the transaction lifecycle:
+
 - `preparing` - Building transaction
 - `signing` - Awaiting user approval
 - `submitting` - Broadcasting to network
@@ -121,15 +115,18 @@ The `TransactionContext` manages the transaction lifecycle:
 The transaction builder constructs a Cardano transaction with the following structure:
 
 ### Contract Instantiation
+
 - DUST Generator contract: `new Contracts.CnightGeneratesDustCnightGeneratesDustElse()`
 - Validator address derived from contract script
 
 ### Burn DUST NFT
+
 - Burns the DUST NFT token (-1 amount)
 - Uses policy ID from DUST Generator contract
 - Redeemer: `DustAction.Burn` (serialized to CBOR)
 
 ### Consumed Input
+
 - Existing registration UTXO from DUST Generator
 - Redeemer: `Data.void()` (unit type for deregistration)
 
@@ -138,6 +135,7 @@ The transaction builder constructs a Cardano transaction with the following stru
 No registration output is created. The registration UTXO is fully consumed, and all ADA (minus fees) is returned to the user's wallet as change.
 
 ### Scripts Attached
+
 ```typescript
 txBuilder.attach.MintingPolicy(blazeToLucidScript(dustGenerator.Script));
 txBuilder.attach.SpendingValidator(blazeToLucidScript(dustGenerator.Script));
@@ -154,6 +152,7 @@ const signedTx = await completedTx.sign.withWallet().complete();
 ```
 
 The user's Cardano wallet displays a popup showing transaction details:
+
 - Fee estimate
 - Input: Existing registration UTXO (LOVELACE_FOR_REGISTRATION ADA + NFT)
 - Burn: -1 DUST NFT token
@@ -201,7 +200,7 @@ const handleDisconnect = async () => {
     setIsDisconnecting(true);
 
     // Add small delay for better UX
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Disconnect both wallets and clear localStorage
     disconnectCardanoWallet();
@@ -213,6 +212,7 @@ const handleDisconnect = async () => {
 ```
 
 This function:
+
 1. Shows loading backdrop with "Disconnecting wallet..." message
 2. Waits 1 second for smooth UX transition
 3. Disconnects both Cardano and Midnight wallets
@@ -297,6 +297,7 @@ User sees landing page
 ## Progress Indicators
 
 During transaction execution, progress is tracked:
+
 - 0-20%: Building transaction
 - 20-40%: Signing transaction
 - 40-60%: Submitting transaction
@@ -307,6 +308,7 @@ After confirmation, the modal briefly shows success state before disconnect begi
 ## Transaction Comparison
 
 ### Registration
+
 ```
 Inputs:
   - User's wallet UTXOs (for fees)
@@ -320,6 +322,7 @@ Outputs:
 ```
 
 ### Update
+
 ```
 Inputs:
   - Existing registration UTXO (consumed)
@@ -333,6 +336,7 @@ Outputs:
 ```
 
 ### Deregistration
+
 ```
 Inputs:
   - Existing registration UTXO (consumed)
@@ -354,6 +358,7 @@ The key difference is that deregistration **destroys** the registration complete
 ## On-Chain Result
 
 Before deregistration:
+
 ```
 UTXO at DUST Mapping Validator:
   Assets: 1.586080 ADA + 1 Auth Token
@@ -363,6 +368,7 @@ UTXO at DUST Mapping Validator:
 ```
 
 After deregistration:
+
 ```
 No UTXO exists at DUST Mapping Validator for this user.
 Auth token has been burned and no longer exists in circulation.
@@ -406,6 +412,7 @@ The UI provides clear feedback during the deregistration process:
 ### Post-Deregistration Behavior
 
 After successful deregistration:
+
 - User is automatically returned to the home page
 - All wallet connections are cleared
 - User must reconnect Cardano wallet to see registration status

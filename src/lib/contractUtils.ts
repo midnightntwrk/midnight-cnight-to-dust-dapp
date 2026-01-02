@@ -1,13 +1,5 @@
 import * as Contracts from '@/config/contract_blueprint';
-import { 
-    CARDANO_NET, 
-    NETWORK_ID, 
-    BLOCKFROST_URL, 
-    BLOCKCHAIN_EXPLORER_URL, 
-    CNIGHT_CURRENCY_POLICY_ID, 
-    CNIGHT_CURRENCY_ENCODEDNAME,
-    INDEXER_ENDPOINT,
-} from '@/config/network';
+import { CARDANO_NET, NETWORK_ID, BLOCKFROST_URL, BLOCKCHAIN_EXPLORER_URL, CNIGHT_CURRENCY_POLICY_ID, CNIGHT_CURRENCY_ENCODEDNAME, INDEXER_ENDPOINT } from '@/config/network';
 import { addressFromValidator, Script as BlazeScript, CredentialType, PolicyId, RewardAddress } from '@blaze-cardano/core';
 import { serialize } from '@blaze-cardano/data';
 import { Script as LucidScript } from '@lucid-evolution/lucid';
@@ -88,18 +80,18 @@ export function serializeToCbor(type: any, data: any): string {
  */
 export function logContractAddresses(): void {
     logger.log('[Startup]', '🚀 ========== MIDNIGHT DAPP CONFIGURATION (STARTUP) ==========');
-    
+
     // Network Configuration
     logger.log('[Startup]', '📍 NETWORK:');
     logger.log('[Startup]', `   Cardano Network: ${CARDANO_NET} (ID: ${NETWORK_ID})`);
     logger.log('[Startup]', `   Blockfrost URL: ${BLOCKFROST_URL}`);
     logger.log('[Startup]', `   Explorer URL: ${BLOCKCHAIN_EXPLORER_URL}`);
-    
+
     // cNIGHT Token Configuration
     logger.log('[Startup]', '🌙 cNIGHT TOKEN:');
     logger.log('[Startup]', `   Policy ID: ${CNIGHT_CURRENCY_POLICY_ID}`);
     logger.log('[Startup]', `   Encoded Name: ${CNIGHT_CURRENCY_ENCODEDNAME}`);
-    
+
     // Indexer Configuration
     logger.log('[Startup]', '📊 INDEXER:');
     logger.log('[Startup]', `   Endpoint: ${INDEXER_ENDPOINT || '(not configured)'}`);
@@ -119,14 +111,16 @@ export function logContractAddresses(): void {
         // ============ TEST: Convert payment hash to stake address format ============
         // This is for testing if the indexer searches by the c_wallet hash from datum
         const testPaymentHash = 'abfff883edcf7a2e38628015cebb72952e361b2c8a2262f7daf9c16e';
-        
+
         // Build a reward address using the payment hash as if it were a stake credential
         // Network ID 0 = testnet, prefix e0 for key hash stake address
         const fakeStakeAddressFromPaymentHash = RewardAddress.fromCredentials(NETWORK_ID, {
             type: CredentialType.KeyHash,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             hash: testPaymentHash as any,
-        }).toAddress().toBech32();
+        })
+            .toAddress()
+            .toBech32();
 
         logger.log('[Startup]', '🧪 TEST - Payment Hash to Stake Address:');
         logger.log('[Startup]', `   Payment Hash (from datum): ${testPaymentHash}`);

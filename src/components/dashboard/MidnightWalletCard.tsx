@@ -41,7 +41,7 @@ const MidnightWalletCard = () => {
         getAvailableMidnightWallets,
         disconnectMidnightWallet,
         disconnectCardanoWallet,
-        updateMidnightAddress
+        updateMidnightAddress,
     } = useWalletContext();
 
     // Check if indexer has synced
@@ -50,7 +50,7 @@ const MidnightWalletCard = () => {
 
     // Check if user is connected with Midnight wallet (has wallet API access)
     const isWalletConnected = midnight.isConnected && midnight.walletName !== 'Manual' && midnight.api !== null;
-    
+
     // Get DUST balance - prefer wallet data if connected, otherwise use indexer
     const getDustBalance = () => {
         // If connected with Midnight wallet, use wallet data
@@ -77,7 +77,6 @@ const MidnightWalletCard = () => {
         return generationStatus?.dustAddress || midnight.address || '';
     };
 
-
     const [isDisconnecting, setIsDisconnecting] = useState(false);
 
     // Transaction management
@@ -101,7 +100,7 @@ const MidnightWalletCard = () => {
         setIsDisconnecting(true);
 
         // Add small delay for better UX
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         // Disconnect both wallets and clear localStorage
         disconnectCardanoWallet();
@@ -110,7 +109,6 @@ const MidnightWalletCard = () => {
         // Redirect to home
         router.push('/');
     };
-
 
     const handleUnregisterAddress = async () => {
         if (!cardano.lucid) {
@@ -140,18 +138,9 @@ const MidnightWalletCard = () => {
             });
 
             // Create the unregistration executor and execute it
-            const unregistrationExecutor = DustTransactionsUtils.createUnregistrationExecutor(
-                cardano.lucid as LucidEvolution,
-                dustPKHValue,
-                registrationUtxo
-            );
+            const unregistrationExecutor = DustTransactionsUtils.createUnregistrationExecutor(cardano.lucid as LucidEvolution, dustPKHValue, registrationUtxo);
 
-            const transactionState = await transaction.executeTransaction(
-                'unregister',
-                unregistrationExecutor,
-                {},
-                cardano.lucid as LucidEvolution
-            );
+            const transactionState = await transaction.executeTransaction('unregister', unregistrationExecutor, {}, cardano.lucid as LucidEvolution);
 
             // Only open success modal if transaction actually succeeded
             if (transactionState === 'success') {
@@ -195,14 +184,14 @@ const MidnightWalletCard = () => {
                 newCoinPublicKey,
                 registrationUtxo: {
                     txHash: registrationUtxo.txHash,
-                    outputIndex: registrationUtxo.outputIndex
-                }
+                    outputIndex: registrationUtxo.outputIndex,
+                },
             });
 
             // Create the update executor with the NEW coin public key
             const updateExecutor = DustTransactionsUtils.createUpdateExecutor(
                 cardano.lucid as LucidEvolution,
-                newCoinPublicKey,  // ← Using the NEW coin public key!
+                newCoinPublicKey, // ← Using the NEW coin public key!
                 registrationUtxo
             );
 
@@ -258,7 +247,6 @@ const MidnightWalletCard = () => {
         }
     };
 
-
     return (
         <Card className="bg-[#70707035] p-[24px] w-full lg:w-[40%] flex flex-col gap-4 relative pb-8">
             <div className="absolute top-1/2 right-[16px] transform -translate-y-1/2">
@@ -267,14 +255,10 @@ const MidnightWalletCard = () => {
             <div className="flex flex-row gap-2 z-10">
                 <span className="text-[18px] font-normal">DUST Balance</span>
                 <Tooltip
-                    content={
-                        isWalletConnected
-                            ? "We are fetching this data directly from your wallet"
-                            : "We are fetching your generation capacity from the indexer"
-                    }
+                    content={isWalletConnected ? 'We are fetching this data directly from your wallet' : 'We are fetching your generation capacity from the indexer'}
                     placement="top"
                     classNames={{
-                        content: "bg-gray-800 text-white text-sm px-2 py-1"
+                        content: 'bg-gray-800 text-white text-sm px-2 py-1',
                     }}
                 >
                     <Image src={InfoIcon} alt="info" width={24} height={24} className="cursor-pointer" />
@@ -282,9 +266,7 @@ const MidnightWalletCard = () => {
             </div>
             <div className="flex flex-row gap-2 items-center z-10">
                 <Image src={DustBalanceIcon} alt="dust balance" width={42} height={42} />
-                <span className={`text-[24px] font-bold ${!isWalletConnected && isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}>
-                    {getDustBalance()}
-                </span>
+                <span className={`text-[24px] font-bold ${!isWalletConnected && isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}>{getDustBalance()}</span>
                 <span className="text-[24px]">DUST</span>
             </div>
             <div className="flex flex-col gap-2">
@@ -294,7 +276,7 @@ const MidnightWalletCard = () => {
                         content="Your Midnight wallet address where DUST will be sent"
                         placement="top"
                         classNames={{
-                            content: "bg-gray-800 text-white text-sm px-2 py-1"
+                            content: 'bg-gray-800 text-white text-sm px-2 py-1',
                         }}
                     >
                         <Image src={InfoIcon} alt="info" width={20} height={20} className="cursor-pointer" />
@@ -319,20 +301,15 @@ const MidnightWalletCard = () => {
                             isLoading={isLoadingRegistrationUtxo}
                             isDisabled={
                                 // !isContractsLoaded ||
-                                isLoadingRegistrationUtxo ||
-                                !registrationUtxo ||
-                                (!transaction.isCurrentTransaction('update') && transaction.isAnyTransactionRunning())
+                                isLoadingRegistrationUtxo || !registrationUtxo || (!transaction.isCurrentTransaction('update') && transaction.isAnyTransactionRunning())
                             }
                         >
                             {
-                            // !isContractsLoaded
-                            //     ? 'DUST SMART CONTRACT NOT LOADED'
-                            //     : 
-                                isLoadingRegistrationUtxo
-                                    ? 'LOADING REGISTRATION UTXO...'
-                                    : !registrationUtxo
-                                        ? 'NO REGISTRATION FOUND'
-                                        : 'CHANGE ADDRESS'}
+                                // !isContractsLoaded
+                                //     ? 'DUST SMART CONTRACT NOT LOADED'
+                                //     :
+                                isLoadingRegistrationUtxo ? 'LOADING REGISTRATION UTXO...' : !registrationUtxo ? 'NO REGISTRATION FOUND' : 'CHANGE ADDRESS'
+                            }
                         </Button>
                         <Button
                             className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 w-full py-2 text-sm disabled:bg-gray-600 disabled:text-gray-400"
@@ -342,20 +319,15 @@ const MidnightWalletCard = () => {
                             isLoading={isLoadingRegistrationUtxo}
                             isDisabled={
                                 // !isContractsLoaded ||
-                                isLoadingRegistrationUtxo ||
-                                !registrationUtxo ||
-                                (transaction.isCurrentTransaction('unregister') && transaction.isAnyTransactionRunning())
+                                isLoadingRegistrationUtxo || !registrationUtxo || (transaction.isCurrentTransaction('unregister') && transaction.isAnyTransactionRunning())
                             }
                         >
                             {
-                            // !isContractsLoaded
-                            //     ? 'DUST SMART CONTRACT NOT LOADED'
-                            //     : 
-                                isLoadingRegistrationUtxo
-                                    ? 'LOADING REGISTRATION UTXO...'
-                                    : !registrationUtxo
-                                        ? 'NO REGISTRATION FOUND'
-                                        : 'STOP GENERATION'}
+                                // !isContractsLoaded
+                                //     ? 'DUST SMART CONTRACT NOT LOADED'
+                                //     :
+                                isLoadingRegistrationUtxo ? 'LOADING REGISTRATION UTXO...' : !registrationUtxo ? 'NO REGISTRATION FOUND' : 'STOP GENERATION'
+                            }
                         </Button>
                     </>
                 ) : (
@@ -377,18 +349,9 @@ const MidnightWalletCard = () => {
             <ToastContainer toasts={toasts} onRemove={removeToast} />
 
             {/* Modals */}
-            <UpdateAddressModal
-                isOpen={isUpdateModalOpen}
-                onOpenChange={handleUpdateModalOpenChange}
-                onAddressUpdate={handleUpdateAddress}
-            />
+            <UpdateAddressModal isOpen={isUpdateModalOpen} onOpenChange={handleUpdateModalOpenChange} onAddressUpdate={handleUpdateAddress} />
 
-            <StopGenerationModal
-                isOpen={isStopModalOpen}
-                onOpenChange={handleStopModalOpenChange}
-                dustAddress={midnight.address}
-                onStopGeneration={handleUnregisterAddress}
-            />
+            <StopGenerationModal isOpen={isStopModalOpen} onOpenChange={handleStopModalOpenChange} dustAddress={midnight.address} onStopGeneration={handleUnregisterAddress} />
 
             {/* Midnight Wallet Selection Modal */}
             <WalletsModal
@@ -398,12 +361,7 @@ const MidnightWalletCard = () => {
                 handleWalletSelect={handleMidnightWalletSelect}
             />
 
-            <LoadingBackdrop
-                isVisible={isDisconnecting}
-                title="Disconnecting wallet..."
-                subtitle="Redirecting to home page"
-            />
-
+            <LoadingBackdrop isVisible={isDisconnecting} title="Disconnecting wallet..." subtitle="Redirecting to home page" />
         </Card>
     );
 };

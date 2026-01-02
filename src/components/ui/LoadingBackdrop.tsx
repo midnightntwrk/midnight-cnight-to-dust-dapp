@@ -7,11 +7,7 @@ interface LoadingBackdropProps {
     subtitle?: string;
 }
 
-export default function LoadingBackdrop({
-    isVisible,
-    title = "Loading...",
-    subtitle
-}: LoadingBackdropProps) {
+export default function LoadingBackdrop({ isVisible, title = 'Loading...', subtitle }: LoadingBackdropProps) {
     if (!isVisible) return null;
 
     return (
@@ -19,9 +15,7 @@ export default function LoadingBackdrop({
             <div className="p-8 flex flex-col items-center gap-4">
                 <Spinner size="lg" color="primary" />
                 <p className="text-white text-lg font-medium">{title}</p>
-                {subtitle && (
-                    <p className="text-gray-400 text-sm">{subtitle}</p>
-                )}
+                {subtitle && <p className="text-gray-400 text-sm">{subtitle}</p>}
             </div>
         </div>
     );

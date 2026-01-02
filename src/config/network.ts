@@ -8,8 +8,7 @@ import { protocolParametersForLucid } from './protocolParameters';
 // Validate environment variables at module load time (server-side only)
 // Skip validation during build time (Next.js build process)
 // During build, Next.js analyzes routes but env vars may not be set yet
-const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' ||
-                    (process.env.NODE_ENV === 'production' && !process.env.NEXT_RUNTIME);
+const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' || (process.env.NODE_ENV === 'production' && !process.env.NEXT_RUNTIME);
 
 if (typeof window === 'undefined' && !isBuildTime) {
     try {

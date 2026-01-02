@@ -41,7 +41,7 @@ export default function ConnectMidnightCard({
     const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setManualAddress(value);
-        
+
         // Validate as Dust address if not empty
         if (!value.trim()) {
             setIsValidAddress(true); // Empty is valid (not an error state)
@@ -126,9 +126,7 @@ export default function ConnectMidnightCard({
                                                     Add
                                                 </Button>
                                             </div>
-                                            {!isValidAddress && manualAddress.trim() && (
-                                                <p className="text-red-400 text-xs ml-1">Invalid Midnight Dust address format</p>
-                                            )}
+                                            {!isValidAddress && manualAddress.trim() && <p className="text-red-400 text-xs ml-1">Invalid Midnight Dust address format</p>}
                                         </div>
                                     </div>
                                 )}

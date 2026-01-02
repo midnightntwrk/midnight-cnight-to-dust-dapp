@@ -12,10 +12,10 @@ export const toJson = (obj: object): string => {
 
 /**
  * Convert Dust address to bytes format using the official SDK
- * 
+ *
  * WARNING: This function is specifically for Dust addresses. Do NOT use with shielded addresses.
  * For shielded addresses, use extractCoinPublicKeyFromMidnightAddress instead.
- * 
+ *
  * @param address - Dust address string (bech32m encoded)
  * @param networkId - The Midnight network ID ('mainnet' or 'preview')
  * @returns Dust address bytes as hex string (for registration) or null if invalid
@@ -25,20 +25,20 @@ export const getDustAddressBytes = (address: string, networkId: NetworkId): stri
         // Parse and decode using the official SDK
         const parsed = MidnightBech32m.parse(address.trim());
         const dustAddress = parsed.decode(DustAddress, networkId);
-        
+
         // Serialize to get bytes
         const bytes = dustAddress.serialize();
-        
+
         // Convert to hex string
         const hexString = bytes.toString('hex');
-        
+
         logger.debug('[Utils]', 'Converted Dust address to bytes', {
             address: address.trim(),
             networkId,
             bytesLength: bytes.length,
             hexLength: hexString.length,
         });
-        
+
         return hexString;
     } catch (error) {
         logger.error('[Utils]', 'Failed to convert Dust address to bytes', error);
@@ -48,10 +48,10 @@ export const getDustAddressBytes = (address: string, networkId: NetworkId): stri
 
 /**
  * Extract coin public key from a Midnight shielded address
- * 
+ *
  * WARNING: This function is ONLY for Midnight shielded addresses (mn_shield-addr_...).
  * Do NOT use this function with Dust addresses. For Dust addresses, use getDustAddressBytes instead.
- * 
+ *
  * Midnight shielded addresses are Bech32m-encoded and contain:
  * - First 32 bytes: coin public key
  * - Remaining bytes: encryption public key (up to 36 bytes)
@@ -166,13 +166,13 @@ export const validateDustAddress = (address: string, networkId: NetworkId): bool
         // Parse and decode the address as a Dust address
         const parsed = MidnightBech32m.parse(address.trim());
         const dustAddress = parsed.decode(DustAddress, networkId);
-        
+
         // If we get here, it's a valid Dust address
         logger.debug('[Utils]', 'Valid Dust address', {
             address: address.trim(),
             networkId,
         });
-        
+
         return true;
     } catch (error) {
         logger.debug('[Utils]', 'Invalid Dust address', {

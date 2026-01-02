@@ -53,6 +53,7 @@ const coinPublicKey = walletState?.coinPublicKeyLegacy || null;
 ```
 
 The wallet API provides:
+
 - `address`: Full Midnight shielded address (132 characters, bech32m encoded)
 - `coinPublicKeyLegacy`: 64-character hex string representing the coin public key
 
@@ -81,6 +82,7 @@ const coinPublicKeyHex = Buffer.from(coinPublicKeyBytes).toString('hex');
 ```
 
 Midnight shielded addresses are structured as:
+
 - First 32 bytes: Coin public key
 - Remaining bytes: Encryption public key (up to 36 bytes)
 
@@ -93,10 +95,7 @@ If any validation fails, the process terminates with an appropriate error messag
 **Location**: `src/components/Onboard.tsx:71`
 
 ```typescript
-const registrationExecutor = DustTransactionsUtils.createRegistrationExecutor(
-    cardano.lucid as LucidEvolution,
-    dustPKHValue
-);
+const registrationExecutor = DustTransactionsUtils.createRegistrationExecutor(cardano.lucid as LucidEvolution, dustPKHValue);
 ```
 
 This factory method returns a function that will build, sign, and submit the transaction.
@@ -106,15 +105,11 @@ This factory method returns a function that will build, sign, and submit the tra
 **Location**: `src/components/Onboard.tsx:73`
 
 ```typescript
-const transactionState = await transaction.executeTransaction(
-    'register',
-    registrationExecutor,
-    {},
-    cardano.lucid as LucidEvolution
-);
+const transactionState = await transaction.executeTransaction('register', registrationExecutor, {}, cardano.lucid as LucidEvolution);
 ```
 
 The `TransactionContext` manages the transaction lifecycle:
+
 - `preparing` - Building transaction
 - `signing` - Awaiting user approval
 - `submitting` - Broadcasting to network
@@ -128,27 +123,31 @@ The `TransactionContext` manages the transaction lifecycle:
 The transaction builder constructs a Cardano transaction with the following structure:
 
 ### Contract Instantiation
+
 - DUST Generator contract: `new Contracts.CnightGeneratesDustCnightGeneratesDustElse()`
 - Validator address derived from contract script
 
 ### Mint DUST NFT
+
 - Mints 1 NFT token with empty asset name
 - Uses policy ID from DUST Generator contract
 - Redeemer: `DustAction.Create` (serialized to CBOR)
 
 ### Output to DUST Generator
+
 - Assets: `LOVELACE_FOR_REGISTRATION` ADA + 1 DUST NFT
 - Inline Datum: `DustMappingDatum` with structure:
-  ```
-  {
-    c_wallet: {
-      VerificationKey: [stakeKeyHash]  // Stake key hash (28 bytes hex string)
-    },
-    dust_address: newDustPKH           // DUST PKH (32 bytes hex string)
-  }
-  ```
+    ```
+    {
+      c_wallet: {
+        VerificationKey: [stakeKeyHash]  // Stake key hash (28 bytes hex string)
+      },
+      dust_address: newDustPKH           // DUST PKH (32 bytes hex string)
+    }
+    ```
 
 ### Scripts Attached
+
 - DUST Generator minting policy script
 
 ## Step 5: Sign Transaction
@@ -160,6 +159,7 @@ const signedTx = await completedTx.sign.withWallet().complete();
 ```
 
 The user's Cardano wallet extension displays a popup showing transaction details:
+
 - Fee estimate
 - Mint: 1 DUST NFT token
 - Output to DUST Generator validator address (ADA + NFT)
@@ -185,11 +185,11 @@ The system polls Blockfrost every 15 seconds to check transaction confirmation s
 
 ```typescript
 const pollTransactionConfirmation = async (lucid, txHash) => {
-    const maxAttempts = 60;  // 15 minutes maximum
+    const maxAttempts = 60; // 15 minutes maximum
 
     const pollInterval = setInterval(async () => {
         attempts++;
-        const progress = 60 + ((attempts / maxAttempts) * 40);
+        const progress = 60 + (attempts / maxAttempts) * 40;
         setTransactionProgress(progress);
 
         const txInfo = await lucid.awaitTx(txHash, 3000);
@@ -245,50 +245,44 @@ const searchRegistrationUtxo = async () => {
     // Get DUST Generator contract
     const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
     const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
-    
+
     // Get current user's Cardano PKH
     const cardanoPKH = getAddressDetails(cardanoAddress)?.paymentCredential?.hash;
-    
+
     // Construct the expected NFT asset name
     const dustNFTTokenName = '';
     const dustNFTAssetName = getPolicyId(dustGenerator.Script) + dustNFTTokenName;
-    
+
     // Query UTXOs at the mapping validator address using Blockfrost proxy
-    const response = await fetch(
-        `/api/blockfrost/addresses/${dustGeneratorAddress}/utxos/${dustNFTAssetName}`
-    );
+    const response = await fetch(`/api/blockfrost/addresses/${dustGeneratorAddress}/utxos/${dustNFTAssetName}`);
     const utxos = await response.json();
-    
+
     // Filter UTXOs that contain the DUST Auth Token
     const validUtxos = utxos.filter((utxo) => {
-        const hasAuthToken = utxo.amount?.some((asset) => 
-            asset.unit === dustNFTAssetName && asset.quantity === '1'
-        );
+        const hasAuthToken = utxo.amount?.some((asset) => asset.unit === dustNFTAssetName && asset.quantity === '1');
         const hasInlineDatum = utxo.inline_datum !== null;
         return hasAuthToken && hasInlineDatum;
     });
-    
+
     // Check each valid UTXO's datum to find matching registration
     for (const utxo of validUtxos) {
         // Deserialize the inline datum
         const datumData = Data.from(utxo.inline_datum);
-        
+
         // Check if datumData is a Constr with the expected structure
         if (datumData instanceof Constr && datumData.index === 0 && datumData.fields.length === 2) {
             const [datumCardanoPKHConstr, dustPKHFromDatum] = datumData.fields;
-            
-            if (datumCardanoPKHConstr instanceof Constr && 
-                datumCardanoPKHConstr.index === 0 && 
-                datumCardanoPKHConstr.fields.length === 1) {
+
+            if (datumCardanoPKHConstr instanceof Constr && datumCardanoPKHConstr.index === 0 && datumCardanoPKHConstr.fields.length === 1) {
                 const datumCardanoPKH = datumCardanoPKHConstr.fields[0];
-                
+
                 if (datumCardanoPKH === cardanoPKH && dustPKHFromDatum === dustPKH) {
                     return utxo;
                 }
             }
         }
     }
-    
+
     return null;
 };
 ```
@@ -422,7 +416,7 @@ const dustMappingDatum: Contracts.DustMappingDatum = {
     c_wallet: {
         VerificationKey: [stakeKeyHash!], // Stake key hash (28 bytes hex string)
     },
-    dust_address: dustPKH,                // DUST PKH (32 bytes hex string)
+    dust_address: dustPKH, // DUST PKH (32 bytes hex string)
 };
 ```
 
@@ -440,12 +434,10 @@ const datumData = Data.from(utxo.inline_datum);
 // Check if datumData is a Constr with the expected structure
 if (datumData instanceof Constr && datumData.index === 0 && datumData.fields.length === 2) {
     const [datumStakeKeyHashConstr, dustPKHFromDatum] = datumData.fields;
-    
-    if (datumStakeKeyHashConstr instanceof Constr && 
-        datumStakeKeyHashConstr.index === 0 && 
-        datumStakeKeyHashConstr.fields.length === 1) {
+
+    if (datumStakeKeyHashConstr instanceof Constr && datumStakeKeyHashConstr.index === 0 && datumStakeKeyHashConstr.fields.length === 1) {
         const datumStakeKeyHash = datumStakeKeyHashConstr.fields[0];
-        
+
         // Match credentials
         if (datumStakeKeyHash === stakeKeyHash && dustPKHFromDatum === dustPKH) {
             return utxo;
@@ -455,6 +447,7 @@ if (datumData instanceof Constr && datumData.index === 0 && datumData.fields.len
 ```
 
 The UTXO is matched when both fields match the user's credentials:
+
 - `datumStakeKeyHash === stakeKeyHash` (Stake key hash matches)
 - `dustPKHFromDatum === dustPKH` (Midnight dust address matches)
 

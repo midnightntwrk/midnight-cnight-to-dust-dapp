@@ -15,11 +15,7 @@ export default function Home() {
 
     return (
         <div className="flex flex-col items-center justify-center h-full gap-[40px]">
-            <LoadingBackdrop
-                isVisible={showLoadingBackdrop}
-                title="Checking registration status..."
-                subtitle="Please wait while we verify your registration"
-            />
+            <LoadingBackdrop isVisible={showLoadingBackdrop} title="Checking registration status..." subtitle="Please wait while we verify your registration" />
 
             <div className="flex-1" />
             <Image src="/assets/midnight_logo.svg" alt="logo" width={150} height={100} />

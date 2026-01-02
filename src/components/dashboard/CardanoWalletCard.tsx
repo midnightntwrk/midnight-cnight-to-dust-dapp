@@ -1,7 +1,7 @@
-import { Card, Button, Tooltip } from '@heroui/react'
-import Image from 'next/image'
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Card, Button, Tooltip } from '@heroui/react';
+import Image from 'next/image';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import InfoIcon from '@/assets/icons/info.svg';
 import CopyIcon from '@/assets/icons/copy.svg';
 import CheckIcon from '@/assets/icons/check.svg';
@@ -12,19 +12,12 @@ import LoadingBackdrop from '../ui/LoadingBackdrop';
 import ToastContainer from '../ui/ToastContainer';
 import { useToast } from '@/hooks/useToast';
 
-
 const CardanoWalletCard = () => {
     const router = useRouter();
     const [isDisconnecting, setIsDisconnecting] = useState(false);
     const { toasts, showToast, removeToast } = useToast();
 
-    const {
-        cardano,
-        disconnectCardanoWallet,
-        disconnectMidnightWallet,
-        generationStatus,
-        registrationUtxo
-    } = useWalletContext();
+    const { cardano, disconnectCardanoWallet, disconnectMidnightWallet, generationStatus, registrationUtxo } = useWalletContext();
 
     // Check if indexer has synced and user is generating
     const isIndexerSyncing = registrationUtxo && generationStatus?.registered === false;
@@ -45,12 +38,12 @@ const CardanoWalletCard = () => {
                 await navigator.clipboard.writeText(cardano.address);
                 showToast({
                     message: 'Cardano address copied to clipboard!',
-                    type: 'success'
+                    type: 'success',
                 });
             } catch {
                 showToast({
                     message: 'Failed to copy address',
-                    type: 'error'
+                    type: 'error',
                 });
             }
         }
@@ -60,7 +53,7 @@ const CardanoWalletCard = () => {
         setIsDisconnecting(true);
 
         // Add small delay for better UX
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         // Disconnect both wallets and clear localStorage
         disconnectCardanoWallet();
@@ -71,20 +64,20 @@ const CardanoWalletCard = () => {
     };
 
     return (
-        <Card className='bg-[#70707035] p-[24px] w-full lg:w-[40%] flex flex-col gap-4 relative pb-8'>
-            <div className='absolute top-1/2 right-[16px] transform -translate-y-1/2'>
-                <Image src={CardanoBg} alt='cardano bg' width={100} height={100} />
+        <Card className="bg-[#70707035] p-[24px] w-full lg:w-[40%] flex flex-col gap-4 relative pb-8">
+            <div className="absolute top-1/2 right-[16px] transform -translate-y-1/2">
+                <Image src={CardanoBg} alt="cardano bg" width={100} height={100} />
             </div>
-            <div className='flex flex-row gap-2 z-10 relative'>
-                <span className='text-[18px] font-normal'>Night Balance</span>
+            <div className="flex flex-row gap-2 z-10 relative">
+                <span className="text-[18px] font-normal">Night Balance</span>
                 <Tooltip
                     content="Your NIGHT token balance on Cardano"
                     placement="top"
                     classNames={{
-                        content: "bg-gray-800 text-white text-sm px-2 py-1"
+                        content: 'bg-gray-800 text-white text-sm px-2 py-1',
                     }}
                 >
-                    <Image src={InfoIcon} alt='info' width={24} height={24} className="cursor-pointer" />
+                    <Image src={InfoIcon} alt="info" width={24} height={24} className="cursor-pointer" />
                 </Tooltip>
 
                 {/* Green dot - only show when indexer confirms generation is active */}
@@ -93,10 +86,10 @@ const CardanoWalletCard = () => {
                         content="Your NIGHT is generating DUST"
                         placement="top"
                         classNames={{
-                            content: "bg-gray-800 text-white text-sm px-2 py-1"
+                            content: 'bg-gray-800 text-white text-sm px-2 py-1',
                         }}
                     >
-                        <div className='absolute right-[-12px] top-1/2 transform -translate-y-1/2 w-[10px] h-[10px] bg-[#34C759] rounded-full animate-pulse cursor-pointer z-20'></div>
+                        <div className="absolute right-[-12px] top-1/2 transform -translate-y-1/2 w-[10px] h-[10px] bg-[#34C759] rounded-full animate-pulse cursor-pointer z-20"></div>
                     </Tooltip>
                 )}
 
@@ -106,47 +99,40 @@ const CardanoWalletCard = () => {
                         content="Waiting for indexer to sync your registration"
                         placement="top"
                         classNames={{
-                            content: "bg-gray-800 text-white text-sm px-2 py-1"
+                            content: 'bg-gray-800 text-white text-sm px-2 py-1',
                         }}
                     >
-                        <div className='absolute right-[-12px] top-1/2 transform -translate-y-1/2 w-[10px] h-[10px] bg-amber-500 rounded-full animate-pulse cursor-pointer z-20'></div>
+                        <div className="absolute right-[-12px] top-1/2 transform -translate-y-1/2 w-[10px] h-[10px] bg-amber-500 rounded-full animate-pulse cursor-pointer z-20"></div>
                     </Tooltip>
                 )}
             </div>
-            <div className='flex flex-row gap-2 items-center z-10'>
-                <Image src={NightBalanceIcon} alt='night balance' width={42} height={42} />
-                <span className='text-[24px] font-bold'>{getNightBalance()}</span>
-                <span className='text-[24px]'>NIGHT</span>
+            <div className="flex flex-row gap-2 items-center z-10">
+                <Image src={NightBalanceIcon} alt="night balance" width={42} height={42} />
+                <span className="text-[24px] font-bold">{getNightBalance()}</span>
+                <span className="text-[24px]">NIGHT</span>
             </div>
-            <div className='flex flex-col gap-2'>
-                <div className='flex flex-row gap-2 items-center z-10'>
-                    <span className='text-[14px] font-normal text-gray-400'>Origin Address Cardano</span>
+            <div className="flex flex-col gap-2">
+                <div className="flex flex-row gap-2 items-center z-10">
+                    <span className="text-[14px] font-normal text-gray-400">Origin Address Cardano</span>
                     <Tooltip
                         content="Your Cardano wallet address where NIGHT is locked"
                         placement="top"
                         classNames={{
-                            content: "bg-gray-800 text-white text-sm px-2 py-1"
+                            content: 'bg-gray-800 text-white text-sm px-2 py-1',
                         }}
                     >
-                        <Image src={InfoIcon} alt='info' width={20} height={20} className="cursor-pointer" />
+                        <Image src={InfoIcon} alt="info" width={20} height={20} className="cursor-pointer" />
                     </Tooltip>
                 </div>
-                <div className='flex flex-row gap-2 items-center z-10'>
-                    <Image src={CheckIcon} alt='check' width={18} height={18} />
+                <div className="flex flex-row gap-2 items-center z-10">
+                    <Image src={CheckIcon} alt="check" width={18} height={18} />
                     <span>{handleFormatWalletAddress(cardano.address || '')}</span>
-                    <Image
-                        src={CopyIcon}
-                        alt='copy'
-                        width={18}
-                        height={18}
-                        className="cursor-pointer hover:opacity-70"
-                        onClick={handleCopyAddress}
-                    />
+                    <Image src={CopyIcon} alt="copy" width={18} height={18} className="cursor-pointer hover:opacity-70" onClick={handleCopyAddress} />
                 </div>
             </div>
 
             {/* Disconnect Button */}
-            <div className='z-10 mt-4'>
+            <div className="z-10 mt-4">
                 <Button
                     onClick={handleDisconnect}
                     isLoading={isDisconnecting}
@@ -160,16 +146,12 @@ const CardanoWalletCard = () => {
             </div>
 
             {/* Loading Backdrop */}
-            <LoadingBackdrop
-                isVisible={isDisconnecting}
-                title="Disconnecting wallet..."
-                subtitle="Redirecting to home page"
-            />
+            <LoadingBackdrop isVisible={isDisconnecting} title="Disconnecting wallet..." subtitle="Redirecting to home page" />
 
             {/* Toast Notifications */}
             <ToastContainer toasts={toasts} onRemove={removeToast} />
         </Card>
-    )
-}
+    );
+};
 
-export default CardanoWalletCard
+export default CardanoWalletCard;

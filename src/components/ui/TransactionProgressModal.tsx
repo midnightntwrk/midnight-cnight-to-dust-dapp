@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Progress, Button } from '@heroui/react';
@@ -17,7 +17,7 @@ const defaultLabels: Required<TransactionLabels> = {
     success: 'Transaction completed successfully!',
     error: 'Transaction failed',
     signHelper: '💡 Please check your wallet and approve the transaction to continue.',
-    successDescription: 'Your transaction has been completed successfully.'
+    successDescription: 'Your transaction has been completed successfully.',
 };
 
 interface TransactionProgressModalProps {
@@ -26,21 +26,11 @@ interface TransactionProgressModalProps {
     labels?: TransactionLabels;
 }
 
-export default function TransactionProgressModal({
-    isOpen,
-    onOpenChange,
-    labels
-}: TransactionProgressModalProps) {
+export default function TransactionProgressModal({ isOpen, onOpenChange, labels }: TransactionProgressModalProps) {
     const router = useRouter();
 
     // Get transaction state from context
-    const {
-        transactionState,
-        transactionProgress: progress,
-        txHash,
-        transactionError: error,
-        resetTransaction
-    } = useTransaction();
+    const { transactionState, transactionProgress: progress, txHash, transactionError: error, resetTransaction } = useTransaction();
 
     // Merge provided labels with defaults
     const finalLabels = { ...defaultLabels, ...labels };
@@ -97,20 +87,11 @@ export default function TransactionProgressModal({
     };
 
     return (
-        <Modal
-            isOpen={isOpen}
-            onOpenChange={onOpenChange}
-            isDismissable={canClose}
-            hideCloseButton={!canClose}
-            size="xl"
-            backdrop="blur"
-        >
+        <Modal isOpen={isOpen} onOpenChange={onOpenChange} isDismissable={canClose} hideCloseButton={!canClose} size="xl" backdrop="blur">
             <ModalContent>
                 {() => (
                     <>
-                        <ModalHeader className="flex flex-col gap-1">
-                            {finalLabels.title}
-                        </ModalHeader>
+                        <ModalHeader className="flex flex-col gap-1">{finalLabels.title}</ModalHeader>
                         <ModalBody className="pb-6 flex flex-col justify-center items-center">
                             {/* Error State */}
                             {error && transactionState === 'error' && (
@@ -124,11 +105,7 @@ export default function TransactionProgressModal({
                             {txHash && transactionState === 'success' && (
                                 <div className="mb-4 p-4 bg-green-500/20 border border-green-400 rounded-lg">
                                     <h4 className="font-semibold text-green-200 mb-2">{finalLabels.success}</h4>
-                                    {finalLabels.successDescription && (
-                                        <p className="text-green-300 text-sm mb-3">
-                                            {finalLabels.successDescription}
-                                        </p>
-                                    )}
+                                    {finalLabels.successDescription && <p className="text-green-300 text-sm mb-3">{finalLabels.successDescription}</p>}
                                     <div className="mb-3">
                                         <span className="block mb-1 text-green-300 text-sm">Transaction Hash:</span>
                                         <span className="font-mono text-green-200 text-xs break-all">{txHash}</span>
@@ -157,17 +134,15 @@ export default function TransactionProgressModal({
                                         color={getStatusColor()}
                                         className="w-full"
                                         classNames={{
-                                            track: "bg-default-300/30",
-                                            indicator: "transition-all duration-300",
+                                            track: 'bg-default-300/30',
+                                            indicator: 'transition-all duration-300',
                                         }}
                                     />
 
                                     {/* Special message for signing */}
                                     {transactionState === 'signing' && (
                                         <div className="p-3 bg-blue-500/20 border border-blue-400 rounded-lg">
-                                            <p className="text-blue-200 text-sm">
-                                                {finalLabels.signHelper}
-                                            </p>
+                                            <p className="text-blue-200 text-sm">{finalLabels.signHelper}</p>
                                         </div>
                                     )}
 
@@ -191,7 +166,6 @@ export default function TransactionProgressModal({
                                     )}
                                 </div>
                             )}
-
                         </ModalBody>
 
                         {/* Footer with buttons for success and error states */}
@@ -199,20 +173,12 @@ export default function TransactionProgressModal({
                             <ModalFooter>
                                 {transactionState === 'success' ? (
                                     <div className="flex gap-2 w-full">
-                                        <Button
-                                            color="success"
-                                            className="w-full"
-                                            onPress={handleGoToDashboard}
-                                        >
+                                        <Button color="success" className="w-full" onPress={handleGoToDashboard}>
                                             Go to Dashboard
                                         </Button>
                                     </div>
                                 ) : (
-                                    <Button
-                                        color="danger"
-                                        className="w-full"
-                                        onPress={handleClose}
-                                    >
+                                    <Button color="danger" className="w-full" onPress={handleClose}>
                                         Close
                                     </Button>
                                 )}

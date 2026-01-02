@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
 import React from 'react';
-import { Card, CardBody } from "@heroui/react";
+import { Card, CardBody } from '@heroui/react';
 import Image from 'next/image';
 import WalletIcon from '@/assets/icons/wallet.svg';
 
@@ -9,7 +9,7 @@ export default function RequirementsCard() {
     return (
         <Card className="bg-[#1a1a1a] border-[#2a2a2a] max-w-xl mx-auto">
             <CardBody className="py-6 px-12">
-                <div className='flex gap-6'>
+                <div className="flex gap-6">
                     <Image src={WalletIcon} alt="wallet" width={74} height={74} />
                     <div className="flex flex-col">
                         <div className="flex items-center gap-3 mb-4">

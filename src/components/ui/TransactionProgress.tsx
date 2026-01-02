@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { Progress, Button } from '@heroui/react';
@@ -29,29 +29,20 @@ const defaultLabels: Required<TransactionLabels> = {
     success: 'Transaction completed successfully!',
     error: 'Transaction failed',
     signHelper: '💡 Please check your wallet and approve the transaction to continue.',
-    successDescription: 'Your transaction has been completed successfully.'
+    successDescription: 'Your transaction has been completed successfully.',
 };
 
 interface TransactionProgressProps {
     labels?: TransactionLabels;
 }
 
-export default function TransactionProgress({ 
-    labels
-}: TransactionProgressProps) {
-    
+export default function TransactionProgress({ labels }: TransactionProgressProps) {
     // Get transaction state from context
-    const { 
-        transactionState, 
-        transactionProgress: progress, 
-        txHash, 
-        transactionError: error,
-        resetTransaction 
-    } = useTransaction();
-    
+    const { transactionState, transactionProgress: progress, txHash, transactionError: error, resetTransaction } = useTransaction();
+
     // Merge provided labels with defaults
     const finalLabels = { ...defaultLabels, ...labels };
-    
+
     const getStatusMessage = () => {
         switch (transactionState) {
             case 'preparing':
@@ -93,22 +84,14 @@ export default function TransactionProgress({
 
     return (
         <div className="bg-white/5 rounded-lg p-6 mb-6">
-            <h3 className="text-lg font-semibold text-white mb-4">
-                {finalLabels.title}
-            </h3>
+            <h3 className="text-lg font-semibold text-white mb-4">{finalLabels.title}</h3>
 
             {/* Error State */}
             {error && transactionState === 'error' && (
                 <div className="mb-4 p-4 bg-red-500/20 border border-red-400 rounded-lg">
                     <h4 className="font-semibold text-red-200 mb-2">{finalLabels.error}</h4>
                     <p className="text-red-300 text-sm font-mono">{error}</p>
-                    <Button
-                        size="sm"
-                        color="danger"
-                        variant="flat"
-                        onPress={resetTransaction}
-                        className="mt-3"
-                    >
+                    <Button size="sm" color="danger" variant="flat" onPress={resetTransaction} className="mt-3">
                         Close
                     </Button>
                 </div>
@@ -118,21 +101,12 @@ export default function TransactionProgress({
             {txHash && transactionState === 'success' && (
                 <div className="mb-4 p-4 bg-green-500/20 border border-green-400 rounded-lg">
                     <h4 className="font-semibold text-green-200 mb-2">{finalLabels.success}</h4>
-                    {finalLabels.successDescription && (
-                        <p className="text-green-300 text-sm mb-3">
-                            {finalLabels.successDescription}
-                        </p>
-                    )}
+                    {finalLabels.successDescription && <p className="text-green-300 text-sm mb-3">{finalLabels.successDescription}</p>}
                     <div className="mb-3">
                         <span className="block mb-1 text-green-300 text-sm">Transaction Hash:</span>
                         <span className="font-mono text-green-200 text-xs break-all">{txHash}</span>
                     </div>
-                    <a
-                        href={getCardanoScanUrl('transaction', txHash)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-green-400 hover:text-green-300 text-sm underline"
-                    >
+                    <a href={getCardanoScanUrl('transaction', txHash)} target="_blank" rel="noopener noreferrer" className="text-green-400 hover:text-green-300 text-sm underline">
                         View on CardanoScan →
                     </a>
                 </div>
@@ -145,23 +119,21 @@ export default function TransactionProgress({
                         <p className="text-white font-medium">{getStatusMessage()}</p>
                         <span className="text-white/70 text-sm">{Math.round(progress)}%</span>
                     </div>
-                    
+
                     <Progress
                         value={progress}
                         color={getStatusColor()}
                         className="w-full"
                         classNames={{
-                            track: "bg-white/10",
-                            indicator: "transition-all duration-300",
+                            track: 'bg-white/10',
+                            indicator: 'transition-all duration-300',
                         }}
                     />
 
                     {/* Special message for signing */}
                     {transactionState === 'signing' && (
                         <div className="p-3 bg-blue-500/20 border border-blue-400 rounded-lg">
-                            <p className="text-blue-200 text-sm">
-                                {finalLabels.signHelper}
-                            </p>
+                            <p className="text-blue-200 text-sm">{finalLabels.signHelper}</p>
                         </div>
                     )}
 

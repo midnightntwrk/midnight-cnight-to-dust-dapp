@@ -52,12 +52,7 @@ export default class ErrorBoundary extends Component<Props, State> {
                     <div className="max-w-md w-full bg-white/5 rounded-lg p-8 border border-white/10">
                         <div className="text-center">
                             <div className="mb-4">
-                                <svg
-                                    className="mx-auto h-12 w-12 text-red-400"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
+                                <svg className="mx-auto h-12 w-12 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
@@ -66,23 +61,14 @@ export default class ErrorBoundary extends Component<Props, State> {
                                     />
                                 </svg>
                             </div>
-                            <h1 className="text-2xl font-bold text-white mb-2">
-                                Something went wrong
-                            </h1>
-                            <p className="text-gray-400 mb-6">
-                                We encountered an unexpected error. Please try reloading the page.
-                            </p>
-                            <button
-                                onClick={this.handleReload}
-                                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-                            >
+                            <h1 className="text-2xl font-bold text-white mb-2">Something went wrong</h1>
+                            <p className="text-gray-400 mb-6">We encountered an unexpected error. Please try reloading the page.</p>
+                            <button onClick={this.handleReload} className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
                                 Reload Page
                             </button>
                             {process.env.NODE_ENV === 'development' && this.state.error && (
                                 <details className="mt-6 text-left">
-                                    <summary className="text-sm text-gray-500 cursor-pointer mb-2">
-                                        Error details (development only)
-                                    </summary>
+                                    <summary className="text-sm text-gray-500 cursor-pointer mb-2">Error details (development only)</summary>
                                     <pre className="text-xs text-red-400 bg-black/20 p-4 rounded overflow-auto max-h-48">
                                         {this.state.error.toString()}
                                         {this.state.error.stack && `\n\n${this.state.error.stack}`}
@@ -98,4 +84,3 @@ export default class ErrorBoundary extends Component<Props, State> {
         return this.props.children;
     }
 }
-

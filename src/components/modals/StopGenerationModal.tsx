@@ -53,7 +53,7 @@ export default function StopGenerationModal({ isOpen, onOpenChange, dustAddress,
             showToast({
                 message: error instanceof Error ? error.message : 'Failed to stop generation',
                 type: 'error',
-                duration: 5000
+                duration: 5000,
             });
         }
     };
@@ -120,9 +120,7 @@ export default function StopGenerationModal({ isOpen, onOpenChange, dustAddress,
                             </div>
                         )}
 
-                        <p className="text-gray-300 text-sm mb-4">
-                            This address will no longer receive your DUST tokens. Ensure you manage this address accordingly.
-                        </p>
+                        <p className="text-gray-300 text-sm mb-4">This address will no longer receive your DUST tokens. Ensure you manage this address accordingly.</p>
 
                         <div className="flex gap-3">
                             <Button
@@ -141,8 +139,8 @@ export default function StopGenerationModal({ isOpen, onOpenChange, dustAddress,
                                 {transaction.isCurrentTransaction('unregister') && transaction.isAnyTransactionRunning()
                                     ? 'UNREGISTERING...'
                                     : transaction.isCurrentTransaction('unregister') && transaction.transactionState === 'success'
-                                        ? 'UNREGISTERED ✅'
-                                        : 'STOP GENERATION'}
+                                      ? 'UNREGISTERED ✅'
+                                      : 'STOP GENERATION'}
                             </Button>
                         </div>
                     </ModalBody>

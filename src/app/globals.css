@@ -1,17 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin './hero.ts';
 
 @source '../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-brand-primary: #0000FE;
-  --color-brand-primary-hover: #0000CC;
+    --color-brand-primary: #0000fe;
+    --color-brand-primary-hover: #0000cc;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: 'Outfit', sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: 'Outfit', sans-serif;
 }
