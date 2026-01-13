@@ -1,8 +1,11 @@
 import type { NextConfig } from 'next';
+// import path from 'path';
+// import { fileURLToPath } from 'url';
 
 // Content Security Policy configuration
 // In development, we need 'unsafe-eval' for Next.js hot reload
 const isDev = process.env.NODE_ENV === 'development';
+// const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const ContentSecurityPolicy = `
   default-src 'self';
@@ -57,6 +60,16 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   output: 'standalone',
   reactStrictMode: true, // Re-enabled with proper cleanup functions to prevent issues
+  experimental: {
+    turbo: {
+      resolve: {
+        fallback: {
+          'libsodium-wrappers-sumo': false,
+        },
+        conditionNames: ['require', 'node', 'import', 'default'],
+      },
+    },
+  },
   async headers() {
     return [
       {
@@ -79,6 +92,13 @@ const nextConfig: NextConfig = {
         asyncFunction: true,
       };
     }
+    // Force webpack to NOT pick the broken ESM condition for libsodium-wrappers-sumo
+    // Prefer CJS/require/node entry points.
+    config.resolve.conditionNames = ['require', 'node', ...(config.resolve.conditionNames || [])];
+    // Also prefer main/module fields that typically resolve to working builds
+    config.resolve.mainFields = isServer ? ['main', 'module'] : ['browser', 'main', 'module'];
+
+
     return config;
   },
   env: {

@@ -1,9 +1,9 @@
 /* eslint-disable */
 // @ts-nocheck
-import { applyParamsToScript, cborToScript } from '@blaze-cardano/uplc';
-import { type Script } from '@blaze-cardano/core';
+
+import { cborToScript } from '@blaze-cardano/uplc';
 import { Type, Exact, TPlutusData } from '@blaze-cardano/data';
-import { type PlutusData } from '@blaze-cardano/core';
+import { type PlutusData, Script } from '@blaze-cardano/core';
 type Data = PlutusData;
 type Int = bigint;
 type ByteArray = string;
@@ -238,7 +238,10 @@ export class CommitteeBridgeCommitteeBridgeTwoStageUpgradeElse {
 export class CommitteeBridgeSimpleBridgeElse {
   public Script: Script;
   constructor() {
-    this.Script = cborToScript('58330101002332259800b45268a9980124811856616c696461746f722072657475726e65642066616c736500136564004ae715cd01', 'PlutusV3');
+    this.Script = cborToScript(
+      '58330101002332259800b45268a9980124811856616c696461746f722072657475726e65642066616c736500136564004ae715cd01',
+      'PlutusV3'
+    );
   }
 }
 export class GovAuthMainGovAuthElse {

@@ -1,5 +1,5 @@
-import * as Contracts from '@/config/contract_blueprint';
-import { getPolicyId, getValidatorAddress } from '@/lib/contractUtils';
+import * as Contracts from '@/app/api/contract_blueprint';
+import { getPolicyId, getValidatorAddress } from '@/app/api/contractUtils';
 import { logger } from '@/lib/logger';
 import { toJson } from '@/lib/utils';
 import { Constr, UTxO } from '@lucid-evolution/lucid';
@@ -70,9 +70,12 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
 
         // Query UTXOs at the mapping validator address using Blockfrost proxy
         // Use descending order to get newest UTXOs first (helps with pagination)
-        const response = await fetch(`/api/blockfrost/addresses/${dustGeneratorAddress}/utxos/${dustNFTAssetName}?order=desc`, {
-          signal: signal,
-        });
+        const response = await fetch(
+          `/api/blockfrost/addresses/${dustGeneratorAddress}/utxos/${dustNFTAssetName}?order=desc`,
+          {
+            signal: signal,
+          }
+        );
 
         if (!response.ok) {
           throw new Error(`Blockfrost API error: ${response.status} ${response.statusText}`);
@@ -83,7 +86,9 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
 
         // Filter UTXOs that contain the DUST Auth Token
         const validUtxos: BlockfrostUtxo[] = utxos.filter((utxo: BlockfrostUtxo) => {
-          const hasAuthToken = utxo.amount?.some((asset: { unit: string; quantity: string }) => asset.unit === dustNFTAssetName && asset.quantity === '1');
+          const hasAuthToken = utxo.amount?.some(
+            (asset: { unit: string; quantity: string }) => asset.unit === dustNFTAssetName && asset.quantity === '1'
+          );
           const hasInlineDatum = utxo.inline_datum !== null;
           return hasAuthToken && hasInlineDatum;
         });
@@ -104,10 +109,20 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
             const datumData = Data.from(utxo.inline_datum!);
 
             // Check if datumData is a Constr with the expected structure
-            if (datumData instanceof Constr && datumData.index === 0 && datumData.fields && datumData.fields.length === 2) {
+            if (
+              datumData instanceof Constr &&
+              datumData.index === 0 &&
+              datumData.fields &&
+              datumData.fields.length === 2
+            ) {
               const [datumCardanoPKHConstr, dustPKHFromDatum] = datumData.fields as [Constr<string>, string];
               let datumCardanoPKH: string;
-              if (datumCardanoPKHConstr instanceof Constr && datumCardanoPKHConstr.index === 0 && datumCardanoPKHConstr.fields && datumCardanoPKHConstr.fields.length === 1) {
+              if (
+                datumCardanoPKHConstr instanceof Constr &&
+                datumCardanoPKHConstr.index === 0 &&
+                datumCardanoPKHConstr.fields &&
+                datumCardanoPKHConstr.fields.length === 1
+              ) {
                 datumCardanoPKH = datumCardanoPKHConstr.fields[0];
               } else {
                 logger.log('[RegistrationUtxo]', '❌ No matching registration UTXO found');
@@ -266,7 +281,10 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
         // If found, update state and return
         if (utxo) {
           const elapsedSeconds = ((Date.now() - startTime) / 1000).toFixed(1);
-          logger.log('[RegistrationUtxo]', `✅ Registration UTXO found after ${attempt} attempts in ${elapsedSeconds}s`);
+          logger.log(
+            '[RegistrationUtxo]',
+            `✅ Registration UTXO found after ${attempt} attempts in ${elapsedSeconds}s`
+          );
           setRegistrationUtxo(utxo);
           setIsLoadingRegistrationUtxo(false);
           return;
@@ -315,7 +333,9 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
     if (isMountedRef.current && !abortController.signal.aborted) {
       const totalSeconds = ((Date.now() - startTime) / 1000).toFixed(0);
       logger.log('[RegistrationUtxo]', `❌ Registration UTXO not found after ${attempt} attempts in ${totalSeconds}s`);
-      setRegistrationUtxoError('Registration UTXO not found after polling. The transaction may still be pending on the blockchain. Please wait a moment and refresh the page.');
+      setRegistrationUtxoError(
+        'Registration UTXO not found after polling. The transaction may still be pending on the blockchain. Please wait a moment and refresh the page.'
+      );
       setIsLoadingRegistrationUtxo(false);
     }
   }, [searchRegistrationUtxo]);

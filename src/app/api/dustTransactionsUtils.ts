@@ -1,9 +1,15 @@
-import * as Contracts from '@/config/contract_blueprint';
+import * as Contracts from '@/app/api/contract_blueprint';
 import { LOVELACE_FOR_REGISTRATION } from '@/config/transactionConstants';
 import { logger } from '@/lib/logger';
 import { toJson } from '@/lib/utils';
 import { getAddressDetails, LucidEvolution, TxSignBuilder, UTxO } from '@lucid-evolution/lucid';
-import { blazeToLucidScript, getPolicyId, getStakeAddress, getValidatorAddress, serializeToCbor } from './contractUtils';
+import {
+  blazeToLucidScript,
+  getPolicyId,
+  getStakeAddress,
+  getValidatorAddress,
+  serializeToCbor,
+} from './contractUtils';
 
 export class DustTransactionsUtils {
   /**
@@ -137,7 +143,10 @@ export class DustTransactionsUtils {
    * This returns a function that can be used with TransactionContext.executeTransaction()
    */
   static createRegistrationExecutor(lucid: LucidEvolution, dustPKH: string) {
-    return async (params: Record<string, unknown>, onProgress?: (step: string, progress: number) => void): Promise<string> => {
+    return async (
+      params: Record<string, unknown>,
+      onProgress?: (step: string, progress: number) => void
+    ): Promise<string> => {
       // Step 1: Build transaction
       onProgress?.('Preparing registration transaction...', 20);
       const completedTx = await DustTransactionsUtils.buildRegistrationTransaction(lucid, dustPKH);
@@ -161,7 +170,11 @@ export class DustTransactionsUtils {
    * Based on Haskell buildDeregisterTx implementation
    * Consumes existing registration UTXO without creating a new one
    */
-  static async buildUnregistrationTransaction(lucid: LucidEvolution, dustPKH: string, registrationUtxo: UTxO): Promise<TxSignBuilder> {
+  static async buildUnregistrationTransaction(
+    lucid: LucidEvolution,
+    dustPKH: string,
+    registrationUtxo: UTxO
+  ): Promise<TxSignBuilder> {
     logger.log('[DustTransactions]', '🔧 Building DUST Address Unregistration Transaction...');
 
     // Get DUST Generator contract
@@ -252,7 +265,10 @@ export class DustTransactionsUtils {
    * Create a transaction executor for DUST unregistration - Pure function
    */
   static createUnregistrationExecutor(lucid: LucidEvolution, dustPKH: string, registrationUtxo: UTxO) {
-    return async (params: Record<string, unknown>, onProgress?: (step: string, progress: number) => void): Promise<string> => {
+    return async (
+      params: Record<string, unknown>,
+      onProgress?: (step: string, progress: number) => void
+    ): Promise<string> => {
       // Step 1: Build transaction
       onProgress?.('Preparing unregistration transaction...', 20);
       const completedTx = await DustTransactionsUtils.buildUnregistrationTransaction(lucid, dustPKH, registrationUtxo);
@@ -309,7 +325,11 @@ export class DustTransactionsUtils {
    * Consumes existing registration UTXO and creates a new one with updated datum
    * First checks if stake address is registered, registers if needed, then updates
    */
-  static async buildUpdateTransaction(lucid: LucidEvolution, newDustPKH: string, registrationUtxo: UTxO): Promise<TxSignBuilder> {
+  static async buildUpdateTransaction(
+    lucid: LucidEvolution,
+    newDustPKH: string,
+    registrationUtxo: UTxO
+  ): Promise<TxSignBuilder> {
     logger.log('[DustTransactions]', '🔧 Building DUST Address Update Transaction...');
 
     // Get DUST Generator contract
@@ -377,7 +397,11 @@ export class DustTransactionsUtils {
   /**
    * Build update ONLY transaction (when stake is already registered)
    */
-  private static async buildUpdateOnlyTransaction(lucid: LucidEvolution, newDustPKH: string, registrationUtxo: UTxO): Promise<TxSignBuilder> {
+  private static async buildUpdateOnlyTransaction(
+    lucid: LucidEvolution,
+    newDustPKH: string,
+    registrationUtxo: UTxO
+  ): Promise<TxSignBuilder> {
     logger.log('[DustTransactions]', '🔧 Building Update ONLY Transaction...');
 
     // Get current user's Cardano address and stake key hash
@@ -460,7 +484,10 @@ export class DustTransactionsUtils {
       dust_address: newDustPKH, // DUST PKH (32 bytes hex string)
     };
 
-    const serializedUpdatedRegistrationDatum = serializeToCbor(Contracts.DustMappingDatum, updatedRegistrationDatumData);
+    const serializedUpdatedRegistrationDatum = serializeToCbor(
+      Contracts.DustMappingDatum,
+      updatedRegistrationDatumData
+    );
 
     logger.log(
       '[DustTransactions]',
@@ -519,7 +546,10 @@ export class DustTransactionsUtils {
    * Create a transaction executor for DUST update - Pure function
    */
   static createUpdateExecutor(lucid: LucidEvolution, newDustPKH: string, registrationUtxo: UTxO) {
-    return async (params: Record<string, unknown>, onProgress?: (step: string, progress: number) => void): Promise<string> => {
+    return async (
+      params: Record<string, unknown>,
+      onProgress?: (step: string, progress: number) => void
+    ): Promise<string> => {
       // Step 1: Build transaction
       onProgress?.('Preparing update transaction...', 20);
       const completedTx = await DustTransactionsUtils.buildUpdateTransaction(lucid, newDustPKH, registrationUtxo);

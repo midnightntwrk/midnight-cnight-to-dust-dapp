@@ -2,7 +2,7 @@
 import { logger } from '@/lib/logger';
 import { useTransaction } from '@/contexts/TransactionContext';
 import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/contexts/WalletContext';
-import { DustTransactionsUtils } from '@/lib/dustTransactionsUtils';
+import { DustTransactionsUtils } from '@/app/api/dustTransactionsUtils';
 import type { LucidEvolution } from '@lucid-evolution/lucid';
 import { useState } from 'react';
 import ConnectCardanoCard from './onboard/ConnectCardanoCard';
@@ -68,9 +68,17 @@ export default function Onboard() {
       logger.log('Starting DUST registration...');
 
       // Create the registration executor and execute it
-      const registrationExecutor = DustTransactionsUtils.createRegistrationExecutor(cardano.lucid as LucidEvolution, dustPKHValue);
+      const registrationExecutor = DustTransactionsUtils.createRegistrationExecutor(
+        cardano.lucid as LucidEvolution,
+        dustPKHValue
+      );
 
-      const transactionState = await transaction.executeTransaction('register', registrationExecutor, {}, cardano.lucid as LucidEvolution);
+      const transactionState = await transaction.executeTransaction(
+        'register',
+        registrationExecutor,
+        {},
+        cardano.lucid as LucidEvolution
+      );
 
       // Only open success modal if transaction actually succeeded
       if (transactionState === 'success') {
@@ -152,10 +160,20 @@ export default function Onboard() {
       )}
 
       {/* Cardano Wallet Selection Modal */}
-      <WalletsModal isOpen={isCardanoModalOpen} onOpenChange={setIsCardanoModalOpen} wallets={getAvailableCardanoWallets()} handleWalletSelect={handleCardanoWalletSelect} />
+      <WalletsModal
+        isOpen={isCardanoModalOpen}
+        onOpenChange={setIsCardanoModalOpen}
+        wallets={getAvailableCardanoWallets()}
+        handleWalletSelect={handleCardanoWalletSelect}
+      />
 
       {/* Midnight Wallet Selection Modal */}
-      <WalletsModal isOpen={isMidnightModalOpen} onOpenChange={setIsMidnightModalOpen} wallets={getAvailableMidnightWallets()} handleWalletSelect={handleMidnightWalletSelect} />
+      <WalletsModal
+        isOpen={isMidnightModalOpen}
+        onOpenChange={setIsMidnightModalOpen}
+        wallets={getAvailableMidnightWallets()}
+        handleWalletSelect={handleMidnightWalletSelect}
+      />
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />

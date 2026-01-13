@@ -1,9 +1,23 @@
-import * as Contracts from '@/config/contract_blueprint';
-import { CARDANO_NET, NETWORK_ID, BLOCKFROST_URL, BLOCKCHAIN_EXPLORER_URL, CNIGHT_CURRENCY_POLICY_ID, CNIGHT_CURRENCY_ENCODEDNAME, INDEXER_ENDPOINT } from '@/config/network';
-import { addressFromValidator, Script as BlazeScript, CredentialType, PolicyId, RewardAddress } from '@blaze-cardano/core';
+
+import {
+  CARDANO_NET,
+  NETWORK_ID,
+  BLOCKFROST_URL,
+  BLOCKCHAIN_EXPLORER_URL,
+  CNIGHT_CURRENCY_POLICY_ID,
+  CNIGHT_CURRENCY_ENCODEDNAME,
+  INDEXER_ENDPOINT,
+} from '@/config/network';
+import {
+  addressFromValidator,
+  Script as BlazeScript,
+  CredentialType,
+  PolicyId,
+  RewardAddress,
+} from '@blaze-cardano/core';
 import { serialize } from '@blaze-cardano/data';
 import { Script as LucidScript } from '@lucid-evolution/lucid';
-import { logger } from './logger';
+import { logger } from '../../lib/logger';
 
 /**
  *
