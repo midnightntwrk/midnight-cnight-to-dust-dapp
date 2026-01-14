@@ -46,20 +46,26 @@ export default function DustLifecycleChart() {
   const generationCap = 10 * nightBalance;
 
   // Get current DUST balance from indexer
-  const currentDustBalance = useMemo(() => {
-    if (isIndexerSynced && generationStatus?.currentCapacity) {
-      return parseFloat(generationStatus.currentCapacity);
-    }
-    return 0;
-  }, [isIndexerSynced, generationStatus?.currentCapacity]);
+  // const currentDustBalance = useMemo(() => {
+  //   if (isIndexerSynced && generationStatus?.currentCapacity) {
+  //     return parseFloat(generationStatus.currentCapacity);
+  //   }
+  //   return 0;
+  // }, [isIndexerSynced, generationStatus?.currentCapacity]);
+  const currentDustBalance = isIndexerSynced && generationStatus?.currentCapacity ?
+    parseFloat(generationStatus.currentCapacity) : 0;
+    
 
   // Get generation rate from indexer
-  const generationRate = useMemo(() => {
-    if (isIndexerSynced && generationStatus?.generationRate) {
-      return parseFloat(generationStatus.generationRate);
-    }
-    return 0;
-  }, [isIndexerSynced, generationStatus?.generationRate]);
+  // const generationRate = useMemo(() => {
+  //   if (isIndexerSynced && generationStatus?.generationRate) {
+  //     return parseFloat(generationStatus.generationRate);
+  //   }
+  //   return 0;
+  // }, [isIndexerSynced, generationStatus?.generationRate]);
+  const generationRate = isIndexerSynced && generationStatus?.generationRate ?
+    parseFloat(generationStatus.generationRate) : 0;
+
 
   // Determine lifecycle case automatically based on generation rate
   const lifecycleCase: LifecycleCase = useMemo(() => {
