@@ -9430,19 +9430,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libsodium-sumo@npm:^0.7.16":
-  version: 0.7.16
-  resolution: "libsodium-sumo@npm:0.7.16"
-  checksum: 10c0/672665375d7d60fe839d35795f6f7c91b10afb0b5adbbbaf2729f2ca863576ad5c748e9c866cb1fc45c5c7d2f0b7103dcf8310ae60c2dba11d069e840074cd4f
+"libsodium-sumo@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "libsodium-sumo@npm:0.8.0"
+  checksum: 10c0/7cc8c7d2aac86c7be2b31faa9fff2c442c3140106afbe4ce5e6ee1c3704d308b849c3586bc143d546b8c47cd03244fef9ce495e987e9113ad84cf8af00caf1ba
   languageName: node
   linkType: hard
 
-"libsodium-wrappers-sumo@npm:0.7.16":
-  version: 0.7.16
-  resolution: "libsodium-wrappers-sumo@npm:0.7.16"
+"libsodium-wrappers-sumo@npm:0.8.0":
+  version: 0.8.0
+  resolution: "libsodium-wrappers-sumo@npm:0.8.0"
   dependencies:
-    libsodium-sumo: "npm:^0.7.16"
-  checksum: 10c0/c54cd72c85cde39fd68b94f71000a45e392efc966b4b15c54ade99b88c036eaa3fa6f7ee96a4fdfa84f304358f72bf8c4b25aa2b91ecc224f69bbee2a3d171df
+    libsodium-sumo: "npm:^0.8.0"
+  checksum: 10c0/cfa53e36ee309fc06f75dc33af41b82c99e81414c1d0c608e17e40dd3f2bb1fc55f008f56b5fae636efb46d80d098328a06f2f7937e105a6a1414da18ee7c3c8
   languageName: node
   linkType: hard
 
@@ -9797,6 +9797,7 @@ __metadata:
     graphql: "npm:^16.11.0"
     graphql-request: "npm:^7.2.0"
     happy-dom: "npm:^20.1.0"
+    libsodium-wrappers-sumo: "npm:^0.8.0"
     next: "npm:^16.1.1"
     next-themes: "npm:^0.4.6"
     postcss: "npm:^8.5.6"
