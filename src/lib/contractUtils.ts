@@ -10,7 +10,7 @@ import { logger } from './logger';
  * Convert Blaze Script to Lucid Script format
  */
 export function blazeToLucidScript(blazeScript: BlazeScript): LucidScript {
-  const core = blazeScript.toCore() as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  const core = blazeScript.toCore() as any;  
 
   enum BlazePlutusLanguageVersion {
     V1 = 0,
@@ -70,7 +70,7 @@ export function getPolicyId(script: BlazeScript): string {
 /**
  * Serialize data to CBOR format
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export function serializeToCbor(type: any, data: any): string {
   return serialize(type, data).toCbor();
 }
@@ -116,7 +116,7 @@ export function logContractAddresses(): void {
     // Network ID 0 = testnet, prefix e0 for key hash stake address
     const fakeStakeAddressFromPaymentHash = RewardAddress.fromCredentials(NETWORK_ID, {
       type: CredentialType.KeyHash,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       hash: testPaymentHash as any,
     })
       .toAddress()
