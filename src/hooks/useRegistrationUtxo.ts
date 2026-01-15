@@ -70,10 +70,20 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
 
         // Query UTXOs at the mapping validator address using Blockfrost proxy
         // Use descending order to get newest UTXOs first (helps with pagination)
-        const response = await fetch(`/api/blockfrost/addresses/${dustGeneratorAddress}/utxos/${dustNFTAssetName}?order=desc`, {
-          signal: signal,
-        });
+        try {
+          const response = await fetch(`/api/blockfrost/addresses/${dustGeneratorAddress}/utxos/${dustNFTAssetName}?order=desc`, {
+            signal: signal,
+          });
+          logger.info("REGISTRATION RESPONSE:", response);
 
+        } catch (e) {
+          logger.error('Error in response from blockfrost', e)
+          console.log("ERROR HERE::::",e)
+        }
+
+               const response = await fetch(`/api/blockfrost/addresses/${dustGeneratorAddress}/utxos/${dustNFTAssetName}?order=desc`, {
+            signal: signal,
+          });
         if (!response.ok) {
           throw new Error(`Blockfrost API error: ${response.status} ${response.statusText}`);
         }

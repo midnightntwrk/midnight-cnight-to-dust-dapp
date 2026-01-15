@@ -5,6 +5,7 @@ import { INDEXER_ENDPOINT } from '@/config/network';
 
 export async function GET() {
   try {
+  logger.info('Indexer endpoint:', INDEXER_ENDPOINT)
     const graph = new Subgraph(INDEXER_ENDPOINT);
     const generationStatus = await graph.getDustGenerationStatus(['0x00']);
 
