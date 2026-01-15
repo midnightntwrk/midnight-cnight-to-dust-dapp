@@ -49,14 +49,14 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.1.2",
-    "@vitest/coverage-v8": "^4.0.16",
-    "@vitest/ui": "^4.0.16",
+    "@vitest/coverage-v8": "^4.0.17",
+    "@vitest/ui": "^4.0.17",
     "eslint": "^9",
     "eslint-config-next": "^15.4.9",
-    "happy-dom": "^20.1.0",
+    "happy-dom": "^20.3.0",
     "tailwindcss": "^4.1.12",
     "typescript": "^5",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.17"
   },
   "packageManager": "yarn@4.12.0"
 }
