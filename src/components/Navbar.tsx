@@ -37,36 +37,9 @@ export default function MidnightNavbar() {
       </NavbarContent>
 
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
-        {/* <NavbarItem>
-          <Link color="foreground" href="/">
-            Home
-          </Link>
-        </NavbarItem>
-        <NavbarItem>
-          <Badge
-            content={walletStatus.count > 0 ? walletStatus.count : ""}
-            color={walletStatus.color as any}
-            size="sm"
-            isInvisible={walletStatus.count === 0}
-          >
-            <Link color="foreground" href="/dashboard">
-              Dashboard
-            </Link>
-          </Badge>
-        </NavbarItem> */}
+
       </NavbarContent>
       <NavbarContent justify="end" className="hidden sm:flex gap-4">
-        {/* <NavbarItem className="flex items-center gap-2">
-          <ThemeSwitcher />
-        </NavbarItem> */}
-        <NavbarItem>
-          {/* {cardano.isConnected && (
-            <Button as={Link} className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 w-full py-2 text-sm"
-              href="/dashboard" variant="flat">
-              Dashboard
-            </Button>
-          )} */}
-        </NavbarItem>
       </NavbarContent>
       <NavbarMenu>
         {menuItems.map((item, index) => (
@@ -76,11 +49,6 @@ export default function MidnightNavbar() {
             </Link>
           </NavbarMenuItem>
         ))}
-        <NavbarMenuItem>
-          {/* <div className="flex justify-center mt-4">
-            <ThemeSwitcher />
-          </div> */}
-        </NavbarMenuItem>
       </NavbarMenu>
     </Navbar>
   );
