@@ -278,9 +278,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@blaze-cardano/core@npm:0.7.0, @blaze-cardano/core@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "@blaze-cardano/core@npm:0.7.0"
+"@blaze-cardano/core@npm:0.7.1, @blaze-cardano/core@npm:^0.7.1":
+  version: 0.7.1
+  resolution: "@blaze-cardano/core@npm:0.7.1"
   dependencies:
     "@cardano-sdk/core": "npm:0.45.0"
     "@cardano-sdk/crypto": "npm:^0.1.32"
@@ -290,28 +290,28 @@ __metadata:
     "@noble/hashes": "npm:^1.7.1"
     "@scure/bip39": "npm:^1.5.4"
     blakejs: "npm:^1.2.1"
-  checksum: 10c0/d1f4bd5bf05c2576f01aed0834a2af0aedf60ad6347f41c42874c7dd009e5fe60085ad1392b79134a6cdfe72f29f69a13ad9c6ff763d9edaf1176ad98a3954c8
+  checksum: 10c0/45e622e721adc56816618f69f2b0eea411150e2313fa09db5acf942225b50405f9589b57424d995bceab3183de140199716465ed22da3e92ecc55f5662024116
   languageName: node
   linkType: hard
 
-"@blaze-cardano/data@npm:0.6.4, @blaze-cardano/data@npm:^0.6.4":
-  version: 0.6.4
-  resolution: "@blaze-cardano/data@npm:0.6.4"
+"@blaze-cardano/data@npm:0.6.5, @blaze-cardano/data@npm:^0.6.5":
+  version: 0.6.5
+  resolution: "@blaze-cardano/data@npm:0.6.5"
   dependencies:
-    "@blaze-cardano/core": "npm:0.7.0"
+    "@blaze-cardano/core": "npm:0.7.1"
     "@sinclair/typebox": "npm:^0.34.28"
-  checksum: 10c0/232afede9db85f790f99218b9d5596a1c9c63b402cbb4b687831f422dd7d8f6b993eec3a7d21f432b98a992fc8e4580c358c869b6a17e8898450b1f69829a92e
+  checksum: 10c0/25285361ffb2b11c7f45d9b97c8162827cf0818cdc47510a6823a3ba23f082df57035f36dfa2f386b5f5236ad6af04e580fa4643d48ba8734abc10890f6b2f28
   languageName: node
   linkType: hard
 
-"@blaze-cardano/uplc@npm:^0.4.1":
-  version: 0.4.1
-  resolution: "@blaze-cardano/uplc@npm:0.4.1"
+"@blaze-cardano/uplc@npm:^0.4.2":
+  version: 0.4.2
+  resolution: "@blaze-cardano/uplc@npm:0.4.2"
   dependencies:
-    "@blaze-cardano/core": "npm:0.7.0"
-    "@blaze-cardano/data": "npm:0.6.4"
+    "@blaze-cardano/core": "npm:0.7.1"
+    "@blaze-cardano/data": "npm:0.6.5"
     hex-encoding: "npm:^2.0.2"
-  checksum: 10c0/26b77090e394568693fb10944febd3029a33f3a99b418308ff5f1d54a2d851ab7706ffba3bde448c546f9a8f5fcd36e51302d2813a456f1bbee4f5abbe4182db
+  checksum: 10c0/82a116af27ae79aefd17c8cdfad7c8f395be56f72f4a52d7df6bf4a357c11f58d70bcef3196a29f128387890fdc06decef4e405e46b381a73777315fb86b328f
   languageName: node
   linkType: hard
 
@@ -9587,9 +9587,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "midnight-cnight-to-dust-dapp@workspace:."
   dependencies:
-    "@blaze-cardano/core": "npm:^0.7.0"
-    "@blaze-cardano/data": "npm:^0.6.4"
-    "@blaze-cardano/uplc": "npm:^0.4.1"
+    "@blaze-cardano/core": "npm:^0.7.1"
+    "@blaze-cardano/data": "npm:^0.6.5"
+    "@blaze-cardano/uplc": "npm:^0.4.2"
     "@eslint/eslintrc": "npm:^3"
     "@harmoniclabs/bytestring": "npm:^1.0.0"
     "@harmoniclabs/cbor": "npm:^1.6.6"

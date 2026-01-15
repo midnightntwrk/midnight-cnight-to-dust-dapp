@@ -13,9 +13,9 @@
     "test:watch": "vitest --watch"
   },
   "dependencies": {
-    "@blaze-cardano/core": "^0.7.0",
-    "@blaze-cardano/data": "^0.6.4",
-    "@blaze-cardano/uplc": "^0.4.1",
+    "@blaze-cardano/core": "^0.7.1",
+    "@blaze-cardano/data": "^0.6.5",
+    "@blaze-cardano/uplc": "^0.4.2",
     "@harmoniclabs/bytestring": "^1.0.0",
     "@harmoniclabs/cbor": "^1.6.6",
     "@harmoniclabs/pair": "^1.0.0",
