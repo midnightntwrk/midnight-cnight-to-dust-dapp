@@ -26,7 +26,7 @@
     "@midnight-ntwrk/dapp-connector-api": "^4.0.0-beta.2",
     "@midnight-ntwrk/wallet": "^5.0.0",
     "@midnight-ntwrk/wallet-api": "^5.0.0",
-    "@midnight-ntwrk/wallet-sdk-address-format": "^3.0.0-beta.9",
+    "@midnight-ntwrk/wallet-sdk-address-format": "^3.0.0-beta.11",
     "@types/http-proxy": "^1.17.16",
     "chart.js": "^4.5.1",
     "chartjs-plugin-annotation": "^3.1.0",

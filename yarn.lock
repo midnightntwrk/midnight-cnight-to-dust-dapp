@@ -3055,10 +3055,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@midnight-ntwrk/ledger-v6@npm:6.1.0-alpha.6":
-  version: 6.1.0-alpha.6
-  resolution: "@midnight-ntwrk/ledger-v6@npm:6.1.0-alpha.6"
-  checksum: 10c0/e3b7425d6f1db73d8b0bbebb142c67e8b8bfb718c684bfe91d83b5d9cf28024c1ae6a150827ecd9d14a5d2b5e167a6140037112d1025a6ac2bb8adacf83c24a5
+"@midnight-ntwrk/ledger-v7@npm:7.0.0-rc.1":
+  version: 7.0.0-rc.1
+  resolution: "@midnight-ntwrk/ledger-v7@npm:7.0.0-rc.1"
+  checksum: 10c0/f419d5c666cf75f9f34a957942404fbb2ad74b22c6830f123bba380f57d69b591adc1aa67be1cb6c8d2ea9e23ba133531381e2f5199b4fef75fd782fec1a639e
   languageName: node
   linkType: hard
 
@@ -3084,14 +3084,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@midnight-ntwrk/wallet-sdk-address-format@npm:^3.0.0-beta.9":
-  version: 3.0.0-beta.9
-  resolution: "@midnight-ntwrk/wallet-sdk-address-format@npm:3.0.0-beta.9"
+"@midnight-ntwrk/wallet-sdk-address-format@npm:^3.0.0-beta.11":
+  version: 3.0.0-beta.11
+  resolution: "@midnight-ntwrk/wallet-sdk-address-format@npm:3.0.0-beta.11"
   dependencies:
-    "@midnight-ntwrk/ledger-v6": "npm:6.1.0-alpha.6"
+    "@midnight-ntwrk/ledger-v7": "npm:7.0.0-rc.1"
     "@scure/base": "npm:^1.2.6"
     "@subsquid/scale-codec": "npm:^4.0.1"
-  checksum: 10c0/5629d3a35ee264fb488659e3fa81dfa34b25e075ff06946e35041638bc20a421519d76ee7b59cb6fe342ff586e65901d6bea4ca99ea59de64beada44396f7eb5
+  checksum: 10c0/83f0ef90167b60c9cab985197172f60140ceccf5a9e5cbf3f7802deae00e218d55f58b7634c182a5967abb5288e904d6a73dca39534559530e79bf96734f88b1
   languageName: node
   linkType: hard
 
@@ -9601,7 +9601,7 @@ __metadata:
     "@midnight-ntwrk/dapp-connector-api": "npm:^4.0.0-beta.2"
     "@midnight-ntwrk/wallet": "npm:^5.0.0"
     "@midnight-ntwrk/wallet-api": "npm:^5.0.0"
-    "@midnight-ntwrk/wallet-sdk-address-format": "npm:^3.0.0-beta.9"
+    "@midnight-ntwrk/wallet-sdk-address-format": "npm:^3.0.0-beta.11"
     "@tailwindcss/postcss": "npm:^4.1.12"
     "@testing-library/jest-dom": "npm:^6.9.1"
     "@testing-library/react": "npm:^16.3.1"
