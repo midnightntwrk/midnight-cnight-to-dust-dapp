@@ -97,6 +97,7 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
           // NOTE: We don't use lucid.awaitTx() because it has a memory leak (infinite setInterval)
           try {
             const response = await fetch(`/api/blockfrost/txs/${txHash}`);
+            logger.info("RESPONSE ON blockfrost txs", response)
             if (response.ok) {
               const txInfo = await response.json();
               if (txInfo && !txInfo.error) {
@@ -110,8 +111,9 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
                 return;
               }
             }
-          } catch {
+          } catch (e) {
             // Silently continue polling
+            logger.info("ERROR ON blockfrost transactions", e)
           }
 
           // Check if timeout reached

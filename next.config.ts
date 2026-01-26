@@ -6,11 +6,11 @@ const isDev = process.env.NODE_ENV === 'development';
 
 const ContentSecurityPolicy = `
   default-src 'self';
-  script-src 'self' ${isDev ? "'unsafe-eval'" : ''} 'unsafe-inline';
+  script-src 'self' 'wasm-unsafe-eval' ${isDev ? "'unsafe-eval'" : ''} 'unsafe-inline';
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src 'self' https://fonts.gstatic.com;
   img-src 'self' data: blob:;
-  connect-src 'self' ${isDev ? 'ws://localhost:* http://localhost:*' : ''};
+  connect-src 'self'  ${isDev ? 'ws://localhost:* http://localhost:* https://indexer.preview.midnight.network https://indexer.qanet.midnight.network' : 'https://indexer.preview.midnight.network https://indexer.qanet.midnight.network'};
   frame-ancestors 'none';
   form-action 'self';
   base-uri 'self';
