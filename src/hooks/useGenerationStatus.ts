@@ -66,6 +66,7 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
                   generationRate
                   maxCapacity
                   currentCapacity
+                  registered
                 }
               }
             `,

@@ -11,7 +11,7 @@ const GenerationRateCard = () => {
 
   // Check if indexer has synced (registered on-chain but indexer shows false)
   const isIndexerSyncing = registrationUtxo && generationStatus?.registered === false;
-  const isIndexerSynced = generationStatus?.registered === true;
+  const isIndexerSynced = generationStatus?.registered === true; // this doesn't mean it's synced... 
 
   // Calculate CAP as Night Balance * 10 (fallback when indexer not synced)
   const calculateCap = () => {
@@ -31,7 +31,6 @@ const GenerationRateCard = () => {
     }
     return '0';
   };
-
   // Get CAP - always calculate from wallet balance (NIGHT * 10)
   const getCapValue = () => {
     if (!cardano.balanceNight) {
@@ -56,7 +55,7 @@ const GenerationRateCard = () => {
           </Tooltip>
         </div>
         <div className="flex flex-row gap-2 items-center z-10">
-          <span className={`text-[24px] font-bold ${isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}>{getGenerationRate()}</span>
+          <span className={`text-[24px] font-bold ${isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}>{generationStatus?.generationRate}</span>
           <span className="text-[24px]">DUST/H</span>
         </div>
       </div>
