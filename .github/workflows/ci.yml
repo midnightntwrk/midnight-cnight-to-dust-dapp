@@ -29,7 +29,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Run ESLint
         run: yarn lint
@@ -51,7 +51,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Run tests with coverage
         run: yarn test:coverage --run
@@ -86,7 +86,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Build application
         run: yarn build
