@@ -113,8 +113,7 @@ export const TransactionProvider: React.FC<{ children: ReactNode }> = ({ childre
             }
           } catch (e) {
             // Silently continue polling
-            logger.info("ERROR ON blockfrost txs", e)
-            console.log("error on here:::", e);
+            logger.info("ERROR ON blockfrost transactions", e)
           }
 
           // Check if timeout reached

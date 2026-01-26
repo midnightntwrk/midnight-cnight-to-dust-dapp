@@ -21,7 +21,6 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
   const [error, setError] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0); // bump to refetch
 
-  console.log("INDEXER ENDPOINT:", INDEXER_ENDPOINT)
   const url = useMemo(() => {
     return rewardAddress ? buildGenerationStatusUrl() : null;
   }, [rewardAddress]);
@@ -29,7 +28,6 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
   const refetch = useCallback(() => setNonce((n) => n + 1), []);
 
   useEffect(() => {
-    console.log('URL:',url)
     if (!url) {
       setData(null);
       setError(null);
@@ -46,7 +44,6 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
       try {
         logger.debug('[Indexer:GenerationStatus]', 'Fetching status', { rewardAddress });
 
-        // const res = await fetch(url, { signal: controller.signal });
         const response = await fetch(url, {
           method: 'POST',
           signal: controller.signal,
@@ -73,7 +70,6 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
           }),
         });
 
-        console.log('RESSSS:', response)
         if (!response.ok) {
           if (response.status === 404) {
             setData(null);
@@ -92,9 +88,7 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
         }
 
         const result = await response.json();
-        console.log("RESULT here::::", result)
         const statusData = Array.isArray(result?.data.dustGenerationStatus) ? result.data.dustGenerationStatus[0] : null;
-        console.log("status DATA:::", statusData)
         setData(statusData);
       } catch (err) {
         if (controller.signal.aborted) return;
