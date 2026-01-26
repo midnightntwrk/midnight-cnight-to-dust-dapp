@@ -6,6 +6,7 @@ import { INDEXER_ENDPOINT } from '@/config/network';
 export async function GET(request: NextRequest, { params }: { params: Promise<{ key: string }> }) {
   const startTime = Date.now();
 
+  if (!INDEXER_ENDPOINT) throw "Please configure Indexer endpoint."
   try {
     const resolvedParams = await params;
     const rewardAddress = resolvedParams.key;
