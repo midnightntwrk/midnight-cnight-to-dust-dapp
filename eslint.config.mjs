@@ -6,6 +6,7 @@ export default defineConfig([
 
   globalIgnores([
     "*.config.js",
+    "*.config.cjs",
     "*.config.mjs",
     ".next/**",
     "node_modules/**",
