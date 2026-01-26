@@ -12,7 +12,7 @@ export interface Toast extends ToastOptions {
 
 export function useToast() {
   const [toasts, setToasts] = useState<Toast[]>([]);
-  console.log("hello?")
+
   const showToast = useCallback((options: ToastOptions) => {
     const id = Math.random().toString(36).substr(2, 9);
     const toast: Toast = {
