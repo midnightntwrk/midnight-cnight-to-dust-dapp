@@ -4,10 +4,13 @@
 FROM node:20.19.0-alpine3.20 AS deps
 WORKDIR /app
 
+# Copy yarn configuration and release
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY .yarn .yarn
+
 # Install dependencies with cache mount
-COPY package.json yarn.lock ./
 RUN --mount=type=cache,target=/root/.yarn \
-    yarn install --frozen-lockfile --production=false
+    yarn install --immutable
 
 # Stage 2: Builder
 FROM node:20.19.0-alpine3.20 AS builder
@@ -25,6 +28,10 @@ RUN yarn build
 FROM node:20.19.0-alpine3.20 AS runner
 WORKDIR /app
 
+# Install security updates and remove unnecessary packages
+RUN apk upgrade --no-cache && \
+    rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
@@ -35,10 +42,23 @@ ENV NODE_ENV=production \
     HOSTNAME=0.0.0.0 \
     PORT=3000
 
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/package.json ./package.json
+# Copy application files with proper ownership
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+
+# Copy only the specific packages with WASM files needed at runtime
+# Midnight network packages
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@midnight-ntwrk/ledger-v7 ./node_modules/@midnight-ntwrk/ledger-v7
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@midnight-ntwrk/zswap ./node_modules/@midnight-ntwrk/zswap
+
+# Cardano packages with WASM
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@anastasia-labs ./node_modules/@anastasia-labs
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@blaze-cardano/uplc ./node_modules/@blaze-cardano/uplc
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@emurgo ./node_modules/@emurgo
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@lucid-evolution/core-utils ./node_modules/@lucid-evolution/core-utils
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@lucid-evolution/uplc ./node_modules/@lucid-evolution/uplc
 
 # Switch to non-root user
 USER nextjs
