@@ -4,8 +4,10 @@ import { NextResponse } from 'next/server';
 import { INDEXER_ENDPOINT } from '@/config/network';
 
 export async function GET() {
+  if (!INDEXER_ENDPOINT) {
+    throw "Indexer URL not defined."
+  }
   try {
-  logger.info('Indexer endpoint:', INDEXER_ENDPOINT)
     const graph = new Subgraph(INDEXER_ENDPOINT);
     const generationStatus = await graph.getDustGenerationStatus(['0x00']);
 

@@ -74,11 +74,9 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
           const response = await fetch(`/api/blockfrost/addresses/${dustGeneratorAddress}/utxos/${dustNFTAssetName}?order=desc`, {
             signal: signal,
           });
-          logger.info("REGISTRATION RESPONSE:", response);
 
         } catch (e) {
           logger.error('Error in response from blockfrost', e)
-          console.log("ERROR HERE::::",e)
         }
 
                const response = await fetch(`/api/blockfrost/addresses/${dustGeneratorAddress}/utxos/${dustNFTAssetName}?order=desc`, {

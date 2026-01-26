@@ -11,8 +11,6 @@ export class DustTransactionsUtils {
    */
   static async buildRegistrationTransaction(lucid: LucidEvolution, dustPKH: string): Promise<TxSignBuilder> {
     logger.log('[DustTransactions]', '🔧 Building DUST Address Registration Transaction...');
-    console.log("are we ever getting here??????")
-    logger.info("HELLOOOOOOO HERE:")
     // Get current user's Cardano address and stake key hash
     const cardanoAddress = await lucid.wallet().address();
     const addressDetails = getAddressDetails(cardanoAddress);
