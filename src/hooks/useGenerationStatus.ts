@@ -12,7 +12,7 @@ interface UseGenerationStatusReturn {
 
 const buildGenerationStatusUrl = () => {
   if (!INDEXER_ENDPOINT) throw "Please, configure an Indexer Endpoint."
-  else { return INDEXER_ENDPOINT };
+  return INDEXER_ENDPOINT;
 }
 
 export function useGenerationStatus(rewardAddress: string | null): UseGenerationStatusReturn {
