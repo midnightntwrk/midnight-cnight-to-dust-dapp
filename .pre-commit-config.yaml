@@ -15,7 +15,7 @@ repos:
     hooks:
       - id: eslint
         name: eslint
-        entry: bash -lc 'yarn -s eslint --fix --max-warnings=0'
+        entry: bash -lc 'yarn run --silent eslint --fix --max-warnings=0'
         language: system
         files: \.[jt]sx?$
 
@@ -23,6 +23,6 @@ repos:
     hooks:
       - id: prettier
         name: prettier
-        entry: bash -lc 'yarn -s prettier --write --ignore-unknown'
+        entry: bash -lc 'yarn run --silent prettier --write --ignore-unknown'
         language: system
         types_or: [javascript, jsx, ts, tsx, json, css, markdown]
