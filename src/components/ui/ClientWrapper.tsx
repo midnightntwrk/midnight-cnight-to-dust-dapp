@@ -1,5 +1,6 @@
 'use client';
 
+import '../../lib/polyfill';
 import { Providers } from '@/contexts/Providers';
 import MidnightNavbar from '@/components/Navbar';
 import Footer from '@/components/ui/Footer';
