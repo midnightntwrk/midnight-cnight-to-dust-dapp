@@ -34,6 +34,7 @@
     "@midnight-ntwrk/wallet-api": "^5.0.0",
     "@midnight-ntwrk/wallet-sdk-address-format": "^3.0.0-beta.11",
     "@types/http-proxy": "^1.17.16",
+    "buffer": "^6.0.3",
     "chart.js": "^4.5.1",
     "chartjs-plugin-annotation": "^3.1.0",
     "framer-motion": "^12.26.2",

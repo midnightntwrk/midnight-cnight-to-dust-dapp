@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Buffer } from 'buffer';
 import './globals.css';
 import ClientWrapper from '@/components/ui/ClientWrapper';
 
@@ -15,6 +16,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  if (typeof window !== 'undefined') {
+    window.Buffer = Buffer;
+  }
   return (
     // NOTE:
     // suppressHydrationWarning prevents hydration mismatch errors from next-themes
