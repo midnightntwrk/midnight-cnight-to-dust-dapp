@@ -27,8 +27,8 @@ const IndexerSyncBanner = ({ isVisible }: IndexerSyncBannerProps) => {
             </div>
           </div>
           <p className="text-amber-100/80 text-sm leading-relaxed">
-            Your registration was successful and recorded on the Cardano blockchain. The indexer is processing your registration, which may take up to{' '}
-            <span className="font-semibold text-amber-200">12 hours</span>. Once complete, your DUST generation details will appear below.
+            Your registration was successful and recorded on the Cardano blockchain. It may take up to{' '}
+            <span className="font-semibold text-amber-200">12 hours</span> to see the Dust generation start. Once complete, your DUST generation details will appear below.
           </p>
         </div>
       </div>

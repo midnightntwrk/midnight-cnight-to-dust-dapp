@@ -7,8 +7,9 @@ import CopyIcon from '@/assets/icons/copy.svg';
 import CheckIcon from '@/assets/icons/check.svg';
 import InfoIcon from '@/assets/icons/info.svg';
 import { useTransaction } from '@/contexts/TransactionContext';
-// import { useDustProtocol } from '@/contexts/DustProtocolContext';
 import { hasMinimumBalance, MIN_ADA_FOR_REGISTRATION } from '@/config/transactionConstants';
+import { useToast } from '@/hooks/useToast';
+import ToastContainer from '../ui/ToastContainer';
 
 interface MatchAddressesCardProps {
   // Cardano wallet info
@@ -40,6 +41,7 @@ export default function MatchAddressesCard({
 }: MatchAddressesCardProps) {
   // Transaction management
   const transaction = useTransaction();
+  const { toasts, showToast, removeToast } = useToast();
 
   // Check if user has minimum balance
   const hasEnoughBalance = hasMinimumBalance(cardanoBalanceADA);
@@ -53,13 +55,13 @@ export default function MatchAddressesCard({
     // Disable if registration already successfully completed
     (transaction.isCurrentTransaction('register') && transaction.transactionState === 'success');
 
-  const handleCopyCardanoAddress = () => {
-    navigator.clipboard.writeText(cardanoAddress);
-  };
-
-  const handleCopyMidnightAddress = () => {
-    navigator.clipboard.writeText(midnightAddress);
-  };
+  const handleCopyAddress = (isCardano: boolean) => {
+    navigator.clipboard.writeText(isCardano ? cardanoAddress : midnightAddress);
+    showToast({
+      message: `${isCardano ? "Cardano" : "DUST"} address copied to clipboard!`,
+      type: 'success',
+    });
+  }
 
   const formatAddress = (addr: string) => {
     if (!addr) return '';
@@ -103,7 +105,7 @@ export default function MatchAddressesCard({
             <div className="flex items-center gap-2">
               <Image src={CheckIcon} alt="check" width={16} height={16} />
               <span className="text-white text-sm font-mono flex-1">{formatAddress(cardanoAddress)}</span>
-              <button onClick={handleCopyCardanoAddress} className="hover:opacity-70 transition-opacity">
+              <button onClick={() => handleCopyAddress(true)} className="hover:opacity-70 transition-opacity">
                 <Image src={CopyIcon} alt="copy" width={16} height={16} />
               </button>
             </div>
@@ -128,7 +130,7 @@ export default function MatchAddressesCard({
             <div className="flex items-center gap-2">
               <Image src={CheckIcon} alt="check" width={16} height={16} />
               <span className="text-white text-sm font-mono flex-1">{formatAddress(midnightAddress)}</span>
-              <button onClick={handleCopyMidnightAddress} className="hover:opacity-70 transition-opacity">
+              <button onClick={() => handleCopyAddress(false)} className="hover:opacity-70 transition-opacity">
                 <Image src={CopyIcon} alt="copy" width={16} height={16} />
               </button>
             </div>
@@ -140,6 +142,7 @@ export default function MatchAddressesCard({
               <p className="text-red-400 text-sm">Insufficient ADA balance. You need at least {MIN_ADA_FOR_REGISTRATION} ADA to execute the registration transaction.</p>
             </div>
           )}
+          <ToastContainer toasts={toasts} onRemove={removeToast} />
 
           {/* Match Addresses Button */}
           <Button
