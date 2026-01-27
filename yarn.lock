@@ -9799,6 +9799,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^5.1.2"
     "@vitest/coverage-v8": "npm:^4.0.16"
     "@vitest/ui": "npm:^4.0.16"
+    buffer: "npm:^6.0.3"
     chart.js: "npm:^4.5.1"
     chartjs-plugin-annotation: "npm:^3.1.0"
     eslint: "npm:^9"
