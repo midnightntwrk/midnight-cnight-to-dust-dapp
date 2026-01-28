@@ -75,6 +75,29 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     needs: [lint, test]
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - network: PREVIEW
+            image_name_suffix: preview
+            cardano_net: Preview
+            blockfrost_url: https://cardano-preview.blockfrost.io/api/v0
+            blockchain_explorer_url: https://preview.cexplorer.io
+            cnight_currency_policy_id: '03cf16101d110dcad9cacb225f0d1e63a8809979e7feb60426995414'
+            cnight_currency_encodedname: ''
+            indexer_endpoint: https://indexer.preview.midnight.network/api/v3/graphql
+            blockfrost_secret_id: BLOCKFROST_KEY_PREVIEW
+          - network: PREPROD
+            image_name_suffix: preprod
+            cardano_net: Preprod
+            blockfrost_url: https://cardano-preprod.blockfrost.io/api/v0
+            blockchain_explorer_url: https://preprod.cexplorer.io
+            cnight_currency_policy_id: '03cf16101d110dcad9cacb225f0d1e63a8809979e7feb60426995414'
+            cnight_currency_encodedname: ''
+            indexer_endpoint: https://indexer.preprod.midnight.network/api/v3/graphql
+            blockfrost_secret_id: BLOCKFROST_KEY_PREVIEW # should use the correct one
+
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
@@ -91,13 +114,13 @@ jobs:
       - name: Build application
         run: yarn build
         env:
-          NEXT_PUBLIC_CARDANO_NET: Preview
-          NEXT_PUBLIC_BLOCKFROST_URL_PREVIEW: https://cardano-preview.blockfrost.io/api/v0
-          NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_PREVIEW: https://preview.cexplorer.io/
-          NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_POLICY_ID: '03cf16101d110dcad9cacb225f0d1e63a8809979e7feb60426995414'
-          NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME: ''
-          NEXT_PUBLIC_INDEXER_ENDPOINT: https://indexer.preview.midnight.network/api/v3/graphql
-          BLOCKFROST_KEY_PREVIEW: ${{ secrets.BLOCKFROST_KEY_PREVIEW }}
+          NEXT_PUBLIC_CARDANO_NET: '${{ matrix.cardano_net }}'
+          NEXT_PUBLIC_INDEXER_ENDPOINT: '${{ matrix.indexer_endpoint }}'
+          'NEXT_PUBLIC_BLOCKFROST_URL_${{ matrix.network }}': '${{ matrix.blockfrost_url }}'
+          'NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_${{ matrix.network }}': '${{ matrix.blockchain_explorer_url }}'
+          'NEXT_PUBLIC_${{ matrix.network }}_CNIGHT_CURRENCY_POLICY_ID': '${{ matrix.cnight_currency_policy_id }}'
+          'NEXT_PUBLIC_${{ matrix.network }}_CNIGHT_CURRENCY_ENCODEDNAME': '${{ matrix.cnight_currency_encodedname }}'
+          BLOCKFROST_KEY_PREVIEW: '${{ secrets[matrix.blockfrost_secret_id] }}'
 
       - name: Verify build output
         run: |
@@ -108,7 +131,7 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f #v6.0.0
         with:
-          name: build
+          name: build-${{ matrix.image_name_suffix }}
           path: .next
           retention-days: 7
           if-no-files-found: error

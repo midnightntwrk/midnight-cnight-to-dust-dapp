@@ -24,6 +24,27 @@ jobs:
       contents: read
       packages: write
 
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - network: PREVIEW
+            image_name_suffix: preview
+            cardano_net: Preview
+            blockfrost_url: https://cardano-preview.blockfrost.io/api/v0
+            blockchain_explorer_url: https://preview.cexplorer.io
+            cnight_currency_policy_id: '03cf16101d110dcad9cacb225f0d1e63a8809979e7feb60426995414'
+            cnight_currency_encodedname: ''
+            indexer_endpoint: https://indexer.preview.midnight.network/api/v3/graphql
+          - network: PREPROD
+            image_name_suffix: preprod
+            cardano_net: Preprod
+            blockfrost_url: https://cardano-preprod.blockfrost.io/api/v0
+            blockchain_explorer_url: https://preprod.cexplorer.io
+            cnight_currency_policy_id: '03cf16101d110dcad9cacb225f0d1e63a8809979e7feb60426995414'
+            cnight_currency_encodedname: ''
+            indexer_endpoint: https://indexer.preprod.midnight.network/api/v3/graphql
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
@@ -45,9 +66,9 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=sha,prefix=sha-
-            type=ref,event=branch
-            type=ref,event=pr
+            type=sha,prefix=${{ matrix.image_name_suffix}}-sha-
+            type=ref,event=branch,prefix=${{ matrix.image_name_suffix }}-
+            type=ref,event=pr,prefix=${{ matrix.image_name_suffix }}-
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
@@ -62,12 +83,12 @@ jobs:
           cache-to: type=gha,mode=max
           platforms: linux/amd64
           build-args: |
-            NEXT_PUBLIC_CARDANO_NET=Preview
-            NEXT_PUBLIC_BLOCKFROST_URL_PREVIEW=https://cardano-preview.blockfrost.io/api/v0
-            NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_PREVIEW=https://preview.cexplorer.io
-            NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_POLICY_ID=03cf16101d110dcad9cacb225f0d1e63a8809979e7feb60426995414
-            NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME=
-            NEXT_PUBLIC_INDEXER_ENDPOINT=https://indexer.preview.midnight.network/api/v3/graphql
+            "NEXT_PUBLIC_CARDANO_NET=${{ matrix.cardano_net }}"
+            "NEXT_PUBLIC_BLOCKFROST_URL_${{ matrix.network }}=${{ matrix.blockfrost_url }}"
+            "NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_${{ matrix.network }}=${{ matrix.blockchain_explorer_url }}"
+            "NEXT_PUBLIC_${{ matrix.network }}_CNIGHT_CURRENCY_POLICY_ID=${{ matrix.cnight_currency_policy_id }}"
+            "NEXT_PUBLIC_${{ matrix.network }}_CNIGHT_CURRENCY_ENCODEDNAME=${{ matrix.cnight_currency_encodedname }}"
+            "NEXT_PUBLIC_INDEXER_ENDPOINT=${{ matrix.indexer_endpoint }}"
 
       - name: Image digest
         run: echo "${{ steps.meta.outputs.tags }}"
