@@ -65,7 +65,9 @@ export const extractCoinPublicKeyFromMidnightAddress = (address: string): string
     const { prefix, words } = bech32m.decode(address, 200);
 
     // Convert from 5-bit words to 8-bit bytes
-    const data = bech32m.fromWords(words);
+    // Note: bech32m.fromWords() may return Uint8Array in some environments despite types saying number[]
+    // Convert to regular array to ensure .slice() works in all browser environments
+    const data = Array.from(bech32m.fromWords(words));
 
     // Extract first 32 bytes as coin public key
     const coinPublicKeyBytes = data.slice(0, 32);
