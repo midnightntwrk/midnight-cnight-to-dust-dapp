@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # Stage 1: Dependencies
-FROM node:20.19.0-alpine3.20 AS deps
+FROM node:24.1.0-alpine3.20 AS deps
 WORKDIR /app
 
 # Copy yarn configuration and release
@@ -13,7 +13,7 @@ RUN --mount=type=cache,target=/root/.yarn \
     yarn install --immutable
 
 # Stage 2: Builder
-FROM node:20.19.0-alpine3.20 AS builder
+FROM node:24.1.0-alpine3.20 AS builder
 WORKDIR /app
 
 # Build arguments for Next.js public environment variables
@@ -42,7 +42,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN yarn build
 
 # Stage 3: Runner
-FROM node:20.19.0-alpine3.20 AS runner
+FROM node:24.1.0-alpine3.20 AS runner
 WORKDIR /app
 
 # Install security updates and remove unnecessary packages
