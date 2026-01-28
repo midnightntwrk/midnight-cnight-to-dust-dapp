@@ -204,6 +204,8 @@ export const isPreview = CARDANO_NET === LUCID_NETWORK_PREVIEW_NAME;
 export const isPreprod = CARDANO_NET === LUCID_NETWORK_PREPROD_NAME;
 export const isMainnet = CARDANO_NET === LUCID_NETWORK_MAINNET_NAME;
 
+logger.info('network configuration:', networkConfigs)
+
 //---------------------------------------------------
 // Export current network constants
 // During build time, use default values to avoid errors
@@ -212,9 +214,11 @@ let config: NetworkConfig;
 if (isBuildTime) {
   // During build, use Preview config directly without validation
   config = networkConfigs.Preview;
+  logger.info('network configuration:', networkConfigs)
 } else {
   try {
     config = getCurrentNetworkConfig();
+    logger.info('current configuration:', config)
   } catch (error) {
     logger.error('[Network]', 'Error getting current network config:', error);
     throw error;
