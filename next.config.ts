@@ -74,6 +74,15 @@ const nextConfig: NextConfig = {
   env: {
     // Add any environment variables here if needed
   },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        buffer: require.resolve('buffer/'),
+      };
+    }
+    return config;
+  },
 };
 
 export default nextConfig;
