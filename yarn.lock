@@ -425,7 +425,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@blaze-cardano/core@npm:0.7.0, @blaze-cardano/core@npm:^0.7.0":
+"@blaze-cardano/core@npm:0.8.0":
+  version: 0.8.0
+  resolution: "@blaze-cardano/core@npm:0.8.0"
+  dependencies:
+    "@cardano-sdk/core": "npm:0.46"
+    "@cardano-sdk/crypto": "npm:^0.4"
+    "@cardano-sdk/util": "npm:^0.17"
+    "@noble/curves": "npm:^1.8.1"
+    "@noble/ed25519": "npm:^2.2.3"
+    "@noble/hashes": "npm:^1.7.1"
+    "@scure/bip39": "npm:^1.5.4"
+    blakejs: "npm:^1.2.1"
+  checksum: 10c0/6f138abc2b18f61c4cb03870d3f48ea5e0e99cad3328072e61509f7aa4774deb394555c8bc3e4013b567b580e9dd68cdc85178735999b3f961718042c587d88d
+  languageName: node
+  linkType: hard
+
+"@blaze-cardano/core@npm:^0.7.0":
   version: 0.7.0
   resolution: "@blaze-cardano/core@npm:0.7.0"
   dependencies:
@@ -441,24 +457,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@blaze-cardano/data@npm:0.6.4, @blaze-cardano/data@npm:^0.6.4":
-  version: 0.6.4
-  resolution: "@blaze-cardano/data@npm:0.6.4"
+"@blaze-cardano/data@npm:0.6.6, @blaze-cardano/data@npm:^0.6.6":
+  version: 0.6.6
+  resolution: "@blaze-cardano/data@npm:0.6.6"
   dependencies:
-    "@blaze-cardano/core": "npm:0.7.0"
+    "@blaze-cardano/core": "npm:0.8.0"
     "@sinclair/typebox": "npm:^0.34.28"
-  checksum: 10c0/232afede9db85f790f99218b9d5596a1c9c63b402cbb4b687831f422dd7d8f6b993eec3a7d21f432b98a992fc8e4580c358c869b6a17e8898450b1f69829a92e
+  checksum: 10c0/0d997f4c08a774a6de3c4361657e7e06465f0682e5f6d1655a80101d82477bd51301620b161674d13261e911e279c2f00df07c931724b4202598982ccb0250f8
   languageName: node
   linkType: hard
 
-"@blaze-cardano/uplc@npm:^0.4.1":
-  version: 0.4.1
-  resolution: "@blaze-cardano/uplc@npm:0.4.1"
+"@blaze-cardano/uplc@npm:^0.4.3":
+  version: 0.4.3
+  resolution: "@blaze-cardano/uplc@npm:0.4.3"
   dependencies:
-    "@blaze-cardano/core": "npm:0.7.0"
-    "@blaze-cardano/data": "npm:0.6.4"
+    "@blaze-cardano/core": "npm:0.8.0"
+    "@blaze-cardano/data": "npm:0.6.6"
     hex-encoding: "npm:^2.0.2"
-  checksum: 10c0/26b77090e394568693fb10944febd3029a33f3a99b418308ff5f1d54a2d851ab7706ffba3bde448c546f9a8f5fcd36e51302d2813a456f1bbee4f5abbe4182db
+  checksum: 10c0/74b993d609173086546d08ed496a12f6999de0745c444d943345fffcfbba7e3d9cf342c8de6c0b3b10c78b8192b919a54d318a80c8dbcc8fdfb20fe35d30e53e
   languageName: node
   linkType: hard
 
@@ -510,6 +526,32 @@ __metadata:
     rxjs:
       optional: true
   checksum: 10c0/81f92fff36239d893d43059d4684f7e659dcbd48c3773d6315a7cad13731767f476847439848227abdf50b5e69b4a2c87042ba95120fb9163d9013117b0ea3e7
+  languageName: node
+  linkType: hard
+
+"@cardano-sdk/core@npm:0.46":
+  version: 0.46.11
+  resolution: "@cardano-sdk/core@npm:0.46.11"
+  dependencies:
+    "@biglup/is-cid": "npm:^1.0.3"
+    "@cardano-ogmios/client": "npm:6.9.0"
+    "@cardano-ogmios/schema": "npm:6.9.0"
+    "@cardano-sdk/crypto": "npm:~0.4.4"
+    "@cardano-sdk/util": "npm:~0.17.1"
+    "@foxglove/crc": "npm:^0.0.3"
+    "@scure/base": "npm:^1.1.1"
+    fraction.js: "npm:4.0.1"
+    ip-address: "npm:^9.0.5"
+    lodash: "npm:^4.17.21"
+    ts-custom-error: "npm:^3.2.0"
+    ts-log: "npm:^2.2.4"
+    web-encoding: "npm:^1.1.5"
+  peerDependencies:
+    rxjs: ^7.4.0
+  peerDependenciesMeta:
+    rxjs:
+      optional: true
+  checksum: 10c0/e2e699d51d7bf856b94aa4fb8755b6396d89bacc16e1f7256f6a7caeacb05b13ca52ad8dd51a7afd9afacaeceed5487ef915c783ca6daa7c7bcaa9f1e67b59b7
   languageName: node
   linkType: hard
 
@@ -567,6 +609,33 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cardano-sdk/crypto@npm:^0.4, @cardano-sdk/crypto@npm:~0.4.4":
+  version: 0.4.4
+  resolution: "@cardano-sdk/crypto@npm:0.4.4"
+  dependencies:
+    "@cardano-sdk/util": "npm:~0.17.1"
+    blake2b: "npm:^2.1.4"
+    i: "npm:^0.3.7"
+    libsodium-wrappers-sumo: "npm:^0.7.5"
+    lodash: "npm:^4.17.21"
+    pbkdf2: "npm:^3.1.3"
+    ts-custom-error: "npm:^3.2.0"
+    ts-log: "npm:^2.2.4"
+  peerDependencies:
+    "@dcspark/cardano-multiplatform-lib-asmjs": ^3.1.1
+    "@dcspark/cardano-multiplatform-lib-browser": ^3.1.1
+    "@dcspark/cardano-multiplatform-lib-nodejs": ^3.1.1
+  peerDependenciesMeta:
+    "@dcspark/cardano-multiplatform-lib-asmjs":
+      optional: true
+    "@dcspark/cardano-multiplatform-lib-browser":
+      optional: true
+    "@dcspark/cardano-multiplatform-lib-nodejs":
+      optional: true
+  checksum: 10c0/1b146700874837589f8953d71ed33d84d9eb1aa91a2cde2ed2728e971ee2c5022ffa76af3c515a6b8ff6fa883f95dec0ee5a13500e668a570a2d0ac43a1ea858
+  languageName: node
+  linkType: hard
+
 "@cardano-sdk/crypto@npm:~0.2.0, @cardano-sdk/crypto@npm:~0.2.3":
   version: 0.2.3
   resolution: "@cardano-sdk/crypto@npm:0.2.3"
@@ -606,6 +675,19 @@ __metadata:
     ts-log: "npm:^2.2.4"
     type-fest: "npm:^2.19.0"
   checksum: 10c0/5bebb0b8c14cb6742f96bc73f19a26947321b832d713a3de04d89ad638b6588ce37b889e1f7324c8f7fa8523045484b2e62dfbce15fdd512c6661bec3a199dc2
+  languageName: node
+  linkType: hard
+
+"@cardano-sdk/util@npm:^0.17, @cardano-sdk/util@npm:~0.17.1":
+  version: 0.17.1
+  resolution: "@cardano-sdk/util@npm:0.17.1"
+  dependencies:
+    bech32: "npm:^2.0.0"
+    lodash: "npm:^4.17.21"
+    serialize-error: "npm:^8"
+    ts-custom-error: "npm:^3.2.0"
+    ts-log: "npm:^2.2.4"
+  checksum: 10c0/c96be4e61b1bf3f2a3f785f72e8ac382a71f0daf51076565fcbf3f37cc24331a3f06a4cb5a0eb038173567313bc20927eb6bb2463e9921b18f13713160e5efee
   languageName: node
   linkType: hard
 
@@ -3335,10 +3417,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/env@npm:16.1.1":
-  version: 16.1.1
-  resolution: "@next/env@npm:16.1.1"
-  checksum: 10c0/54f0dd11bfaf9b2161afcace9b29e9b82485c789bda185e206696c922e0f7aa419840a2b014c834a4f506f2534b33167f653289e4ab5cddae283b0321c71d0b5
+"@next/env@npm:16.1.6":
+  version: 16.1.6
+  resolution: "@next/env@npm:16.1.6"
+  checksum: 10c0/ed7023edb94b9b2e5da3f9c99d08b614da9757c1edd0ecec792fce4d336b4f0c64db1a84955e07cfbd848b9e61c4118fff28f4098cd7b0a7f97814a90565ebe6
   languageName: node
   linkType: hard
 
@@ -3351,58 +3433,58 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/swc-darwin-arm64@npm:16.1.1":
-  version: 16.1.1
-  resolution: "@next/swc-darwin-arm64@npm:16.1.1"
+"@next/swc-darwin-arm64@npm:16.1.6":
+  version: 16.1.6
+  resolution: "@next/swc-darwin-arm64@npm:16.1.6"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@next/swc-darwin-x64@npm:16.1.1":
-  version: 16.1.1
-  resolution: "@next/swc-darwin-x64@npm:16.1.1"
+"@next/swc-darwin-x64@npm:16.1.6":
+  version: 16.1.6
+  resolution: "@next/swc-darwin-x64@npm:16.1.6"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@next/swc-linux-arm64-gnu@npm:16.1.1":
-  version: 16.1.1
-  resolution: "@next/swc-linux-arm64-gnu@npm:16.1.1"
+"@next/swc-linux-arm64-gnu@npm:16.1.6":
+  version: 16.1.6
+  resolution: "@next/swc-linux-arm64-gnu@npm:16.1.6"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@next/swc-linux-arm64-musl@npm:16.1.1":
-  version: 16.1.1
-  resolution: "@next/swc-linux-arm64-musl@npm:16.1.1"
+"@next/swc-linux-arm64-musl@npm:16.1.6":
+  version: 16.1.6
+  resolution: "@next/swc-linux-arm64-musl@npm:16.1.6"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@next/swc-linux-x64-gnu@npm:16.1.1":
-  version: 16.1.1
-  resolution: "@next/swc-linux-x64-gnu@npm:16.1.1"
+"@next/swc-linux-x64-gnu@npm:16.1.6":
+  version: 16.1.6
+  resolution: "@next/swc-linux-x64-gnu@npm:16.1.6"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@next/swc-linux-x64-musl@npm:16.1.1":
-  version: 16.1.1
-  resolution: "@next/swc-linux-x64-musl@npm:16.1.1"
+"@next/swc-linux-x64-musl@npm:16.1.6":
+  version: 16.1.6
+  resolution: "@next/swc-linux-x64-musl@npm:16.1.6"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@next/swc-win32-arm64-msvc@npm:16.1.1":
-  version: 16.1.1
-  resolution: "@next/swc-win32-arm64-msvc@npm:16.1.1"
+"@next/swc-win32-arm64-msvc@npm:16.1.6":
+  version: 16.1.6
+  resolution: "@next/swc-win32-arm64-msvc@npm:16.1.6"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@next/swc-win32-x64-msvc@npm:16.1.1":
-  version: 16.1.1
-  resolution: "@next/swc-win32-x64-msvc@npm:16.1.1"
+"@next/swc-win32-x64-msvc@npm:16.1.6":
+  version: 16.1.6
+  resolution: "@next/swc-win32-x64-msvc@npm:16.1.6"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -5656,11 +5738,11 @@ __metadata:
   linkType: hard
 
 "@types/react@npm:^19":
-  version: 19.2.8
-  resolution: "@types/react@npm:19.2.8"
+  version: 19.2.10
+  resolution: "@types/react@npm:19.2.10"
   dependencies:
     csstype: "npm:^3.2.2"
-  checksum: 10c0/832834998c4ee971fca72ecf1eb95dc924ad3931a2112c687a4dae498aabd115c5fa4db09186853e34a646226b0223808c8f867df03d17601168f9cf119448de
+  checksum: 10c0/17b96203a79ad3fa3cee8f1f1f324b93f005bc125755e29ac149402807275feaf3f00a4e65b8405f633923ac993da5737fd9800d27ee49911f3ed51dc27478f9
   languageName: node
   linkType: hard
 
@@ -9447,12 +9529,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libsodium-wrappers-sumo@npm:0.8.0":
-  version: 0.8.0
-  resolution: "libsodium-wrappers-sumo@npm:0.8.0"
+"libsodium-wrappers-sumo@npm:0.8.2":
+  version: 0.8.2
+  resolution: "libsodium-wrappers-sumo@npm:0.8.2"
   dependencies:
     libsodium-sumo: "npm:^0.8.0"
-  checksum: 10c0/cfa53e36ee309fc06f75dc33af41b82c99e81414c1d0c608e17e40dd3f2bb1fc55f008f56b5fae636efb46d80d098328a06f2f7937e105a6a1414da18ee7c3c8
+  checksum: 10c0/d18341112efbffec47b1de10049df7f6ba73dc0b93023b87b6a7fd88a70cc83da77525e60cb7641eb18964fa8fe0b243e92b8a195efec481444ecae1005facae
   languageName: node
   linkType: hard
 
@@ -9775,8 +9857,8 @@ __metadata:
   resolution: "midnight-cnight-to-dust-dapp@workspace:."
   dependencies:
     "@blaze-cardano/core": "npm:^0.7.0"
-    "@blaze-cardano/data": "npm:^0.6.4"
-    "@blaze-cardano/uplc": "npm:^0.4.1"
+    "@blaze-cardano/data": "npm:^0.6.6"
+    "@blaze-cardano/uplc": "npm:^0.4.3"
     "@eslint/eslintrc": "npm:^3"
     "@harmoniclabs/bytestring": "npm:^1.0.0"
     "@harmoniclabs/cbor": "npm:^1.6.6"
@@ -9810,14 +9892,14 @@ __metadata:
     graphql: "npm:^16.11.0"
     graphql-request: "npm:^7.2.0"
     happy-dom: "npm:^20.1.0"
-    libsodium-wrappers-sumo: "npm:^0.8.0"
-    next: "npm:^16.1.1"
+    libsodium-wrappers-sumo: "npm:^0.8.2"
+    next: "npm:^16.1.6"
     next-themes: "npm:^0.4.6"
     postcss: "npm:^8.5.6"
     prettier: "npm:^3.8.1"
-    react: "npm:^19.2.3"
+    react: "npm:^19.2.4"
     react-chartjs-2: "npm:^5.3.0"
-    react-dom: "npm:^19.2.3"
+    react-dom: "npm:^19.2.4"
     tailwindcss: "npm:^4.1.12"
     typescript: "npm:^5"
     vitest: "npm:^4.0.16"
@@ -10132,19 +10214,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next@npm:^16.1.1":
-  version: 16.1.1
-  resolution: "next@npm:16.1.1"
+"next@npm:^16.1.6":
+  version: 16.1.6
+  resolution: "next@npm:16.1.6"
   dependencies:
-    "@next/env": "npm:16.1.1"
-    "@next/swc-darwin-arm64": "npm:16.1.1"
-    "@next/swc-darwin-x64": "npm:16.1.1"
-    "@next/swc-linux-arm64-gnu": "npm:16.1.1"
-    "@next/swc-linux-arm64-musl": "npm:16.1.1"
-    "@next/swc-linux-x64-gnu": "npm:16.1.1"
-    "@next/swc-linux-x64-musl": "npm:16.1.1"
-    "@next/swc-win32-arm64-msvc": "npm:16.1.1"
-    "@next/swc-win32-x64-msvc": "npm:16.1.1"
+    "@next/env": "npm:16.1.6"
+    "@next/swc-darwin-arm64": "npm:16.1.6"
+    "@next/swc-darwin-x64": "npm:16.1.6"
+    "@next/swc-linux-arm64-gnu": "npm:16.1.6"
+    "@next/swc-linux-arm64-musl": "npm:16.1.6"
+    "@next/swc-linux-x64-gnu": "npm:16.1.6"
+    "@next/swc-linux-x64-musl": "npm:16.1.6"
+    "@next/swc-win32-arm64-msvc": "npm:16.1.6"
+    "@next/swc-win32-x64-msvc": "npm:16.1.6"
     "@swc/helpers": "npm:0.5.15"
     baseline-browser-mapping: "npm:^2.8.3"
     caniuse-lite: "npm:^1.0.30001579"
@@ -10188,7 +10270,7 @@ __metadata:
       optional: true
   bin:
     next: dist/bin/next
-  checksum: 10c0/ddc3050653cd9c0ffa351c09d953d11bcb9d1638aeb6d173cbda1063e6b7c658b2e5381f9c023f3887cb2652e6cdb1fd439b8a736ecb24683f4681b15ed007e5
+  checksum: 10c0/543766bf879bb5a5d454dc18cb302953270a92efba1d01dd028ea83c64b69573ce7d6e6c3759ecbaabec0a84131b0237263c24d1ccd7c8a97205e776dcd34e0b
   languageName: node
   linkType: hard
 
@@ -10823,7 +10905,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pbkdf2@npm:^3.1.2":
+"pbkdf2@npm:^3.1.2, pbkdf2@npm:^3.1.3":
   version: 3.1.5
   resolution: "pbkdf2@npm:3.1.5"
   dependencies:
@@ -11032,14 +11114,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^19.2.3":
-  version: 19.2.3
-  resolution: "react-dom@npm:19.2.3"
+"react-dom@npm:^19.2.4":
+  version: 19.2.4
+  resolution: "react-dom@npm:19.2.4"
   dependencies:
     scheduler: "npm:^0.27.0"
   peerDependencies:
-    react: ^19.2.3
-  checksum: 10c0/dc43f7ede06f46f3acc16ee83107c925530de9b91d1d0b3824583814746ff4c498ea64fd65cd83aba363205268adff52e2827c582634ae7b15069deaeabc4892
+    react: ^19.2.4
+  checksum: 10c0/f0c63f1794dedb154136d4d0f59af00b41907f4859571c155940296808f4b94bf9c0c20633db75b5b2112ec13d8d7dd4f9bf57362ed48782f317b11d05a44f35
   languageName: node
   linkType: hard
 
@@ -11070,10 +11152,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^19.2.3":
-  version: 19.2.3
-  resolution: "react@npm:19.2.3"
-  checksum: 10c0/094220b3ba3a76c1b668f972ace1dd15509b157aead1b40391d1c8e657e720c201d9719537375eff08f5e0514748c0319063392a6f000e31303aafc4471f1436
+"react@npm:^19.2.4":
+  version: 19.2.4
+  resolution: "react@npm:19.2.4"
+  checksum: 10c0/cd2c9ff67a720799cc3b38a516009986f7fc4cb8d3e15716c6211cf098d1357ee3e348ab05ad0600042bbb0fd888530ba92e329198c92eafa0994f5213396596
   languageName: node
   linkType: hard
 
