@@ -3,7 +3,7 @@
 import React from 'react';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Progress, Button } from '@heroui/react';
 import { useTransaction } from '@/contexts/TransactionContext';
-import { getCardanoScanUrl } from '@/config/network';
+import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 import { TransactionLabels } from './TransactionProgress';
 import { useRouter } from 'next/navigation';
 
@@ -28,6 +28,7 @@ interface TransactionProgressModalProps {
 
 export default function TransactionProgressModal({ isOpen, onOpenChange, labels }: TransactionProgressModalProps) {
   const router = useRouter();
+  const { getCardanoScanUrl } = useRuntimeConfig();
 
   // Get transaction state from context
   const { transactionState, transactionProgress: progress, txHash, transactionError: error, resetTransaction } = useTransaction();

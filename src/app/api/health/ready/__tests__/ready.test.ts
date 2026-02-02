@@ -1,10 +1,23 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GET } from '../route';
 
-// Mock the network config module
-vi.mock('@/config/network', () => ({
-  BLOCKFROST_URL: 'https://cardano-preview.blockfrost.io/api/v0',
-  BLOCKFROST_KEY: 'test-api-key',
+// Mock the runtime config module
+vi.mock('@/config/runtime-config', () => ({
+  getServerRuntimeConfig: vi.fn(() => ({
+    CARDANO_NET: 'Preview',
+    BLOCKFROST_URL_PREVIEW: 'https://cardano-preview.blockfrost.io/api/v0',
+    BLOCKFROST_URL_PREPROD: 'https://cardano-preprod.blockfrost.io/api/v0',
+    BLOCKFROST_URL_MAINNET: 'https://cardano-mainnet.blockfrost.io/api/v0',
+  })),
+}));
+
+// Mock the contractUtils to avoid WASM loading issues
+vi.mock('@/lib/contractUtils', () => ({
+  NETWORKS: {
+    MAINNET: 'Mainnet',
+    PREPROD: 'Preprod',
+    PREVIEW: 'Preview',
+  },
 }));
 
 // Mock the logger to avoid console noise in tests
@@ -17,17 +30,24 @@ vi.mock('@/lib/logger', () => ({
   },
 }));
 
+// Store original env
+const originalEnv = { ...process.env };
+
 describe('Readiness Check Endpoint (/api/health/ready)', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-01-02T12:00:00.000Z'));
     vi.stubGlobal('fetch', vi.fn());
+    // Set test API key
+    process.env.BLOCKFROST_KEY_PREVIEW = 'test-api-key';
   });
 
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
     vi.clearAllMocks();
+    // Restore env
+    process.env = { ...originalEnv };
   });
 
   describe('when Blockfrost is healthy', () => {
@@ -206,13 +226,29 @@ describe('Readiness Check with missing configuration', () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.clearAllMocks();
+    // Restore env
+    process.env = { ...originalEnv };
   });
 
   it('should return error when BLOCKFROST_URL is not configured', async () => {
-    vi.doMock('@/config/network', () => ({
-      BLOCKFROST_URL: undefined,
-      BLOCKFROST_KEY: 'test-key',
+    vi.doMock('@/config/runtime-config', () => ({
+      getServerRuntimeConfig: vi.fn(() => ({
+        CARDANO_NET: 'Preview',
+        BLOCKFROST_URL_PREVIEW: undefined,
+        BLOCKFROST_URL_PREPROD: undefined,
+        BLOCKFROST_URL_MAINNET: undefined,
+      })),
     }));
+
+    vi.doMock('@/lib/contractUtils', () => ({
+      NETWORKS: {
+        MAINNET: 'Mainnet',
+        PREPROD: 'Preprod',
+        PREVIEW: 'Preview',
+      },
+    }));
+
+    process.env.BLOCKFROST_KEY_PREVIEW = 'test-key';
 
     const { GET: getHandler } = await import('../route');
     const response = await getHandler();
@@ -224,10 +260,27 @@ describe('Readiness Check with missing configuration', () => {
   });
 
   it('should return error when BLOCKFROST_KEY is not configured', async () => {
-    vi.doMock('@/config/network', () => ({
-      BLOCKFROST_URL: 'https://cardano-preview.blockfrost.io/api/v0',
-      BLOCKFROST_KEY: undefined,
+    vi.doMock('@/config/runtime-config', () => ({
+      getServerRuntimeConfig: vi.fn(() => ({
+        CARDANO_NET: 'Preview',
+        BLOCKFROST_URL_PREVIEW: 'https://cardano-preview.blockfrost.io/api/v0',
+        BLOCKFROST_URL_PREPROD: 'https://cardano-preprod.blockfrost.io/api/v0',
+        BLOCKFROST_URL_MAINNET: 'https://cardano-mainnet.blockfrost.io/api/v0',
+      })),
     }));
+
+    vi.doMock('@/lib/contractUtils', () => ({
+      NETWORKS: {
+        MAINNET: 'Mainnet',
+        PREPROD: 'Preprod',
+        PREVIEW: 'Preview',
+      },
+    }));
+
+    // Ensure no API key is set
+    delete process.env.BLOCKFROST_KEY_PREVIEW;
+    delete process.env.BLOCKFROST_KEY_PREPROD;
+    delete process.env.BLOCKFROST_KEY_MAINNET;
 
     const { GET: getHandler } = await import('../route');
     const response = await getHandler();

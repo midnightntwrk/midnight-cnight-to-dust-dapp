@@ -3,7 +3,7 @@ import { bech32m } from 'bech32';
 import { logger } from './logger';
 import { MidnightBech32m, DustAddress } from '@midnight-ntwrk/wallet-sdk-address-format';
 import type { NetworkId } from '@midnight-ntwrk/wallet-sdk-address-format';
-import { isMainnet } from '@/config/network';
+import { getRuntimeConfig } from '@/config/runtime-config';
 
 // Helper function to convert to JSON for logging
 export const toJson = (obj: object): string => {
@@ -191,5 +191,6 @@ export const validateDustAddress = (address: string, networkId: NetworkId): bool
  * @returns 'mainnet' for Cardano Mainnet, 'preview' for testnets
  */
 export const getMidnightNetworkId = (): NetworkId => {
-  return isMainnet ? 'mainnet' : 'preview';
+  const config = getRuntimeConfig();
+  return config.CARDANO_NET === 'Mainnet' ? 'mainnet' : 'preview';
 };

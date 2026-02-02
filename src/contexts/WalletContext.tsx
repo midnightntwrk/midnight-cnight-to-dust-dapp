@@ -2,22 +2,18 @@
 'use client';
 import { logger } from '@/lib/logger';
 
-import {
-  CNIGHT_CURRENCY_ENCODEDNAME,
-  CNIGHT_CURRENCY_POLICY_ID,
-  getCurrentNetwork,
-  initializeLucidWithBlockfrostClientSide,
-  isMainnet,
-  isTestnet,
-  NETWORK_MAINNET_ID,
-  NETWORK_TESTNET_ID,
-} from '@/config/network';
+import { initializeLucidWithBlockfrostClientSide } from '@/config/network';
+import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 import { useGenerationStatus } from '@/hooks/useGenerationStatus';
 import { useRegistrationUtxo } from '@/hooks/useRegistrationUtxo';
 import { getTotalOfUnitInUTxOList, getDustAddressBytes, validateDustAddress, getMidnightNetworkId } from '@/lib/utils';
 import { UTxO } from '@lucid-evolution/lucid';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
+
+// Network ID constants (these are fixed values, not runtime config)
+const NETWORK_MAINNET_ID = 1;
+const NETWORK_TESTNET_ID = 0;
 
 export type SupportedWallet = 'nami' | 'eternl' | 'lace' | 'flint' | 'typhoncip30' | 'nufi' | 'gero' | 'ccvault';
 export type SupportedMidnightWallet = string;
@@ -98,6 +94,7 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
+  const { currentNetwork, isMainnet, isTestnet, getCnightPolicyId, getCnightEncodedName } = useRuntimeConfig();
 
   // Cardano wallet state
   const [cardanoState, setCardanoState] = useState<CardanoWalletState>({
@@ -183,10 +180,10 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       const networkId = await api.getNetworkId();
 
       if (isMainnet && networkId !== NETWORK_MAINNET_ID) {
-        throw new Error(`Must connect with a ${getCurrentNetwork()} Cardano Wallet`);
+        throw new Error(`Must connect with a ${currentNetwork} Cardano Wallet`);
       }
       if (isTestnet && networkId !== NETWORK_TESTNET_ID) {
-        throw new Error(`Must connect with a ${getCurrentNetwork()} Testnet Cardano Wallet`);
+        throw new Error(`Must connect with a ${currentNetwork} Testnet Cardano Wallet`);
       }
 
       // Select the wallet in Lucid directly with the API
@@ -220,8 +217,8 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
       const utxos = await lucid.wallet().getUtxos();
 
-      const tokenNightPolicy = CNIGHT_CURRENCY_POLICY_ID;
-      const tokenNightEncodedName = CNIGHT_CURRENCY_ENCODEDNAME;
+      const tokenNightPolicy = getCnightPolicyId();
+      const tokenNightEncodedName = getCnightEncodedName();
 
       const balanceNight = getTotalOfUnitInUTxOList(tokenNightPolicy + tokenNightEncodedName, utxos);
       // cNIGHT/NIGHT has 0 decimals, so no division needed (unlike ADA which has 6 decimals)
@@ -313,7 +310,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       });
 
       // Determine the Midnight network based on Cardano network
-      const cardanoNetwork = getCurrentNetwork().toLowerCase();
+      const cardanoNetwork = currentNetwork.toLowerCase();
       const midnightNetwork = cardanoNetwork === 'mainnet' ? 'mainnet' : 'preview';
 
       logger.log('[Wallet]', 'Connecting to Midnight network:', { cardanoNetwork, midnightNetwork });

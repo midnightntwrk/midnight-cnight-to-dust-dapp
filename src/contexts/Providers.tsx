@@ -4,6 +4,7 @@ import { logContractAddresses } from '@/lib/contractUtils';
 import { HeroUIProvider } from '@heroui/react';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { useEffect, useRef } from 'react';
+import { RuntimeConfigProvider } from './RuntimeConfigContext';
 import { TransactionProvider } from './TransactionContext';
 import { WalletProvider } from './WalletContext';
 
@@ -19,12 +20,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <HeroUIProvider>
-      <NextThemesProvider attribute="class" defaultTheme="dark">
-        <WalletProvider>
-          <TransactionProvider>{children}</TransactionProvider>
-        </WalletProvider>
-      </NextThemesProvider>
-    </HeroUIProvider>
+    <RuntimeConfigProvider>
+      <HeroUIProvider>
+        <NextThemesProvider attribute="class" defaultTheme="dark">
+          <WalletProvider>
+            <TransactionProvider>{children}</TransactionProvider>
+          </WalletProvider>
+        </NextThemesProvider>
+      </HeroUIProvider>
+    </RuntimeConfigProvider>
   );
 }

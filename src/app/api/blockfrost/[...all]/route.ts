@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server';
 import { logger } from '@/lib/logger';
+import { getServerRuntimeConfig } from '@/config/runtime-config';
+import { NETWORKS } from '@/lib/contractUtils';
 
 // OPTIMIZATION: In-memory cache for Blockfrost API responses
 // This reduces duplicate API calls by caching responses for a short period
@@ -152,10 +154,25 @@ async function handleRequest(request: NextRequest) {
     return Response.json({ error: 'Forbidden - Invalid origin' }, { status: 403, headers });
   }
 
-  const { BLOCKFROST_URL, BLOCKFROST_KEY } = await import('@/config/network');
+  // Get runtime config (server-side reads from process.env)
+  const config = getServerRuntimeConfig();
+  const network = config.CARDANO_NET;
 
-  const target = BLOCKFROST_URL;
-  const PROJECT_ID = BLOCKFROST_KEY;
+  // Get network-specific values
+  const target =
+    network === NETWORKS.MAINNET
+      ? config.BLOCKFROST_URL_MAINNET
+      : network === NETWORKS.PREPROD
+        ? config.BLOCKFROST_URL_PREPROD
+        : config.BLOCKFROST_URL_PREVIEW;
+
+  // Get Blockfrost API key from environment (server-side only)
+  const PROJECT_ID =
+    network === NETWORKS.MAINNET
+      ? process.env.BLOCKFROST_KEY_MAINNET
+      : network === NETWORKS.PREPROD
+        ? process.env.BLOCKFROST_KEY_PREPROD
+        : process.env.BLOCKFROST_KEY_PREVIEW;
 
   // Declare variables needed in the catch block
   const url = request.nextUrl.clone();

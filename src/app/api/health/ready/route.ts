@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
+import { getServerRuntimeConfig } from '@/config/runtime-config';
+import { NETWORKS } from '@/lib/contractUtils';
 
 interface DependencyStatus {
   status: 'ok' | 'error';
@@ -15,26 +17,26 @@ interface ReadinessResponse {
   };
 }
 
-/**
- * Readiness probe endpoint for Kubernetes
- * Checks connectivity to external dependencies (Blockfrost)
- *
- * Returns 200 if all dependencies are reachable
- * Returns 503 if any critical dependency is unavailable
- *
- * Kubernetes configuration example:
- * ```yaml
- * readinessProbe:
- *   httpGet:
- *     path: /api/health/ready
- *     port: 3000
- *   initialDelaySeconds: 5
- *   periodSeconds: 10
- *   timeoutSeconds: 5
- * ```
- */
 export async function GET() {
-  const { BLOCKFROST_URL, BLOCKFROST_KEY } = await import('@/config/network');
+  // Get runtime config (server-side reads from process.env)
+  const config = getServerRuntimeConfig();
+  const network = config.CARDANO_NET;
+
+  // Get network-specific Blockfrost URL
+  const BLOCKFROST_URL =
+    network === NETWORKS.MAINNET
+      ? config.BLOCKFROST_URL_MAINNET
+      : network === NETWORKS.PREPROD
+        ? config.BLOCKFROST_URL_PREPROD
+        : config.BLOCKFROST_URL_PREVIEW;
+
+  // Get Blockfrost API key from environment (server-side only)
+  const BLOCKFROST_KEY =
+    network === NETWORKS.MAINNET
+      ? process.env.BLOCKFROST_KEY_MAINNET
+      : network === NETWORKS.PREPROD
+        ? process.env.BLOCKFROST_KEY_PREPROD
+        : process.env.BLOCKFROST_KEY_PREVIEW;
 
   const blockfrostStatus = await checkBlockfrost(BLOCKFROST_URL, BLOCKFROST_KEY);
 
