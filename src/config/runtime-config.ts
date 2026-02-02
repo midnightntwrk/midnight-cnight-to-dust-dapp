@@ -86,7 +86,7 @@ export function getServerRuntimeConfig(): RuntimeConfig {
   };
 }
 
-// Client-side config cache
+// Config cache
 let clientConfigCache: RuntimeConfig | null = null;
 let clientConfigPromise: Promise<RuntimeConfig> | null = null;
 

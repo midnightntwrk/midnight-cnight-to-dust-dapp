@@ -81,6 +81,12 @@ export function serializeToCbor(type: any, data: any): string {
   return serialize(type, data).toCbor();
 }
 
+export enum NETWORKS {
+  MAINNET = 'Mainnet',
+  PREPROD = 'Preprod',
+  PREVIEW = 'Preview',
+}
+
 /**
  * Log all configuration and contract addresses at startup for debugging
  */
@@ -89,27 +95,27 @@ export function logContractAddresses(): void {
   const networkId = getNetworkId();
 
   // Get network-specific values
-  const blockfrostUrl = config.CARDANO_NET === 'Mainnet'
+  const blockfrostUrl = config.CARDANO_NET === NETWORKS.MAINNET
     ? config.BLOCKFROST_URL_MAINNET
-    : config.CARDANO_NET === 'Preprod'
+    : config.CARDANO_NET === NETWORKS.PREPROD
     ? config.BLOCKFROST_URL_PREPROD
     : config.BLOCKFROST_URL_PREVIEW;
 
-  const explorerUrl = config.CARDANO_NET === 'Mainnet'
+  const explorerUrl = config.CARDANO_NET === NETWORKS.MAINNET
     ? config.BLOCKCHAIN_EXPLORER_URL_MAINNET
-    : config.CARDANO_NET === 'Preprod'
+    : config.CARDANO_NET === NETWORKS.PREPROD
     ? config.BLOCKCHAIN_EXPLORER_URL_PREPROD
     : config.BLOCKCHAIN_EXPLORER_URL_PREVIEW;
 
-  const cnightPolicyId = config.CARDANO_NET === 'Mainnet'
+  const cnightPolicyId = config.CARDANO_NET === NETWORKS.MAINNET
     ? config.MAINNET_CNIGHT_CURRENCY_POLICY_ID
-    : config.CARDANO_NET === 'Preprod'
+    : config.CARDANO_NET === NETWORKS.PREPROD
     ? config.PREPROD_CNIGHT_CURRENCY_POLICY_ID
     : config.PREVIEW_CNIGHT_CURRENCY_POLICY_ID;
 
-  const cnightEncodedName = config.CARDANO_NET === 'Mainnet'
+  const cnightEncodedName = config.CARDANO_NET === NETWORKS.MAINNET
     ? config.MAINNET_CNIGHT_CURRENCY_ENCODEDNAME
-    : config.CARDANO_NET === 'Preprod'
+    : config.CARDANO_NET === NETWORKS.PREPROD
     ? config.PREPROD_CNIGHT_CURRENCY_ENCODEDNAME
     : config.PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME;
 

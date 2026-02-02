@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { logger } from '@/lib/logger';
 import { getServerRuntimeConfig } from '@/config/runtime-config';
+import { NETWORKS } from '../../health/ready/route';
 
 // OPTIMIZATION: In-memory cache for Blockfrost API responses
 // This reduces duplicate API calls by caching responses for a short period
@@ -159,17 +160,17 @@ async function handleRequest(request: NextRequest) {
 
   // Get network-specific values
   const target =
-    network === 'Mainnet'
+    network === NETWORKS.MAINNET
       ? config.BLOCKFROST_URL_MAINNET
-      : network === 'Preprod'
+      : network === NETWORKS.PREPROD
         ? config.BLOCKFROST_URL_PREPROD
         : config.BLOCKFROST_URL_PREVIEW;
 
   // Get Blockfrost API key from environment (server-side only)
   const PROJECT_ID =
-    network === 'Mainnet'
+    network === NETWORKS.MAINNET
       ? process.env.BLOCKFROST_KEY_MAINNET
-      : network === 'Preprod'
+      : network === NETWORKS.PREPROD
         ? process.env.BLOCKFROST_KEY_PREPROD
         : process.env.BLOCKFROST_KEY_PREVIEW;
 
