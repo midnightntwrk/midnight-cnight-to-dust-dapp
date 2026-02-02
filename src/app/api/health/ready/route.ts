@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
+import { getServerRuntimeConfig } from '@/config/runtime-config';
 
 interface DependencyStatus {
   status: 'ok' | 'error';
@@ -34,7 +35,25 @@ interface ReadinessResponse {
  * ```
  */
 export async function GET() {
-  const { BLOCKFROST_URL, BLOCKFROST_KEY } = await import('@/config/network');
+  // Get runtime config (server-side reads from process.env)
+  const config = getServerRuntimeConfig();
+  const network = config.CARDANO_NET;
+
+  // Get network-specific Blockfrost URL
+  const BLOCKFROST_URL =
+    network === 'Mainnet'
+      ? config.BLOCKFROST_URL_MAINNET
+      : network === 'Preprod'
+        ? config.BLOCKFROST_URL_PREPROD
+        : config.BLOCKFROST_URL_PREVIEW;
+
+  // Get Blockfrost API key from environment (server-side only)
+  const BLOCKFROST_KEY =
+    network === 'Mainnet'
+      ? process.env.BLOCKFROST_KEY_MAINNET
+      : network === 'Preprod'
+        ? process.env.BLOCKFROST_KEY_PREPROD
+        : process.env.BLOCKFROST_KEY_PREVIEW;
 
   const blockfrostStatus = await checkBlockfrost(BLOCKFROST_URL, BLOCKFROST_KEY);
 

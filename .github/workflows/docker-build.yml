@@ -61,7 +61,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
-          # No build-args needed - env vars are injected at runtime via docker-entrypoint.sh
+          # No build-args needed - runtime config is served via /api/runtime-config
+          # and server-side code reads from process.env at runtime
 
       - name: Image digest
         run: echo "${{ steps.meta.outputs.tags }}"

@@ -3,7 +3,7 @@
 import React from 'react';
 import { Progress, Button } from '@heroui/react';
 import { useTransaction } from '@/contexts/TransactionContext';
-import { getCardanoScanUrl } from '@/config/network';
+import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 
 export type TransactionState = 'idle' | 'preparing' | 'signing' | 'submitting' | 'confirming' | 'success' | 'error';
 
@@ -39,6 +39,7 @@ interface TransactionProgressProps {
 export default function TransactionProgress({ labels }: TransactionProgressProps) {
   // Get transaction state from context
   const { transactionState, transactionProgress: progress, txHash, transactionError: error, resetTransaction } = useTransaction();
+  const { getCardanoScanUrl } = useRuntimeConfig();
 
   // Merge provided labels with defaults
   const finalLabels = { ...defaultLabels, ...labels };
