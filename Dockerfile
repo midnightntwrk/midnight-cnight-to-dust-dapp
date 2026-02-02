@@ -16,22 +16,23 @@ RUN --mount=type=cache,target=/root/.yarn \
 FROM node:20.19.0-alpine3.20 AS builder
 WORKDIR /app
 
-# Build arguments for Next.js public environment variables
-# These MUST be set at build time for NEXT_PUBLIC_* vars to work
-ARG NEXT_PUBLIC_CARDANO_NET
-ARG NEXT_PUBLIC_BLOCKFROST_URL_PREVIEW
-ARG NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_PREVIEW
-ARG NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_POLICY_ID
-ARG NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME
-ARG NEXT_PUBLIC_INDEXER_ENDPOINT
-
-# Set as environment variables for the build
-ENV NEXT_PUBLIC_CARDANO_NET=$NEXT_PUBLIC_CARDANO_NET \
-    NEXT_PUBLIC_BLOCKFROST_URL_PREVIEW=$NEXT_PUBLIC_BLOCKFROST_URL_PREVIEW \
-    NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_PREVIEW=$NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_PREVIEW \
-    NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_POLICY_ID=$NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_POLICY_ID \
-    NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME=$NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME \
-    NEXT_PUBLIC_INDEXER_ENDPOINT=$NEXT_PUBLIC_INDEXER_ENDPOINT
+# Build with placeholder values that will be replaced at runtime
+# These placeholders MUST match those in docker-entrypoint.sh
+ENV NEXT_PUBLIC_CARDANO_NET=__NEXT_PUBLIC_CARDANO_NET__ \
+    NEXT_PUBLIC_BLOCKFROST_URL_PREVIEW=__NEXT_PUBLIC_BLOCKFROST_URL_PREVIEW__ \
+    NEXT_PUBLIC_BLOCKFROST_URL_PREPROD=__NEXT_PUBLIC_BLOCKFROST_URL_PREPROD__ \
+    NEXT_PUBLIC_BLOCKFROST_URL_MAINNET=__NEXT_PUBLIC_BLOCKFROST_URL_MAINNET__ \
+    NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_PREVIEW=__NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_PREVIEW__ \
+    NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_PREPROD=__NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_PREPROD__ \
+    NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_MAINNET=__NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_MAINNET__ \
+    NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_POLICY_ID=__NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_POLICY_ID__ \
+    NEXT_PUBLIC_PREPROD_CNIGHT_CURRENCY_POLICY_ID=__NEXT_PUBLIC_PREPROD_CNIGHT_CURRENCY_POLICY_ID__ \
+    NEXT_PUBLIC_MAINNET_CNIGHT_CURRENCY_POLICY_ID=__NEXT_PUBLIC_MAINNET_CNIGHT_CURRENCY_POLICY_ID__ \
+    NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME=__NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME__ \
+    NEXT_PUBLIC_PREPROD_CNIGHT_CURRENCY_ENCODEDNAME=__NEXT_PUBLIC_PREPROD_CNIGHT_CURRENCY_ENCODEDNAME__ \
+    NEXT_PUBLIC_MAINNET_CNIGHT_CURRENCY_ENCODEDNAME=__NEXT_PUBLIC_MAINNET_CNIGHT_CURRENCY_ENCODEDNAME__ \
+    NEXT_PUBLIC_INDEXER_ENDPOINT=__NEXT_PUBLIC_INDEXER_ENDPOINT__ \
+    NEXT_PUBLIC_REACT_SERVER_API_URL=__NEXT_PUBLIC_REACT_SERVER_API_URL__
 
 # Copy dependencies and source code
 COPY --from=deps /app/node_modules ./node_modules
@@ -59,6 +60,10 @@ ENV NODE_ENV=production \
     HOSTNAME=0.0.0.0 \
     PORT=3000
 
+# Copy entrypoint script (must be root-owned and executable)
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Copy application files (root-owned, readable by all)
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
@@ -77,6 +82,9 @@ COPY --from=deps /app/node_modules/@emurgo ./node_modules/@emurgo
 COPY --from=deps /app/node_modules/@lucid-evolution/core-utils ./node_modules/@lucid-evolution/core-utils
 COPY --from=deps /app/node_modules/@lucid-evolution/uplc ./node_modules/@lucid-evolution/uplc
 
+# Make .next writable by nextjs user for runtime env injection
+RUN chown -R nextjs:nodejs /app/.next
+
 # Switch to non-root user
 USER nextjs
 
@@ -86,4 +94,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD node -e "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "server.js"]

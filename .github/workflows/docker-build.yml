@@ -61,13 +61,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
-          build-args: |
-            NEXT_PUBLIC_CARDANO_NET=Preview
-            NEXT_PUBLIC_BLOCKFROST_URL_PREVIEW=https://cardano-preview.blockfrost.io/api/v0
-            NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_PREVIEW=https://preview.cexplorer.io
-            NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_POLICY_ID=03cf16101d110dcad9cacb225f0d1e63a8809979e7feb60426995414
-            NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME=
-            NEXT_PUBLIC_INDEXER_ENDPOINT=https://indexer.preview.midnight.network/api/v3/graphql
+          # No build-args needed - env vars are injected at runtime via docker-entrypoint.sh
 
       - name: Image digest
         run: echo "${{ steps.meta.outputs.tags }}"
