@@ -20,7 +20,7 @@ if (typeof window === 'undefined' && !isBuildTime) {
   }
 }
 
-export type CardanoNetwork = 'Mainnet' | 'Preview' | 'Preprod' | 'Emulator' | 'Custom';
+export type CardanoNetwork = 'Mainnet' | 'Preview' | 'Preprod';
 interface NetworkConfig {
   BLOCKFROST_URL: string;
   BLOCKCHAIN_EXPLORER_URL: string;
@@ -34,7 +34,6 @@ const networkConfigs: Record<CardanoNetwork, NetworkConfig> = {
   Mainnet: {
     BLOCKFROST_URL: process.env.NEXT_PUBLIC_BLOCKFROST_URL_MAINNET || 'https://cardano-mainnet.blockfrost.io/api/v0',
     BLOCKCHAIN_EXPLORER_URL: process.env.NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_MAINNET || 'https://cexplorer.io',
-    // BLOCKCHAIN_EXPLORER_URL: process.env.NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_MAINNET || 'https://cardanoscan.io',
     BLOCKCHAIN_EXPLORER_SUBPATH: {
       transaction: 'tx',
       address: 'addr',
@@ -47,7 +46,6 @@ const networkConfigs: Record<CardanoNetwork, NetworkConfig> = {
   Preview: {
     BLOCKFROST_URL: process.env.NEXT_PUBLIC_BLOCKFROST_URL_PREVIEW || 'https://cardano-preview.blockfrost.io/api/v0',
     BLOCKCHAIN_EXPLORER_URL: process.env.NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_PREVIEW || 'https://preview.cexplorer.io',
-    // BLOCKCHAIN_EXPLORER_URL: process.env.NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_PREVIEW || 'https://preview.cardanoscan.io',
     BLOCKCHAIN_EXPLORER_SUBPATH: {
       transaction: 'tx',
       address: 'addr',
@@ -60,7 +58,6 @@ const networkConfigs: Record<CardanoNetwork, NetworkConfig> = {
   Preprod: {
     BLOCKFROST_URL: process.env.NEXT_PUBLIC_BLOCKFROST_URL_PREPROD || 'https://cardano-preprod.blockfrost.io/api/v0',
     BLOCKCHAIN_EXPLORER_URL: process.env.NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_PREPROD || 'https://preprod.cexplorer.io',
-    // BLOCKCHAIN_EXPLORER_URL: process.env.NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_PREPROD || 'https://preprod.cardanoscan.io',
     BLOCKCHAIN_EXPLORER_SUBPATH: {
       transaction: 'tx',
       address: 'addr',
@@ -69,31 +66,7 @@ const networkConfigs: Record<CardanoNetwork, NetworkConfig> = {
     BLOCKFROST_KEY: process.env.BLOCKFROST_KEY_PREPROD,
     CNIGHT_CURRENCY_POLICY_ID: process.env.NEXT_PUBLIC_PREPROD_CNIGHT_CURRENCY_POLICY_ID,
     CNIGHT_CURRENCY_ENCODEDNAME: process.env.NEXT_PUBLIC_PREPROD_CNIGHT_CURRENCY_ENCODEDNAME,
-  },
-  Emulator: {
-    BLOCKFROST_URL: 'http://localhost:3001',
-    BLOCKCHAIN_EXPLORER_URL: 'http://localhost:3001/',
-    BLOCKCHAIN_EXPLORER_SUBPATH: {
-      transaction: 'tx',
-      address: 'addr',
-      policy: 'policy',
-    },
-    BLOCKFROST_KEY: '',
-    CNIGHT_CURRENCY_POLICY_ID: '',
-    CNIGHT_CURRENCY_ENCODEDNAME: '',
-  },
-  Custom: {
-    BLOCKFROST_URL: process.env.NEXT_PUBLIC_BLOCKFROST_URL_CUSTOM || '',
-    BLOCKCHAIN_EXPLORER_URL: process.env.NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL_CUSTOM || '',
-    BLOCKCHAIN_EXPLORER_SUBPATH: {
-      transaction: 'tx',
-      address: 'addr',
-      policy: 'policy',
-    },
-    BLOCKFROST_KEY: '',
-    CNIGHT_CURRENCY_POLICY_ID: '',
-    CNIGHT_CURRENCY_ENCODEDNAME: '',
-  },
+  }
 };
 
 // Get current network from environment
@@ -150,10 +123,6 @@ const getCardanoScanUrl = (type: 'transaction' | 'address' | 'policy', id: strin
 // Convert CardanoNetwork to LucidNetwork
 const getLucidNetwork = (): Network => {
   const network = getCurrentNetwork();
-  // Map Emulator and Custom to Preprod for Lucid compatibility
-  if (network === 'Emulator' || network === 'Custom') {
-    return 'Custom';
-  }
   return network as Network;
 };
 
@@ -193,7 +162,7 @@ export const NETWORK_MAINNET_ID = 1;
 export const NETWORK_TESTNET_ID = 0;
 
 export const NETWORK_ID = CARDANO_NET === LUCID_NETWORK_MAINNET_NAME ? NETWORK_MAINNET_ID : NETWORK_TESTNET_ID;
-
+  console.log("networkID::::", NETWORK_ID);
 export const isEmulator = CARDANO_NET === LUCID_NETWORK_EMULATOR_NAME_MOCK_NO_EXISTE_EN_LUCID;
 export const isTestnet =
   CARDANO_NET === LUCID_NETWORK_EMULATOR_NAME_MOCK_NO_EXISTE_EN_LUCID ||
