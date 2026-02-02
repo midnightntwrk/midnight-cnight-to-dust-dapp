@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { logger } from '@/lib/logger';
 import { getServerRuntimeConfig } from '@/config/runtime-config';
-import { NETWORKS } from '../../health/ready/route';
+import { NETWORKS } from '@/lib/contractUtils';
 
 // OPTIMIZATION: In-memory cache for Blockfrost API responses
 // This reduces duplicate API calls by caching responses for a short period

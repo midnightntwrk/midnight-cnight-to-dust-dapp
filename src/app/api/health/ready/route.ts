@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { getServerRuntimeConfig } from '@/config/runtime-config';
-import { CARDANO_NET } from '@/config/network';
+import { NETWORKS } from '@/lib/contractUtils';
 
 interface DependencyStatus {
   status: 'ok' | 'error';
@@ -15,13 +15,6 @@ interface ReadinessResponse {
   dependencies: {
     blockfrost: DependencyStatus;
   };
-}
-
-
-export enum NETWORKS {
-  MAINNET = 'Mainnet',
-  PREPROD = 'Preprod',
-  PREVIEW = 'Preview',
 }
 
 export async function GET() {
