@@ -168,14 +168,13 @@ export const validateDustAddress = (address: string, networkId: NetworkId): bool
     // Parse and decode the address as a Dust address
     const parsed = MidnightBech32m.parse(address.trim());
     const dustAddress = parsed.decode(DustAddress, networkId);
-
     // If we get here, it's a valid Dust address
     logger.debug('[Utils]', 'Valid Dust address', {
       address: address.trim(),
       networkId,
     });
 
-    return true;
+    return dustAddress !== null && dustAddress !== undefined;;
   } catch (error) {
     logger.debug('[Utils]', 'Invalid Dust address', {
       address: address.trim(),

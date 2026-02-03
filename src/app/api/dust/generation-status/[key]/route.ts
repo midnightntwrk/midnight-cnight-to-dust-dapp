@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { Subgraph } from '@/lib/subgraph/query';
-import { INDEXER_ENDPOINT } from '@/config/network';
+import { getServerRuntimeConfig } from '@/config/runtime-config';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ key: string }> }) {
   const startTime = Date.now();
+  const config = getServerRuntimeConfig();
+  const INDEXER_ENDPOINT = config.INDEXER_ENDPOINT;
 
   if (!INDEXER_ENDPOINT) throw "Please configure Indexer endpoint."
   try {

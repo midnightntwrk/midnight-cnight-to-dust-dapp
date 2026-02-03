@@ -1,4 +1,4 @@
-import { INDEXER_ENDPOINT } from '@/config/network';
+import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 import { GenerationStatusData } from '@/contexts/WalletContext';
 import { logger } from '@/lib/logger';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -10,20 +10,21 @@ interface UseGenerationStatusReturn {
   refetch: () => void;
 }
 
-const buildGenerationStatusUrl = () => {
-  if (!INDEXER_ENDPOINT) throw "Please, configure an Indexer Endpoint."
-  return INDEXER_ENDPOINT;
-}
-
 export function useGenerationStatus(rewardAddress: string | null): UseGenerationStatusReturn {
+  const { config } = useRuntimeConfig();
   const [data, setData] = useState<GenerationStatusData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0); // bump to refetch
 
   const url = useMemo(() => {
-    return rewardAddress ? buildGenerationStatusUrl() : null;
-  }, [rewardAddress]);
+    if (!rewardAddress) return null;
+    if (!config.INDEXER_ENDPOINT) {
+      logger.error('[Indexer:GenerationStatus]', 'INDEXER_ENDPOINT not configured');
+      return null;
+    }
+    return config.INDEXER_ENDPOINT;
+  }, [rewardAddress, config.INDEXER_ENDPOINT]);
 
   const refetch = useCallback(() => setNonce((n) => n + 1), []);
 

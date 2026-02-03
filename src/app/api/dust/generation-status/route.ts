@@ -1,14 +1,17 @@
 import { Subgraph } from '@/lib/subgraph/query';
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
-import { INDEXER_ENDPOINT } from '@/config/network';
+import { getServerRuntimeConfig } from '@/config/runtime-config';
 
 export async function GET() {
-  if (!INDEXER_ENDPOINT) {
+  const config = getServerRuntimeConfig();
+  const indexerEndpoint = config.INDEXER_ENDPOINT;
+
+  if (!indexerEndpoint) {
     throw "Indexer URL not defined."
   }
   try {
-    const graph = new Subgraph(INDEXER_ENDPOINT);
+    const graph = new Subgraph(indexerEndpoint);
     const generationStatus = await graph.getDustGenerationStatus(['0x00']);
 
     return NextResponse.json({
