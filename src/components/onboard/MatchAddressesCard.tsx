@@ -135,7 +135,7 @@ export default function MatchAddressesCard({
               <div className="flex items-center gap-2">
                 <h3 className="text-white font-medium">Destination Address Midnight</h3>
                 <Tooltip
-                  content="This address will generate the DUST for your other address."
+                  content="This address will received the generated DUST."
                   placement="top"
                   classNames={{
                     content: 'bg-gray-800 text-white text-sm px-2 py-1',
