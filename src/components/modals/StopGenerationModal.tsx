@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Modal, ModalContent, ModalHeader, ModalBody, Button } from '@heroui/react';
+import { Modal, ModalContent, ModalHeader, ModalBody, Button, Tooltip } from '@heroui/react';
 import InfoIcon from '@/assets/icons/info.svg';
 import CheckIcon from '@/assets/icons/check.svg';
 import CopyIcon from '@/assets/icons/copy.svg';
@@ -19,7 +19,12 @@ interface StopGenerationModalProps {
   onStopGeneration: () => Promise<void>;
 }
 
-export default function StopGenerationModal({ isOpen, onOpenChange, dustAddress, onStopGeneration }: StopGenerationModalProps) {
+export default function StopGenerationModal({
+  isOpen,
+  onOpenChange,
+  dustAddress,
+  onStopGeneration,
+}: StopGenerationModalProps) {
   const { toasts, showToast, removeToast } = useToast();
   const router = useRouter();
   const transaction = useTransaction();
@@ -73,7 +78,14 @@ export default function StopGenerationModal({ isOpen, onOpenChange, dustAddress,
   // Success state modal
   if (transaction.isCurrentTransaction('unregister') && transaction.transactionState === 'success') {
     return (
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} hideCloseButton={true} isDismissable={false} className="bg-[#1a1a1a] border border-gray-700" size="md">
+      <Modal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        hideCloseButton={true}
+        isDismissable={false}
+        className="bg-[#1a1a1a] border border-gray-700"
+        size="md"
+      >
         <ModalContent>
           <ModalHeader className="flex flex-col gap-1 text-white">
             <div className="flex items-center gap-2">
@@ -82,7 +94,9 @@ export default function StopGenerationModal({ isOpen, onOpenChange, dustAddress,
             </div>
           </ModalHeader>
           <ModalBody className="pb-6">
-            <p className="text-gray-300 text-sm mb-4">This address will no longer receive your generated DUST tokens.</p>
+            <p className="text-gray-300 text-sm mb-4">
+              This address will no longer receive your generated DUST tokens.
+            </p>
 
             <div className="bg-[#2a2a2a] p-3 rounded-lg border border-gray-600">
               <p className="text-white text-sm font-mono break-all">{dustAddress}</p>
@@ -107,7 +121,15 @@ export default function StopGenerationModal({ isOpen, onOpenChange, dustAddress,
           <ModalHeader className="flex flex-col gap-1 text-white">
             <div className="flex items-center gap-2">
               <span className="text-lg font-medium">Stop DUST generation</span>
-              <Image src={InfoIcon} alt="info" width={20} height={20} />
+              <Tooltip
+                content="This will stop the generation of DUST."
+                placement="top"
+                classNames={{
+                  content: 'bg-gray-800 text-white text-sm px-2 py-1',
+                }}
+              >
+                <Image src={InfoIcon} alt="info" width={20} height={20} className="cursor-pointer" />
+              </Tooltip>
             </div>
           </ModalHeader>
           <ModalBody className="pb-6">
@@ -115,12 +137,21 @@ export default function StopGenerationModal({ isOpen, onOpenChange, dustAddress,
               <div className="mb-4">
                 <div className="bg-[#2a2a2a] p-3 rounded-lg border border-gray-600 flex items-center justify-between">
                   <span className="text-white text-sm font-mono">{handleFormatAddress(dustAddress)}</span>
-                  <Image src={CopyIcon} alt="copy" width={18} height={18} className="cursor-pointer hover:opacity-70" onClick={handleCopyAddress} />
+                  <Image
+                    src={CopyIcon}
+                    alt="copy"
+                    width={18}
+                    height={18}
+                    className="cursor-pointer hover:opacity-70"
+                    onClick={handleCopyAddress}
+                  />
                 </div>
               </div>
             )}
 
-            <p className="text-gray-300 text-sm mb-4">This address will no longer receive your DUST tokens. Ensure you manage this address accordingly.</p>
+            <p className="text-gray-300 text-sm mb-4">
+              This address will no longer receive your DUST tokens. Ensure you manage this address accordingly.
+            </p>
 
             <div className="flex gap-3">
               <Button

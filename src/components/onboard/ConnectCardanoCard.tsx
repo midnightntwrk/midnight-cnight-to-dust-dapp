@@ -3,7 +3,7 @@
 import CardanoLogo from '@/assets/cardano.svg';
 import CheckIcon from '@/assets/icons/check.svg';
 import InfoIcon from '@/assets/icons/info.svg';
-import { Button, Card, CardBody } from '@heroui/react';
+import { Button, Card, CardBody, Tooltip } from '@heroui/react';
 import Image from 'next/image';
 
 interface ConnectCardanoCardProps {
@@ -20,7 +20,16 @@ interface ConnectCardanoCardProps {
   address?: string;
 }
 
-export default function ConnectCardanoCard({ isConnected, onConnect, onDisconnect, isLoading = false, error, walletName, balanceNight, address }: ConnectCardanoCardProps) {
+export default function ConnectCardanoCard({
+  isConnected,
+  onConnect,
+  onDisconnect,
+  isLoading = false,
+  error,
+  walletName,
+  balanceNight,
+  address,
+}: ConnectCardanoCardProps) {
   const formatAddress = (addr: string) => {
     if (!addr) return '';
     return `${addr.slice(0, 9)}...${addr.slice(-9)}`;
@@ -71,7 +80,15 @@ export default function ConnectCardanoCard({ isConnected, onConnect, onDisconnec
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <h2 className="text-xl md:text-2xl font-bold text-white">Origin Address Cardano</h2>
-                    <Image src={InfoIcon} alt="info" width={16} height={16} />
+                    <Tooltip
+                      content="Your Cardano wallet address where NIGHT is locked"
+                      placement="top"
+                      classNames={{
+                        content: 'bg-gray-800 text-white text-sm px-2 py-1',
+                      }}
+                    >
+                      <Image src={InfoIcon} alt="info" width={20} height={20} className="cursor-pointer" />
+                    </Tooltip>
                   </div>
                 </div>
 
@@ -89,7 +106,12 @@ export default function ConnectCardanoCard({ isConnected, onConnect, onDisconnec
                 <div className="flex items-center gap-2 mt-3">
                   <Image src={CheckIcon} alt="check" width={16} height={16} />
                   <span className="text-white text-sm font-mono flex-1">{formatAddress(address || '')}</span>
-                  <Button onPress={onDisconnect} size="sm" className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 px-4 py-1 text-xs" radius="md">
+                  <Button
+                    onPress={onDisconnect}
+                    size="sm"
+                    className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 px-4 py-1 text-xs"
+                    radius="md"
+                  >
                     DISCONNECT
                   </Button>
                 </div>

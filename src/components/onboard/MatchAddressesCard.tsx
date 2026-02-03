@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Card, CardBody, Button } from '@heroui/react';
+import { Card, CardBody, Button, Tooltip } from '@heroui/react';
 import Image from 'next/image';
 import CopyIcon from '@/assets/icons/copy.svg';
 import CheckIcon from '@/assets/icons/check.svg';
@@ -58,10 +58,10 @@ export default function MatchAddressesCard({
   const handleCopyAddress = (isCardano: boolean) => {
     navigator.clipboard.writeText(isCardano ? cardanoAddress : midnightAddress);
     showToast({
-      message: `${isCardano ? "Cardano" : "DUST"} address copied to clipboard!`,
+      message: `${isCardano ? 'Cardano' : 'DUST'} address copied to clipboard!`,
       type: 'success',
     });
-  }
+  };
 
   const formatAddress = (addr: string) => {
     if (!addr) return '';
@@ -82,9 +82,22 @@ export default function MatchAddressesCard({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h3 className="text-white font-medium">Origin Address Cardano</h3>
-                <Image src={InfoIcon} alt="info" width={16} height={16} />
+                <Tooltip
+                  content="This Cardano address needs to hold ADA and NIGHT."
+                  placement="top"
+                  classNames={{
+                    content: 'bg-gray-800 text-white text-sm px-2 py-1',
+                  }}
+                >
+                  <Image src={InfoIcon} alt="info" width={20} height={20} className="cursor-pointer" />
+                </Tooltip>
               </div>
-              <Button onPress={onDisconnectCardano} size="sm" className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 px-4 py-1 text-xs" radius="md">
+              <Button
+                onPress={onDisconnectCardano}
+                size="sm"
+                className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 px-4 py-1 text-xs"
+                radius="md"
+              >
                 DISCONNECT
               </Button>
             </div>
@@ -94,8 +107,13 @@ export default function MatchAddressesCard({
             </div>
 
             <div className="text-gray-400 text-sm">
-              ADA Balance: <span className={`font-medium ${hasEnoughBalance ? 'text-white' : 'text-red-400'}`}>{cardanoBalanceADA} ADA</span>
-              {!hasEnoughBalance && <span className="text-red-400 ml-2 text-xs">(Min. {MIN_ADA_FOR_REGISTRATION} ADA required)</span>}
+              ADA Balance:{' '}
+              <span className={`font-medium ${hasEnoughBalance ? 'text-white' : 'text-red-400'}`}>
+                {cardanoBalanceADA} ADA
+              </span>
+              {!hasEnoughBalance && (
+                <span className="text-red-400 ml-2 text-xs">(Min. {MIN_ADA_FOR_REGISTRATION} ADA required)</span>
+              )}
             </div>
 
             <div className="text-gray-400 text-sm">
@@ -116,9 +134,22 @@ export default function MatchAddressesCard({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h3 className="text-white font-medium">Destination Address Midnight</h3>
-                <Image src={InfoIcon} alt="info" width={16} height={16} />
+                <Tooltip
+                  content="This address will generate the DUST for your other address."
+                  placement="top"
+                  classNames={{
+                    content: 'bg-gray-800 text-white text-sm px-2 py-1',
+                  }}
+                >
+                  <Image src={InfoIcon} alt="info" width={20} height={20} className="cursor-pointer" />
+                </Tooltip>
               </div>
-              <Button onPress={onDisconnectMidnight} size="sm" className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 px-4 py-1 text-xs" radius="md">
+              <Button
+                onPress={onDisconnectMidnight}
+                size="sm"
+                className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 px-4 py-1 text-xs"
+                radius="md"
+              >
                 DISCONNECT
               </Button>
             </div>
@@ -139,7 +170,10 @@ export default function MatchAddressesCard({
           {/* Insufficient Balance Warning */}
           {!hasEnoughBalance && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4">
-              <p className="text-red-400 text-sm">Insufficient ADA balance. You need at least {MIN_ADA_FOR_REGISTRATION} ADA to execute the registration transaction.</p>
+              <p className="text-red-400 text-sm">
+                Insufficient ADA balance. You need at least {MIN_ADA_FOR_REGISTRATION} ADA to execute the registration
+                transaction.
+              </p>
             </div>
           )}
           <ToastContainer toasts={toasts} onRemove={removeToast} />

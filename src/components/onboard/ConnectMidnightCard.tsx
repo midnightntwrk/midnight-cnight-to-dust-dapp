@@ -3,7 +3,7 @@
 import CheckIcon from '@/assets/icons/check.svg';
 import InfoIcon from '@/assets/icons/info.svg';
 import MidnightLogo from '@/assets/midnight.svg';
-import { Button, Card, CardBody, Input } from '@heroui/react';
+import { Button, Card, CardBody, Input, Tooltip } from '@heroui/react';
 import Image from 'next/image';
 import { useState } from 'react';
 import { validateDustAddress, getMidnightNetworkId } from '@/lib/utils';
@@ -126,7 +126,9 @@ export default function ConnectMidnightCard({
                           Add
                         </Button>
                       </div>
-                      {!isValidAddress && manualAddress.trim() && <p className="text-red-400 text-xs ml-1">Invalid Midnight Dust address format</p>}
+                      {!isValidAddress && manualAddress.trim() && (
+                        <p className="text-red-400 text-xs ml-1">Invalid Midnight Dust address format</p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -145,7 +147,15 @@ export default function ConnectMidnightCard({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <h2 className="text-xl md:text-2xl font-bold text-white">Destination Address Midnight</h2>
-                    <Image src={InfoIcon} alt="info" width={16} height={16} />
+                    <Tooltip
+                      content="We are currently looking for your indexed transaction."
+                      placement="top"
+                      classNames={{
+                        content: 'bg-gray-800 text-white text-sm px-2 py-1',
+                      }}
+                    >
+                      <Image src={InfoIcon} alt="info" width={16} height={16} className="cursor-pointer" />
+                    </Tooltip>
                   </div>
                 </div>
 
@@ -163,7 +173,12 @@ export default function ConnectMidnightCard({
                 <div className="flex items-center gap-2 mt-3">
                   <Image src={CheckIcon} alt="check" width={16} height={16} />
                   <span className="text-white text-sm font-mono flex-1">{formatAddress(address || '')}</span>
-                  <Button onPress={onDisconnect} size="sm" className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 px-4 py-1 text-xs" radius="md">
+                  <Button
+                    onPress={onDisconnect}
+                    size="sm"
+                    className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 px-4 py-1 text-xs"
+                    radius="md"
+                  >
                     DISCONNECT
                   </Button>
                 </div>

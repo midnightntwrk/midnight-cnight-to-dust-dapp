@@ -1,4 +1,4 @@
-import { Card } from '@heroui/react';
+import { Card, Tooltip } from '@heroui/react';
 import Image from 'next/image';
 import InfoIcon from '@/assets/icons/info.svg';
 
@@ -14,7 +14,15 @@ const IndexerSyncBanner = ({ isVisible }: IndexerSyncBannerProps) => {
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 mt-0.5">
           <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center">
-            <Image src={InfoIcon} alt="info" width={20} height={20} className="opacity-90" />
+            <Tooltip
+              content="We are currently looking for your indexed transaction."
+              placement="top"
+              classNames={{
+                content: 'bg-gray-800 text-white text-sm px-2 py-1',
+              }}
+            >
+              <Image src={InfoIcon} alt="info" width={20} height={20} className="cursor-pointer" />
+            </Tooltip>
           </div>
         </div>
         <div className="flex-1">
@@ -22,13 +30,20 @@ const IndexerSyncBanner = ({ isVisible }: IndexerSyncBannerProps) => {
             <h3 className="text-amber-300 font-semibold text-sm">Registration Syncing</h3>
             <div className="flex gap-1">
               <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
-              <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
-              <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" style={{ animationDelay: '400ms' }} />
+              <span
+                className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"
+                style={{ animationDelay: '200ms' }}
+              />
+              <span
+                className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"
+                style={{ animationDelay: '400ms' }}
+              />
             </div>
           </div>
           <p className="text-amber-100/80 text-sm leading-relaxed">
             Your registration was successful and recorded on the Cardano blockchain. It may take up to{' '}
-            <span className="font-semibold text-amber-200">12 hours</span> to see the Dust generation start. Once complete, your DUST generation details will appear below.
+            <span className="font-semibold text-amber-200">12 hours</span> to see the Dust generation start. Once
+            complete, your DUST generation details will appear below.
           </p>
         </div>
       </div>

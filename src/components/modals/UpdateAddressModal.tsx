@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Modal, ModalContent, ModalHeader, ModalBody, Button, Textarea } from '@heroui/react';
+import { Modal, ModalContent, ModalHeader, ModalBody, Button, Textarea, Tooltip } from '@heroui/react';
 import InfoIcon from '@/assets/icons/info.svg';
 import CheckIcon from '@/assets/icons/check.svg';
 import Image from 'next/image';
@@ -91,7 +91,14 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
   if (transaction.isCurrentTransaction('update') && transaction.transactionState === 'success') {
     return (
       <>
-        <Modal isOpen={isOpen} onOpenChange={onOpenChange} hideCloseButton={true} isDismissable={false} className="bg-[#1a1a1a] border border-gray-700" size="md">
+        <Modal
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          hideCloseButton={true}
+          isDismissable={false}
+          className="bg-[#1a1a1a] border border-gray-700"
+          size="md"
+        >
           <ModalContent>
             <ModalHeader className="flex flex-col gap-1 text-white">
               <div className="flex items-center gap-2">
@@ -133,11 +140,21 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
           <ModalHeader className="flex flex-col gap-1 text-white">
             <div className="flex items-center gap-2">
               <span className="text-lg font-medium">DUST Address Update</span>
-              <Image src={InfoIcon} alt="info" width={20} height={20} />
+              <Tooltip
+                content="This will switch the address of your DUST generation."
+                placement="top"
+                classNames={{
+                  content: 'bg-gray-800 text-white text-sm px-2 py-1',
+                }}
+              >
+                <Image src={InfoIcon} alt="info" width={20} height={20} className="cursor-pointer" />
+              </Tooltip>
             </div>
           </ModalHeader>
           <ModalBody className="pb-6">
-            <p className="text-gray-300 text-sm mb-4">This address will receive your generated DUST tokens. Make sure you control this address.</p>
+            <p className="text-gray-300 text-sm mb-4">
+              This address will receive your generated DUST tokens. Make sure you control this address.
+            </p>
 
             <div className="mb-4">
               <Textarea
@@ -171,7 +188,9 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
                 isLoading={transaction.isCurrentTransaction('update') && transaction.isAnyTransactionRunning()}
                 isDisabled={!newAddress.trim() || !isValidAddress || transaction.isAnyTransactionRunning()}
               >
-                {transaction.isCurrentTransaction('update') && transaction.isAnyTransactionRunning() ? 'UPDATING...' : 'CHANGE ADDRESS'}
+                {transaction.isCurrentTransaction('update') && transaction.isAnyTransactionRunning()
+                  ? 'UPDATING...'
+                  : 'CHANGE ADDRESS'}
               </Button>
             </div>
           </ModalBody>

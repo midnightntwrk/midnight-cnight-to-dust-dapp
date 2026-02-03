@@ -17,7 +17,8 @@ const CardanoWalletCard = () => {
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const { toasts, showToast, removeToast } = useToast();
 
-  const { cardano, disconnectCardanoWallet, disconnectMidnightWallet, generationStatus, registrationUtxo } = useWalletContext();
+  const { cardano, disconnectCardanoWallet, disconnectMidnightWallet, generationStatus, registrationUtxo } =
+    useWalletContext();
 
   // Check if indexer has synced and user is generating
   const isIndexerSyncing = registrationUtxo && generationStatus?.registered === false;
@@ -127,7 +128,14 @@ const CardanoWalletCard = () => {
         <div className="flex flex-row gap-2 items-center z-10">
           <Image src={CheckIcon} alt="check" width={18} height={18} />
           <span>{handleFormatWalletAddress(cardano.address || '')}</span>
-          <Image src={CopyIcon} alt="copy" width={18} height={18} className="cursor-pointer hover:opacity-70" onClick={handleCopyAddress} />
+          <Image
+            src={CopyIcon}
+            alt="copy"
+            width={18}
+            height={18}
+            className="cursor-pointer hover:opacity-70"
+            onClick={handleCopyAddress}
+          />
         </div>
       </div>
 
@@ -146,7 +154,11 @@ const CardanoWalletCard = () => {
       </div>
 
       {/* Loading Backdrop */}
-      <LoadingBackdrop isVisible={isDisconnecting} title="Disconnecting wallet..." subtitle="Redirecting to home page" />
+      <LoadingBackdrop
+        isVisible={isDisconnecting}
+        title="Disconnecting wallet..."
+        subtitle="Redirecting to home page"
+      />
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
