@@ -2,14 +2,35 @@
 'use client';
 import { logger } from '@/lib/logger';
 
-import { initializeLucidWithBlockfrostClientSide } from '@/config/network';
+import { protocolParametersForLucid } from '@/config/protocolParameters';
+import { CardanoNetwork } from '@/config/runtime-config';
 import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 import { useGenerationStatus } from '@/hooks/useGenerationStatus';
 import { useRegistrationUtxo } from '@/hooks/useRegistrationUtxo';
 import { getTotalOfUnitInUTxOList, getDustAddressBytes, validateDustAddress, getMidnightNetworkId } from '@/lib/utils';
-import { UTxO } from '@lucid-evolution/lucid';
+import { Network, ProtocolParameters, UTxO } from '@lucid-evolution/lucid';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, ReactNode, useContext, useEffect, useRef, useState, useCallback } from 'react';
+
+/**
+ * Initialize Lucid with Blockfrost provider (client-side only)
+ * Uses runtime config for network selection
+ */
+async function initializeLucidWithBlockfrost(network: CardanoNetwork, apiServerUrl: string) {
+  logger.log('[Network]', `initializeLucidWithBlockfrost for ${network}`);
+  try {
+    const protocolParameters = protocolParametersForLucid[network as keyof typeof protocolParametersForLucid] as ProtocolParameters;
+    const { Lucid, Blockfrost } = await import('@lucid-evolution/lucid');
+
+    const lucid = await Lucid(new Blockfrost(apiServerUrl + '/api/blockfrost', 'xxxx'), network as Network, {
+      presetProtocolParameters: protocolParameters,
+    });
+    return lucid;
+  } catch (error) {
+    logger.log('[Network]', `initializeLucidWithBlockfrost - Error: ${error}`);
+    throw error;
+  }
+}
 
 // Network ID constants (these are fixed values, not runtime config)
 const NETWORK_MAINNET_ID = 1;
@@ -94,7 +115,7 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { currentNetwork, isMainnet, isTestnet, getCnightPolicyId, getCnightEncodedName } = useRuntimeConfig();
+  const { config, currentNetwork, isMainnet, isTestnet, getCnightPolicyId, getCnightEncodedName } = useRuntimeConfig();
 
   // Cardano wallet state
   const [cardanoState, setCardanoState] = useState<CardanoWalletState>({
@@ -172,8 +193,9 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         throw new Error(`${walletName} wallet not found. Please install it first.`);
       }
 
-      // Initialize Lucid with Blockfrost using centralized configuration
-      const lucid = await initializeLucidWithBlockfrostClientSide();
+      // Initialize Lucid with Blockfrost using runtime configuration
+      const apiServerUrl = config.REACT_SERVER_API_URL || '';
+      const lucid = await initializeLucidWithBlockfrost(currentNetwork, apiServerUrl);
 
       // Connect to wallet
       const api = await window.cardano[walletName].enable();

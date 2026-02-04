@@ -3195,17 +3195,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@midnight-ntwrk/dapp-connector-api@npm:^4.0.0-beta.2":
-  version: 4.0.0-beta.2
-  resolution: "@midnight-ntwrk/dapp-connector-api@npm:4.0.0-beta.2"
-  checksum: 10c0/853e419dd95bdde6fd6b3108d8d39342c840176a9bacabc3f7ce64727861c705ab13651631e4c2da3aaef88fb8def61baf671de9706d90731023999385489b26
+"@midnight-ntwrk/dapp-connector-api@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@midnight-ntwrk/dapp-connector-api@npm:4.0.0"
+  checksum: 10c0/6a901d5de8b5f761e30d95c0b59193feb97ab6099e99a0c473f8b5e5daa16efd31b504a493471c5e8f8af917b8caebbe128963be8314fcb96b1e7083c85e963e
   languageName: node
   linkType: hard
 
-"@midnight-ntwrk/ledger-v7@npm:7.0.0-rc.1":
-  version: 7.0.0-rc.1
-  resolution: "@midnight-ntwrk/ledger-v7@npm:7.0.0-rc.1"
-  checksum: 10c0/f419d5c666cf75f9f34a957942404fbb2ad74b22c6830f123bba380f57d69b591adc1aa67be1cb6c8d2ea9e23ba133531381e2f5199b4fef75fd782fec1a639e
+"@midnight-ntwrk/ledger-v7@npm:7.0.0":
+  version: 7.0.0
+  resolution: "@midnight-ntwrk/ledger-v7@npm:7.0.0"
+  checksum: 10c0/f5a367fa631ed7e527c72955caec4914f5883ace57dcb00c0f9f723f718800e0f73dab74089ee2b23c67b4dacac11cf90f9614eaa643c7f669c0b4f2baa18eb3
   languageName: node
   linkType: hard
 
@@ -3231,14 +3231,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@midnight-ntwrk/wallet-sdk-address-format@npm:^3.0.0-beta.11":
-  version: 3.0.0-beta.11
-  resolution: "@midnight-ntwrk/wallet-sdk-address-format@npm:3.0.0-beta.11"
+"@midnight-ntwrk/wallet-sdk-address-format@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@midnight-ntwrk/wallet-sdk-address-format@npm:3.0.0"
   dependencies:
-    "@midnight-ntwrk/ledger-v7": "npm:7.0.0-rc.1"
+    "@midnight-ntwrk/ledger-v7": "npm:7.0.0"
     "@scure/base": "npm:^1.2.6"
     "@subsquid/scale-codec": "npm:^4.0.1"
-  checksum: 10c0/83f0ef90167b60c9cab985197172f60140ceccf5a9e5cbf3f7802deae00e218d55f58b7634c182a5967abb5288e904d6a73dca39534559530e79bf96734f88b1
+  checksum: 10c0/4487b8ae0af1605fcfb946b68b30b51d2b362d03ccd0bab4e4ca48066e7143c9f84290102b035c2bd56f6bd988f6c849db95c358870b22900de9cf1170771911
   languageName: node
   linkType: hard
 
@@ -9785,10 +9785,10 @@ __metadata:
     "@harmoniclabs/uplc": "npm:^1.4.1"
     "@heroui/react": "npm:^2.8.2"
     "@lucid-evolution/lucid": "npm:^0.4.29"
-    "@midnight-ntwrk/dapp-connector-api": "npm:^4.0.0-beta.2"
+    "@midnight-ntwrk/dapp-connector-api": "npm:^4.0.0"
     "@midnight-ntwrk/wallet": "npm:^5.0.0"
     "@midnight-ntwrk/wallet-api": "npm:^5.0.0"
-    "@midnight-ntwrk/wallet-sdk-address-format": "npm:^3.0.0-beta.11"
+    "@midnight-ntwrk/wallet-sdk-address-format": "npm:^3.0.0"
     "@tailwindcss/postcss": "npm:^4.1.12"
     "@testing-library/jest-dom": "npm:^6.9.1"
     "@testing-library/react": "npm:^16.3.1"
