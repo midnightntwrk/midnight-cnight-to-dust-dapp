@@ -10,6 +10,19 @@ interface UseGenerationStatusReturn {
   refetch: () => void;
 }
 
+const DUST_GENERATION_STATUS_QUERY = `
+  query GetDustGenerationStatus($cardanoRewardAddresses: [String!]!) {
+    dustGenerationStatus(cardanoRewardAddresses: $cardanoRewardAddresses) {
+      cardanoRewardAddress
+      dustAddress
+      generationRate
+      maxCapacity
+      currentCapacity
+      registered
+    }
+  }
+`;
+
 export function useGenerationStatus(rewardAddress: string | null): UseGenerationStatusReturn {
   const { config } = useRuntimeConfig();
   const [data, setData] = useState<GenerationStatusData | null>(null);
@@ -52,22 +65,10 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            query: `
-              {
-                dustGenerationStatus(
-                  cardanoRewardAddresses: [
-                    "${rewardAddress}"
-                  ]
-                ) {
-                  cardanoRewardAddress
-                  dustAddress
-                  generationRate
-                  maxCapacity
-                  currentCapacity
-                  registered
-                }
-              }
-            `,
+            query: DUST_GENERATION_STATUS_QUERY,
+            variables: {
+              cardanoRewardAddresses: [rewardAddress],
+            },
           }),
         });
 
@@ -89,7 +90,9 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
         }
 
         const result = await response.json();
-        const statusData = Array.isArray(result?.data.dustGenerationStatus) ? result.data.dustGenerationStatus[0] : null;
+        const statusData = Array.isArray(result?.data.dustGenerationStatus)
+          ? result.data.dustGenerationStatus[0]
+          : null;
         setData(statusData);
       } catch (err) {
         if (controller.signal.aborted) return;

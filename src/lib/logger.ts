@@ -15,6 +15,74 @@
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
+// Sensitive field patterns to redact
+const SENSITIVE_PATTERNS = [
+  /password/i,
+  /secret/i,
+  /token/i,
+  /api[_-]?key/i,
+  /private[_-]?key/i,
+  /authorization/i,
+  /credential/i,
+];
+
+// Fields to partially mask (show first/last few chars)
+const PARTIAL_MASK_FIELDS = ['address', 'rewardAddress', 'dustAddress', 'cardanoRewardAddress'];
+
+/**
+ * Sanitize a value for logging
+ */
+const sanitizeValue = (key: string, value: unknown): unknown => {
+  if (typeof value !== 'string') return value;
+
+  // Full redaction for sensitive fields
+  if (SENSITIVE_PATTERNS.some((pattern) => pattern.test(key))) {
+    return '[REDACTED]';
+  }
+
+  // Partial masking for address fields (show first 10 and last 4 chars)
+  if (PARTIAL_MASK_FIELDS.some((field) => key.toLowerCase().includes(field.toLowerCase()))) {
+    if (value.length > 20) {
+      return `${value.substring(0, 10)}...${value.substring(value.length - 4)}`;
+    }
+  }
+
+  return value;
+};
+
+/**
+ * Recursively sanitize an object for logging
+ */
+const sanitizeObject = (obj: unknown): unknown => {
+  if (obj === null || obj === undefined) return obj;
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => sanitizeObject(item));
+  }
+
+  if (typeof obj === 'object') {
+    const sanitized: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+      sanitized[key] = typeof value === 'object' ? sanitizeObject(value) : sanitizeValue(key, value);
+    }
+    return sanitized;
+  }
+
+  return obj;
+};
+
+/**
+ * Sanitize log arguments
+ */
+const sanitizeArgs = (args: unknown[]): unknown[] => {
+  return args.map((arg) => {
+    if (typeof arg === 'object' && arg !== null) {
+      return sanitizeObject(arg);
+    }
+    return arg;
+  });
+};
+
 // Check LOG_LEVEL env var (works at runtime for server-side code)
 const getLogLevel = (): string => {
   if (typeof window === 'undefined') {
@@ -39,7 +107,7 @@ class Logger {
    */
   log(...args: unknown[]): void {
     if (shouldLog('log')) {
-      console.log(...args);
+      console.log(...sanitizeArgs(args));
     }
   }
 
@@ -47,7 +115,7 @@ class Logger {
    * Error messages (always shown)
    */
   error(...args: unknown[]): void {
-    console.error(...args);
+    console.error(...sanitizeArgs(args));
   }
 
   /**
@@ -55,7 +123,7 @@ class Logger {
    */
   warn(...args: unknown[]): void {
     if (shouldLog('warn')) {
-      console.warn(...args);
+      console.warn(...sanitizeArgs(args));
     }
   }
 
@@ -64,7 +132,7 @@ class Logger {
    */
   info(...args: unknown[]): void {
     if (shouldLog('info')) {
-      console.info(...args);
+      console.info(...sanitizeArgs(args));
     }
   }
 
@@ -73,7 +141,7 @@ class Logger {
    */
   debug(...args: unknown[]): void {
     if (shouldLog('debug')) {
-      console.debug(...args);
+      console.debug(...sanitizeArgs(args));
     }
   }
 }
