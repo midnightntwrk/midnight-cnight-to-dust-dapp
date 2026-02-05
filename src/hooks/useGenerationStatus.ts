@@ -15,10 +15,10 @@ const DUST_GENERATION_STATUS_QUERY = `
     dustGenerationStatus(cardanoRewardAddresses: $cardanoRewardAddresses) {
       cardanoRewardAddress
       dustAddress
-      generationRate
-      maxCapacity
-      currentCapacity
       registered
+      nightBalance
+      generationRate
+      currentCapacity
     }
   }
 `;
@@ -71,7 +71,7 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
             },
           }),
         });
-
+        logger.info('HEREEEEEEEE:', response);
         if (!response.ok) {
           if (response.status === 404) {
             setData(null);
@@ -90,9 +90,11 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
         }
 
         const result = await response.json();
-        const statusData = Array.isArray(result?.data.dustGenerationStatus)
+        logger.info('[Indexer:GenerationStatus]', 'Raw response:', JSON.stringify(result));
+        const statusData = Array.isArray(result?.data?.dustGenerationStatus)
           ? result.data.dustGenerationStatus[0]
           : null;
+        logger.info('[Indexer:GenerationStatus]', 'Parsed statusData:', statusData);
         setData(statusData);
       } catch (err) {
         if (controller.signal.aborted) return;
