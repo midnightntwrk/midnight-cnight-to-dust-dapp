@@ -53,10 +53,13 @@ setInterval(() => {
 // SECURITY: Origin validation and CORS configuration
 const ALLOWED_ORIGINS = [
   process.env.NEXT_PUBLIC_REACT_SERVER_URL || 'http://localhost:3000',
-  'http://localhost:3000', // Development fallback
+  'http://localhost:3000',
   'http://localhost:3001',
-  process.env.NEXT_PUBLIC_PRODUCTION_URL, // Add your production URL in env
-].filter((origin): origin is string => Boolean(origin)); // Remove undefined values with type guard
+  'https://dust.preview.midnight.network',
+  'https://dust.preprod.midnight.network',
+  'https://dust.midnight.network',
+  process.env.NEXT_PUBLIC_PRODUCTION_URL,
+].filter((origin): origin is string => Boolean(origin));
 
 /**
  * Validates that the request comes from an allowed origin
