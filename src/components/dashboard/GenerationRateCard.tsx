@@ -11,7 +11,7 @@ const GenerationRateCard = () => {
 
   // Check if indexer has synced (registered on-chain but indexer shows false)
   const isIndexerSyncing = registrationUtxo && generationStatus?.registered === false;
-  const isIndexerSynced = generationStatus?.registered === true; // this doesn't mean it's synced... 
+  const isIndexerSynced = generationStatus?.registered === true; // this doesn't mean it's synced...
 
   // Calculate CAP as Night Balance * 10 (fallback when indexer not synced)
   const calculateCap = () => {
@@ -38,7 +38,6 @@ const GenerationRateCard = () => {
     }
     return calculateCap();
   };
-
   return (
     <Card className="bg-[#70707035] p-[24px] w-full lg:w-[20%] gap-4">
       <div className="flex flex-col gap-1">
@@ -55,7 +54,9 @@ const GenerationRateCard = () => {
           </Tooltip>
         </div>
         <div className="flex flex-row gap-2 items-center z-10">
-          <span className={`text-[24px] font-bold ${isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}>{generationStatus?.generationRate}</span>
+          <span className={`text-[24px] font-bold ${isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}>
+            {getGenerationRate()}
+          </span>
           <span className="text-[24px]">DUST/H</span>
         </div>
       </div>
@@ -73,7 +74,9 @@ const GenerationRateCard = () => {
           </Tooltip>
         </div>
         <div className="flex flex-row gap-2 items-center z-10">
-          <span className={`text-[24px] font-bold ${!cardano.balanceNight ? 'text-amber-400 animate-pulse' : ''}`}>{getCapValue()}</span>
+          <span className={`text-[24px] font-bold ${!cardano.balanceNight ? 'text-amber-400 animate-pulse' : ''}`}>
+            {getCapValue()}
+          </span>
           <span className="text-[24px]">DUST</span>
         </div>
       </div>

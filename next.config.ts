@@ -4,26 +4,20 @@ import type { NextConfig } from 'next';
 // In development, we need 'unsafe-eval' for Next.js hot reload
 const isDev = process.env.NODE_ENV === 'development';
 
-// External endpoints allowed for connect-src (loaded from env at build time)
-// In production, these should be set via environment variables
-const allowedIndexerEndpoints = process.env.CSP_ALLOWED_ENDPOINTS || '';
+// Indexer endpoints that need to be allowed in CSP
+const indexerEndpoints = [
+  'https://indexer.preview.midnight.network',
+  'https://indexer.preprod.midnight.network',
+  'https://indexer.qanet.midnight.network',
+].join(' ');
 
-/**
- * Content Security Policy
- *
- * Security notes:
- * - 'unsafe-inline' in script-src: Required by Next.js for inline scripts.
- *   To remove this, implement nonce-based CSP via middleware (complex).
- * - 'unsafe-inline' in style-src: Required for CSS-in-JS (HeroUI, Tailwind).
- * - connect-src endpoints: Configured via CSP_ALLOWED_ENDPOINTS env var.
- */
 const ContentSecurityPolicy = `
   default-src 'self';
   script-src 'self' 'wasm-unsafe-eval' ${isDev ? "'unsafe-eval'" : ''} 'unsafe-inline';
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src 'self' https://fonts.gstatic.com;
   img-src 'self' data: blob:;
-  connect-src 'self' ${isDev ? 'ws://localhost:* http://localhost:*' : ''} ${allowedIndexerEndpoints};
+  connect-src 'self' ${isDev ? 'ws://localhost:* http://localhost:*' : ''} ${indexerEndpoints};
   frame-ancestors 'none';
   form-action 'self';
   base-uri 'self';
