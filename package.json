@@ -5,7 +5,8 @@
   "type": "module",
   "resolutions": {
     "libsodium-wrappers-sumo": "0.8.2",
-    "tar": "7.5.7"
+    "tar": "7.5.7",
+    "@isaacs/brace-expansion": "5.0.1"
   },
   "scripts": {
     "dev": "next dev --turbopack",
