@@ -425,7 +425,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@blaze-cardano/core@npm:0.8.0":
+"@blaze-cardano/core@npm:0.8.0, @blaze-cardano/core@npm:^0.8.0":
   version: 0.8.0
   resolution: "@blaze-cardano/core@npm:0.8.0"
   dependencies:
@@ -438,22 +438,6 @@ __metadata:
     "@scure/bip39": "npm:^1.5.4"
     blakejs: "npm:^1.2.1"
   checksum: 10c0/6f138abc2b18f61c4cb03870d3f48ea5e0e99cad3328072e61509f7aa4774deb394555c8bc3e4013b567b580e9dd68cdc85178735999b3f961718042c587d88d
-  languageName: node
-  linkType: hard
-
-"@blaze-cardano/core@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "@blaze-cardano/core@npm:0.7.0"
-  dependencies:
-    "@cardano-sdk/core": "npm:0.45.0"
-    "@cardano-sdk/crypto": "npm:^0.1.32"
-    "@cardano-sdk/util": "npm:^0.15.5"
-    "@noble/curves": "npm:^1.8.1"
-    "@noble/ed25519": "npm:^2.2.3"
-    "@noble/hashes": "npm:^1.7.1"
-    "@scure/bip39": "npm:^1.5.4"
-    blakejs: "npm:^1.2.1"
-  checksum: 10c0/d1f4bd5bf05c2576f01aed0834a2af0aedf60ad6347f41c42874c7dd009e5fe60085ad1392b79134a6cdfe72f29f69a13ad9c6ff763d9edaf1176ad98a3954c8
   languageName: node
   linkType: hard
 
@@ -500,32 +484,6 @@ __metadata:
   version: 6.9.0
   resolution: "@cardano-ogmios/schema@npm:6.9.0"
   checksum: 10c0/5934c3e653a18d2b09b472cc0cab9e46719367112715becc94ab901f9e68c8a60cc3c3fbec59a22a6acd45bc35519b3f5acc737779305395e1ddb706fd970940
-  languageName: node
-  linkType: hard
-
-"@cardano-sdk/core@npm:0.45.0":
-  version: 0.45.0
-  resolution: "@cardano-sdk/core@npm:0.45.0"
-  dependencies:
-    "@biglup/is-cid": "npm:^1.0.3"
-    "@cardano-ogmios/client": "npm:6.9.0"
-    "@cardano-ogmios/schema": "npm:6.9.0"
-    "@cardano-sdk/crypto": "npm:~0.2.0"
-    "@cardano-sdk/util": "npm:~0.15.5"
-    "@foxglove/crc": "npm:^0.0.3"
-    "@scure/base": "npm:^1.1.1"
-    fraction.js: "npm:4.0.1"
-    ip-address: "npm:^9.0.5"
-    lodash: "npm:^4.17.21"
-    ts-custom-error: "npm:^3.2.0"
-    ts-log: "npm:^2.2.4"
-    web-encoding: "npm:^1.1.5"
-  peerDependencies:
-    rxjs: ^7.4.0
-  peerDependenciesMeta:
-    rxjs:
-      optional: true
-  checksum: 10c0/81f92fff36239d893d43059d4684f7e659dcbd48c3773d6315a7cad13731767f476847439848227abdf50b5e69b4a2c87042ba95120fb9163d9013117b0ea3e7
   languageName: node
   linkType: hard
 
@@ -581,34 +539,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cardano-sdk/crypto@npm:^0.1.32":
-  version: 0.1.32
-  resolution: "@cardano-sdk/crypto@npm:0.1.32"
-  dependencies:
-    "@cardano-sdk/util": "npm:~0.15.5"
-    blake2b: "npm:^2.1.4"
-    i: "npm:^0.3.7"
-    libsodium-wrappers-sumo: "npm:^0.7.5"
-    lodash: "npm:^4.17.21"
-    npm: "npm:^9.3.0"
-    pbkdf2: "npm:^3.1.2"
-    ts-custom-error: "npm:^3.2.0"
-    ts-log: "npm:^2.2.4"
-  peerDependencies:
-    "@dcspark/cardano-multiplatform-lib-asmjs": ^3.1.1
-    "@dcspark/cardano-multiplatform-lib-browser": ^3.1.1
-    "@dcspark/cardano-multiplatform-lib-nodejs": ^3.1.1
-  peerDependenciesMeta:
-    "@dcspark/cardano-multiplatform-lib-asmjs":
-      optional: true
-    "@dcspark/cardano-multiplatform-lib-browser":
-      optional: true
-    "@dcspark/cardano-multiplatform-lib-nodejs":
-      optional: true
-  checksum: 10c0/3c0a22a14fce9f0827ad3dafe23a450ad39c085e5f47134103ad91fce1ea3f404305d0573bf4249c4738d9b8921a94c1fbd30d6739d9816afb3f0fa1648d7908
-  languageName: node
-  linkType: hard
-
 "@cardano-sdk/crypto@npm:^0.4, @cardano-sdk/crypto@npm:~0.4.5":
   version: 0.4.5
   resolution: "@cardano-sdk/crypto@npm:0.4.5"
@@ -636,7 +566,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cardano-sdk/crypto@npm:~0.2.0, @cardano-sdk/crypto@npm:~0.2.3":
+"@cardano-sdk/crypto@npm:~0.2.3":
   version: 0.2.3
   resolution: "@cardano-sdk/crypto@npm:0.2.3"
   dependencies:
@@ -661,20 +591,6 @@ __metadata:
     "@dcspark/cardano-multiplatform-lib-nodejs":
       optional: true
   checksum: 10c0/a987ad1d4f963de88222ff702599ff49c67a4babeb0231e7def598431e04fa5b706d1369dfe1ef2b2a7028f6e7eed8b60a12ffaec1fc55cc20f84d2eb450ea1d
-  languageName: node
-  linkType: hard
-
-"@cardano-sdk/util@npm:^0.15.5, @cardano-sdk/util@npm:~0.15.5":
-  version: 0.15.7
-  resolution: "@cardano-sdk/util@npm:0.15.7"
-  dependencies:
-    bech32: "npm:^2.0.0"
-    lodash: "npm:^4.17.21"
-    serialize-error: "npm:^8"
-    ts-custom-error: "npm:^3.2.0"
-    ts-log: "npm:^2.2.4"
-    type-fest: "npm:^2.19.0"
-  checksum: 10c0/5bebb0b8c14cb6742f96bc73f19a26947321b832d713a3de04d89ad638b6588ce37b889e1f7324c8f7fa8523045484b2e62dfbce15fdd512c6661bec3a199dc2
   languageName: node
   linkType: hard
 
@@ -9864,7 +9780,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "midnight-cnight-to-dust-dapp@workspace:."
   dependencies:
-    "@blaze-cardano/core": "npm:^0.7.0"
+    "@blaze-cardano/core": "npm:^0.8.0"
     "@blaze-cardano/data": "npm:^0.6.6"
     "@blaze-cardano/uplc": "npm:^0.4.3"
     "@eslint/eslintrc": "npm:^3"
