@@ -1,0 +1,2 @@
+# npm is removed from production image (Dockerfile line 54) so this fail is a false positive
+CVE-2026-0775

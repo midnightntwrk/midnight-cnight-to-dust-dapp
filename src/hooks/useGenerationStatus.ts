@@ -71,7 +71,7 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
             },
           }),
         });
-        logger.info('HEREEEEEEEE:', response);
+        
         if (!response.ok) {
           if (response.status === 404) {
             setData(null);
