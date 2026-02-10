@@ -11,8 +11,6 @@ const indexerEndpoints = [
   'https://indexer.qanet.midnight.network',
 ].join(' ');
 
-// ZAP 10055: 'unsafe-inline' is required for Next.js hydration/chunk scripts.
-// To remove it, use CSP nonces via middleware + layout (see Next.js CSP nonce docs).
 const ContentSecurityPolicy = `
   default-src 'self';
   script-src 'self' 'wasm-unsafe-eval' ${isDev ? "'unsafe-eval'" : ''} 'unsafe-inline';
