@@ -112,20 +112,6 @@ const nextConfig: NextConfig = {
         buffer: require.resolve('buffer/'),
       };
     }
-    // ZAP 10027: Strip comments in production to reduce "Suspicious Comments" in built chunks.
-    // Note: Next.js 16 may use Turbopack for build; comment stripping then depends on Turbopack's minifier.
-    if (!dev && config.optimization?.minimizer) {
-      const terser = config.optimization.minimizer.find(
-        (p: { constructor: { name: string } }) =>
-          p.constructor?.name === 'TerserPlugin' || p.constructor?.name === 'TerserWebpackPlugin'
-      );
-      if (terser?.options?.terserOptions) {
-        terser.options.terserOptions.format = {
-          ...terser.options.terserOptions.format,
-          comments: false,
-        };
-      }
-    }
     return config;
   },
 };
