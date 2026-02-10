@@ -11,6 +11,8 @@ const indexerEndpoints = [
   'https://indexer.qanet.midnight.network',
 ].join(' ');
 
+// ZAP 10055: 'unsafe-inline' is required for Next.js hydration/chunk scripts.
+// To remove it, use CSP nonces via middleware + layout (see Next.js CSP nonce docs).
 const ContentSecurityPolicy = `
   default-src 'self';
   script-src 'self' 'wasm-unsafe-eval' ${isDev ? "'unsafe-eval'" : ''} 'unsafe-inline';
@@ -59,17 +61,39 @@ const securityHeaders = [
     key: 'Permissions-Policy',
     value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
   },
+  // ZAP 90004: Site isolation against Spectre (Cross-Origin-Opener-Policy)
+  {
+    key: 'Cross-Origin-Opener-Policy',
+    value: 'same-origin',
+  },
+  // ZAP 90004: Site isolation (Cross-Origin-Embedder-Policy). credentialless avoids breaking third-party resources.
+  {
+    key: 'Cross-Origin-Embedder-Policy',
+    value: 'credentialless',
+  },
 ];
 
 const nextConfig: NextConfig = {
   output: 'standalone',
   reactStrictMode: true, // Re-enabled with proper cleanup functions to prevent issues
+  // ZAP 10037: Remove X-Powered-By header to avoid leaking server info
+  poweredByHeader: false,
   async headers() {
     return [
       {
         // Apply security headers to all routes
         source: '/:path*',
         headers: securityHeaders,
+      },
+      // ZAP 10049: Allow caching of static assets (Non-Storable Content)
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
       },
     ];
   },
@@ -81,12 +105,26 @@ const nextConfig: NextConfig = {
   env: {
     // Add any environment variables here if needed
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         buffer: require.resolve('buffer/'),
       };
+    }
+    // ZAP 10027: Strip comments in production to reduce "Suspicious Comments" in built chunks.
+    // Note: Next.js 16 may use Turbopack for build; comment stripping then depends on Turbopack's minifier.
+    if (!dev && config.optimization?.minimizer) {
+      const terser = config.optimization.minimizer.find(
+        (p: { constructor: { name: string } }) =>
+          p.constructor?.name === 'TerserPlugin' || p.constructor?.name === 'TerserWebpackPlugin'
+      );
+      if (terser?.options?.terserOptions) {
+        terser.options.terserOptions.format = {
+          ...terser.options.terserOptions.format,
+          comments: false,
+        };
+      }
     }
     return config;
   },

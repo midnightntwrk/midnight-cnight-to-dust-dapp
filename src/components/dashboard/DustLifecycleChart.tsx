@@ -54,7 +54,7 @@ export default function DustLifecycleChart() {
   // }, [isIndexerSynced, generationStatus?.currentCapacity]);
   const currentDustBalance = isIndexerSynced && generationStatus?.currentCapacity ?
     parseFloat(generationStatus.currentCapacity) : 0;
-    
+
 
   // Get generation rate from indexer
   // const generationRate = useMemo(() => {
