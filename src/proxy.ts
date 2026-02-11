@@ -1,5 +1,15 @@
+import { timingSafeEqual } from 'crypto';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { logger } from '@/lib/logger';
+
+/** Constant-time string comparison to prevent timing attacks. */
+function safeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a, 'utf8');
+  const bufB = Buffer.from(b, 'utf8');
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
 
 /**
  * Optional HTTP Basic Auth. Enabled only when BASIC_AUTH_PASSWORD is set.
@@ -28,11 +38,11 @@ export function proxy(request: NextRequest) {
     const decoded = Buffer.from(encoded, 'base64').toString('utf8');
     const [, givenPassword] = decoded.split(':', 2);
 
-    if (givenPassword === password) {
+    if (safeCompare(givenPassword ?? '', password)) {
       return NextResponse.next();
     }
-  } catch {
-    // Invalid Base64 or format
+  } catch (err) {
+    logger.warn('[proxy] Malformed Basic Auth header:', err);
   }
 
   return new NextResponse('Invalid credentials', {
