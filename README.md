@@ -78,16 +78,16 @@ NEXT_PUBLIC_REACT_SERVER_BASEURL="http://localhost"
 NEXT_PUBLIC_REACT_SERVER_URL="$NEXT_PUBLIC_REACT_SERVER_BASEURL:3000"
 ```
 
-### Dockerized run to emulate production environments 
+### Dockerized run to emulate production environments
 
-```bash 
+```bash
 # Build the image
 docker build -t midnight-dapp .
 
 # Run without logs:
 docker run -p 3000:3000 --env-file .env.local midnight-dapp
 
-# Then to run with logs: 
+# Then to run with logs:
 docker run -p 3000:3000 -e LOG_LEVEL=debug --env-file .env.local midnight-dapp
  ```
 

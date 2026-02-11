@@ -16,7 +16,7 @@ function getNetworkId(): number {
  * Convert Blaze Script to Lucid Script format
  */
 export function blazeToLucidScript(blazeScript: BlazeScript): LucidScript {
-  const core = blazeScript.toCore() as any;  
+  const core = blazeScript.toCore() as any;
 
   enum BlazePlutusLanguageVersion {
     V1 = 0,
@@ -76,7 +76,7 @@ export function getPolicyId(script: BlazeScript): string {
 /**
  * Serialize data to CBOR format
  */
- 
+
 export function serializeToCbor(type: any, data: any): string {
   return serialize(type, data).toCbor();
 }

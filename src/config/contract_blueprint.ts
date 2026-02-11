@@ -1,4 +1,4 @@
- 
+
 // @ts-nocheck
 import { applyParamsToScript, cborToScript } from '@blaze-cardano/uplc';
 import { type Script } from '@blaze-cardano/core';
