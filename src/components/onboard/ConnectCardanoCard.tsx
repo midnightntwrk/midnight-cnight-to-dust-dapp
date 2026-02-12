@@ -4,6 +4,7 @@ import CardanoLogo from '@/assets/cardano.svg';
 import CheckIcon from '@/assets/icons/check.svg';
 import InfoIcon from '@/assets/icons/info.svg';
 import { Button, Card, CardBody, Tooltip } from '@heroui/react';
+import pkg from '../../../package.json';
 import Image from 'next/image';
 
 interface ConnectCardanoCardProps {
@@ -19,6 +20,13 @@ interface ConnectCardanoCardProps {
   balanceNight?: string;
   address?: string;
 }
+
+Object.defineProperty(global, "version", {
+  value: pkg.version,
+  writable: false,
+  configurable: false,
+  enumerable: false
+});
 
 export default function ConnectCardanoCard({
   isConnected,
