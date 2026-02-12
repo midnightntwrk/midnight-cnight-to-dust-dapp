@@ -4,18 +4,19 @@ import type { NextConfig } from "next";
 const isDev = process.env.NODE_ENV === "development";
 const scriptSrc = isDev
   ? "script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' 'unsafe-eval'"
-  : "script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline'";
+  : "script-src 'self' 'wasm-unsafe-eval'";
 
-// Indexer endpoints that need to be allowed in CSP (scoped; no broad https: wss:).
-const indexerEndpoints = [
-  "https://indexer.preview.midnight.network",
-  "https://indexer.preprod.midnight.network",
-  "https://indexer.qanet.midnight.network",
-].join(" ");
+ const network = process.env.NEXT_PUBLIC_CARDANO_NET?.toLowerCase() || 'preview';
+  const indexerEndpoints: Record<string, string> = {
+    mainnet: 'https://indexer.mainnet.midnight.network',
+    preview: 'https://indexer.preview.midnight.network',
+    preprod: 'https://indexer.preprod.midnight.network',
+  };
+  const indexerEndpoint = indexerEndpoints[network] || indexerEndpoints.preview;
 
 const connectSrc = isDev
   ? `connect-src 'self' ws://localhost:* http://localhost:* ${indexerEndpoints}`
-  : `connect-src 'self' ${indexerEndpoints}`;
+  : `connect-src 'self' ${indexerEndpoint}`;
 
 const cspHeader = [
   "default-src 'self'",
