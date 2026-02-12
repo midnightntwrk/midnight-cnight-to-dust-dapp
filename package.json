@@ -28,7 +28,7 @@
     "@harmoniclabs/pair": "^1.0.0",
     "@harmoniclabs/plutus-data": "^1.2.6",
     "@harmoniclabs/uplc": "^1.4.1",
-    "@heroui/react": "^2.8.2",
+    "@heroui/react": "^2.8.8",
     "@lucid-evolution/lucid": "^0.4.29",
     "@midnight-ntwrk/dapp-connector-api": "^4.0.0",
     "@midnight-ntwrk/wallet": "^5.0.0",
