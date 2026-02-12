@@ -1,4 +1,5 @@
 import * as Contracts from '@/config/contract_blueprint';
+import { CNIGHT_CURRENCY_ENCODEDNAME, CNIGHT_CURRENCY_POLICY_ID } from '@/config/network';
 import { LOVELACE_FOR_REGISTRATION } from '@/config/transactionConstants';
 import { logger } from '@/lib/logger';
 import { toJson } from '@/lib/utils';
@@ -35,6 +36,22 @@ export class DustTransactionsUtils {
       })
     );
 
+    // Find a cNIGHT UTXO to include as explicit input for rotation
+    const cnightUnit = CNIGHT_CURRENCY_POLICY_ID + CNIGHT_CURRENCY_ENCODEDNAME;
+    const utxos = await lucid.wallet().getUtxos();
+    const cnightUtxo = utxos.find((u) => Object.keys(u.assets).some((asset) => asset === cnightUnit));
+
+    if (!cnightUtxo) {
+      logger.error('[DustTransactions]', '❌ No cNIGHT UTXO found in wallet');
+      throw new Error('No cNIGHT tokens found in wallet. You need cNIGHT to register.');
+    }
+
+    logger.log('[DustTransactions]', '🪙 Found cNIGHT UTXO for rotation:', toJson({
+      txHash: cnightUtxo.txHash,
+      outputIndex: cnightUtxo.outputIndex,
+      cnightAmount: cnightUtxo.assets[cnightUnit],
+    }));
+
     // Get DUST Generator contract
     const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
     const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
@@ -51,6 +68,9 @@ export class DustTransactionsUtils {
 
     logger.log('[DustTransactions]', '🔨 Building registration transaction...');
     const txBuilder = lucid.newTx();
+
+    // Add cNIGHT UTXO as explicit input to ensure rotation
+    txBuilder.collectFrom([cnightUtxo]);
 
     // MINT NFT
 
