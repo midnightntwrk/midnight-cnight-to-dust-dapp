@@ -333,7 +333,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
       // Determine the Midnight network based on Cardano network
       const cardanoNetwork = currentNetwork.toLowerCase();
-      const midnightNetwork = cardanoNetwork === 'mainnet' ? 'mainnet' : 'preview';
+      const midnightNetwork = cardanoNetwork === 'mainnet' ? 'mainnet' : cardanoNetwork === 'preprod' ? 'preprod' : 'preview';
 
       logger.log('[Wallet]', 'Connecting to Midnight network:', { cardanoNetwork, midnightNetwork });
 
@@ -581,7 +581,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     return () => {
       isMountedRef.current = false;
     };
-  }, [connectCardanoWallet, connectMidnightWallet]);
+  }, []);
 
   // Centralized redirect logic based on registration status
   useEffect(() => {
