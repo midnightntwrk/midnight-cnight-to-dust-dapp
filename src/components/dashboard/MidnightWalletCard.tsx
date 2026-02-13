@@ -220,7 +220,7 @@ const MidnightWalletCard = () => {
     setIsMidnightModalOpen(true);
   };
 
-  const handleMidnightWalletSelect = async (wallet: SupportedWallet | SupportedMidnightWallet) => {
+  const handleMidnightWalletSelect = async (wallet: SupportedMidnightWallet) => {
     await connectMidnightWallet(wallet as SupportedMidnightWallet);
     setIsMidnightModalOpen(false);
   };

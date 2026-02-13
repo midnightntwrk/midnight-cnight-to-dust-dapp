@@ -36,21 +36,23 @@ export class DustTransactionsUtils {
       })
     );
 
-    // Find a cNIGHT UTXO to include as explicit input for rotation
+    // Find all cNIGHT UTXOs to include as explicit inputs so all cNIGHT rotates
     const cnightUnit = CNIGHT_CURRENCY_POLICY_ID + CNIGHT_CURRENCY_ENCODEDNAME;
     const utxos = await lucid.wallet().getUtxos();
-    const cnightUtxo = utxos.find((u) => Object.keys(u.assets).some((asset) => asset === cnightUnit));
+    const cnightUtxos = utxos.filter((u) => u.assets[cnightUnit] !== undefined);
 
-    if (!cnightUtxo) {
+    if (cnightUtxos.length === 0) {
       logger.error('[DustTransactions]', '❌ No cNIGHT UTXO found in wallet');
       throw new Error('No cNIGHT tokens found in wallet. You need cNIGHT to register.');
     }
 
-    logger.log('[DustTransactions]', '🪙 Found cNIGHT UTXO for rotation:', toJson({
-      txHash: cnightUtxo.txHash,
-      outputIndex: cnightUtxo.outputIndex,
-      cnightAmount: cnightUtxo.assets[cnightUnit],
-    }));
+    logger.log('[DustTransactions]', `🪙 Found ${cnightUtxos.length} cNIGHT UTXO(s) for rotation:`, toJson(
+      cnightUtxos.map((u) => ({
+        txHash: u.txHash,
+        outputIndex: u.outputIndex,
+        cnightAmount: u.assets[cnightUnit],
+      }))
+    ));
 
     // Get DUST Generator contract
     const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
@@ -69,8 +71,8 @@ export class DustTransactionsUtils {
     logger.log('[DustTransactions]', '🔨 Building registration transaction...');
     const txBuilder = lucid.newTx();
 
-    // Add cNIGHT UTXO as explicit input to ensure rotation
-    txBuilder.collectFrom([cnightUtxo]);
+    // Add all cNIGHT UTXOs as explicit inputs to ensure full rotation
+    txBuilder.collectFrom(cnightUtxos);
 
     // MINT NFT
 
@@ -196,11 +198,8 @@ export class DustTransactionsUtils {
     );
 
     // Build the transaction
-
     logger.log('[DustTransactions]', '🔨 Building unregistration transaction...');
     const txBuilder = lucid.newTx();
-
-    // BURN NFT
 
     // Construct the NFT asset name
     const dustNFTTokenName = '';
@@ -226,7 +225,6 @@ export class DustTransactionsUtils {
     logger.log('[DustTransactions]', '📎 Attaching DUST NFT Policy Script...');
     txBuilder.attach.MintingPolicy(blazeToLucidScript(dustGenerator.Script));
 
-    // CONSUME INPUT: Existing registration UTXO from DUST Mapping Validator
 
     // Redeemer for unregistration (empty constructor)
     const { Data } = await import('@lucid-evolution/lucid');
