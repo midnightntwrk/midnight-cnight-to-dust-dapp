@@ -39,7 +39,7 @@ export class DustTransactionsUtils {
     // Find all cNIGHT UTXOs to include as explicit inputs so all cNIGHT rotates
     const cnightUnit = CNIGHT_CURRENCY_POLICY_ID + CNIGHT_CURRENCY_ENCODEDNAME;
     const utxos = await lucid.wallet().getUtxos();
-    const cnightUtxos = utxos.filter((u) => u.assets[cnightUnit] !== undefined);
+    const cnightUtxos = utxos.filter((cNightUtxo) => cNightUtxo.assets[cnightUnit] !== undefined);
 
     if (cnightUtxos.length === 0) {
       logger.error('[DustTransactions]', '❌ No cNIGHT UTXO found in wallet');
@@ -197,9 +197,28 @@ export class DustTransactionsUtils {
       })
     );
 
-    // Build the transaction
-    logger.log('[DustTransactions]', '🔨 Building unregistration transaction...');
+    // Find all cNIGHT UTXOs to include as explicit inputs so all cNIGHT rotates creating this a double transaction = voiding the dust production transaction
+    const cnightUnit = CNIGHT_CURRENCY_POLICY_ID + CNIGHT_CURRENCY_ENCODEDNAME;
+    const utxos = await lucid.wallet().getUtxos();
+    const cnightUtxos = utxos.filter((cNightUtxo) => cNightUtxo.assets[cnightUnit] !== undefined);
+
+    if (cnightUtxos.length === 0) {
+      logger.error('[DustTransactions]', '❌ No cNIGHT UTXO found in wallet');
+      throw new Error('No cNIGHT tokens found in wallet. You need cNIGHT to unregister.');
+    }
+
+    logger.log('[DustTransactions]', `🪙 Found ${cnightUtxos.length} cNIGHT UTXO(s) for rotation:`, toJson(
+      cnightUtxos.map((u) => ({
+        txHash: u.txHash,
+        outputIndex: u.outputIndex,
+        cnightAmount: u.assets[cnightUnit],
+      }))
+    ));
+
     const txBuilder = lucid.newTx();
+
+    // Add all cNIGHT UTXOs as explicit inputs to ensure full rotation
+    txBuilder.collectFrom(cnightUtxos);
 
     // Construct the NFT asset name
     const dustNFTTokenName = '';
@@ -207,22 +226,7 @@ export class DustTransactionsUtils {
 
     // Redeemer
     const dustNFTBurningRedeemer = serializeToCbor(Contracts.DustAction, 'Burn');
-
-    logger.log(
-      '[DustTransactions]',
-      '🪙 Burning DUST NFT:',
-      toJson({
-        policyId: getPolicyId(dustGenerator.Script),
-        assetName: dustNFTAssetName,
-        amount: -1n,
-        redeemerCBORHEX: dustNFTBurningRedeemer,
-      })
-    );
-
     txBuilder.mintAssets({ [dustNFTAssetName]: -1n }, dustNFTBurningRedeemer);
-
-    // Attach the required script
-    logger.log('[DustTransactions]', '📎 Attaching DUST NFT Policy Script...');
     txBuilder.attach.MintingPolicy(blazeToLucidScript(dustGenerator.Script));
 
 
