@@ -1,13 +1,12 @@
 import { Subgraph } from '@/lib/subgraph/query';
 import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerRuntimeConfig } from '@/config/runtime-config';
+import { getIndexerEndpoint } from '@/config/runtime-config';
 import { validateOrigin, addCorsHeaders } from '@/lib/cors';
 import { checkRateLimit, addRateLimitHeaders, rateLimitExceededResponse } from '@/lib/rate-limit';
 
 export async function GET(request: NextRequest) {
-  const config = getServerRuntimeConfig();
-  const indexerEndpoint = config.INDEXER_ENDPOINT;
+  const indexerEndpoint = getIndexerEndpoint();
 
   // Validate origin
   const validOrigin = validateOrigin(request);

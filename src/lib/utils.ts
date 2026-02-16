@@ -165,16 +165,13 @@ export const validateDustAddress = (address: string, networkId: NetworkId): bool
   }
 
   try {
-    // Parse and decode the address as a Dust address
-    const parsed = MidnightBech32m.parse(address.trim());
-    const dustAddress = parsed.decode(DustAddress, networkId);
-    // If we get here, it's a valid Dust address
+    const dustAddressParsed: DustAddress = MidnightBech32m.parse(address).decode(DustAddress, networkId);
     logger.debug('[Utils]', 'Valid Dust address', {
       address: address.trim(),
       networkId,
     });
 
-    return dustAddress !== null && dustAddress !== undefined;;
+    return dustAddressParsed !== null && dustAddressParsed !== undefined;
   } catch (error) {
     logger.debug('[Utils]', 'Invalid Dust address', {
       address: address.trim(),
@@ -191,5 +188,5 @@ export const validateDustAddress = (address: string, networkId: NetworkId): bool
  */
 export const getMidnightNetworkId = (): NetworkId => {
   const config = getRuntimeConfig();
-  return config.CARDANO_NET === 'Mainnet' ? 'mainnet' : 'preview';
+  return config.CARDANO_NET === 'Mainnet' ? 'mainnet' : config.CARDANO_NET === 'Preprod' ? 'preprod' : 'preview';
 };

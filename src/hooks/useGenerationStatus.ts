@@ -24,20 +24,18 @@ const DUST_GENERATION_STATUS_QUERY = `
 `;
 
 export function useGenerationStatus(rewardAddress: string | null): UseGenerationStatusReturn {
-  const { config } = useRuntimeConfig();
+  const { getIndexerEndpoint, isLoading: isConfigLoading } = useRuntimeConfig();
   const [data, setData] = useState<GenerationStatusData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0); // bump to refetch
 
+  const indexerEndpoint = getIndexerEndpoint();
+
   const url = useMemo(() => {
-    if (!rewardAddress) return null;
-    if (!config.INDEXER_ENDPOINT) {
-      logger.error('[Indexer:GenerationStatus]', 'INDEXER_ENDPOINT not configured');
-      return null;
-    }
-    return config.INDEXER_ENDPOINT;
-  }, [rewardAddress, config.INDEXER_ENDPOINT]);
+    if (!rewardAddress || isConfigLoading || !indexerEndpoint) return null;
+    return indexerEndpoint;
+  }, [rewardAddress, isConfigLoading, indexerEndpoint]);
 
   const refetch = useCallback(() => setNonce((n) => n + 1), []);
 

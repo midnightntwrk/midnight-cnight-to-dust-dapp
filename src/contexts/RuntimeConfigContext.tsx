@@ -31,6 +31,7 @@ interface RuntimeConfigContextValue {
   getBlockchainExplorerUrl: () => string;
   getCnightPolicyId: () => string;
   getCnightEncodedName: () => string;
+  getIndexerEndpoint: () => string;
   getCardanoScanUrl: (type: 'transaction' | 'address' | 'policy', id: string) => string;
 }
 
@@ -64,7 +65,7 @@ export function RuntimeConfigProvider({ children }: RuntimeConfigProviderProps) 
   // Derived values
   const currentNetwork = config.CARDANO_NET;
   const isMainnet = currentNetwork === 'Mainnet';
-  const isTestnet = ['Preview', 'Preprod', 'Emulator', 'Custom'].includes(currentNetwork);
+  const isTestnet = ['Preview', 'Preprod'].includes(currentNetwork);
   const isPreview = currentNetwork === 'Preview';
   const isPreprod = currentNetwork === 'Preprod';
 
@@ -117,6 +118,18 @@ export function RuntimeConfigProvider({ children }: RuntimeConfigProviderProps) 
     }
   };
 
+  const getIndexerEndpoint = (): string => {
+    switch (currentNetwork) {
+      case 'Mainnet':
+        return config.INDEXER_ENDPOINT_MAINNET;
+      case 'Preprod':
+        return config.INDEXER_ENDPOINT_PREPROD;
+      case 'Preview':
+      default:
+        return config.INDEXER_ENDPOINT_PREVIEW;
+    }
+  };
+
   const getCardanoScanUrl = (type: 'transaction' | 'address' | 'policy', id: string): string => {
     const baseUrl = getBlockchainExplorerUrl();
     const subPathMap: Record<'transaction' | 'address' | 'policy', string> = {
@@ -140,6 +153,7 @@ export function RuntimeConfigProvider({ children }: RuntimeConfigProviderProps) 
     getBlockchainExplorerUrl,
     getCnightPolicyId,
     getCnightEncodedName,
+    getIndexerEndpoint,
     getCardanoScanUrl,
   };
 

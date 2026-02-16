@@ -7,7 +7,7 @@ import { CardanoNetwork } from '@/config/runtime-config';
 import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 import { useGenerationStatus } from '@/hooks/useGenerationStatus';
 import { useRegistrationUtxo } from '@/hooks/useRegistrationUtxo';
-import { getTotalOfUnitInUTxOList, getDustAddressBytes, validateDustAddress, getMidnightNetworkId } from '@/lib/utils';
+import { getTotalOfUnitInUTxOList, getDustAddressBytes, validateDustAddress } from '@/lib/utils';
 import { Network, ProtocolParameters, UTxO } from '@lucid-evolution/lucid';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { createContext, ReactNode, useContext, useEffect, useRef, useState, useCallback } from 'react';
@@ -205,7 +205,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         throw new Error(`Must connect with a ${currentNetwork} Cardano Wallet`);
       }
       if (isTestnet && networkId !== NETWORK_TESTNET_ID) {
-        throw new Error(`Must connect with a ${currentNetwork} Testnet Cardano Wallet`);
+        throw new Error(`Must connect with a ${currentNetwork} Cardano Wallet`);
       }
 
       // Select the wallet in Lucid directly with the API
@@ -381,7 +381,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       // Convert Dust address from bech32m to bytes format (for registration)
       let coinPublicKey = null;
       if (dustAddress && typeof dustAddress === 'string') {
-        const networkId = getMidnightNetworkId();
+        const networkId = currentNetwork === 'Mainnet' ? 'mainnet' : currentNetwork.toLowerCase();
         coinPublicKey = getDustAddressBytes(dustAddress, networkId);
         logger.log('[Wallet]', '🔑 Converted Dust address to bytes:', coinPublicKey);
         logger.log('[Wallet]', '📋 Registration will use:', {
@@ -465,7 +465,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const setManualMidnightAddress = (address: string) => {
     // Validate that it's a valid Dust address first
-    const networkId = getMidnightNetworkId();
+    const networkId = currentNetwork === 'Mainnet' ? 'mainnet' : currentNetwork.toLowerCase();
     if (!validateDustAddress(address, networkId)) {
       logger.error('[Wallet]', 'Invalid Dust address format', { address, networkId });
       setMidnightState({
