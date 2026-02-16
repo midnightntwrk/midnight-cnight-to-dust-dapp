@@ -47,6 +47,7 @@ export default function ConnectMidnightCard({
       setIsValidAddress(true); // Empty is valid (not an error state)
     } else {
       const networkId = getMidnightNetworkId();
+      console.log('NETWORIK IDDD::', networkId);
       setIsValidAddress(validateDustAddress(value, networkId));
     }
   };

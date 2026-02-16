@@ -24,7 +24,9 @@ export interface RuntimeConfig {
   PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME: string;
   PREPROD_CNIGHT_CURRENCY_ENCODEDNAME: string;
   MAINNET_CNIGHT_CURRENCY_ENCODEDNAME: string;
-  INDEXER_ENDPOINT: string;
+  INDEXER_ENDPOINT_PREVIEW: string;
+  INDEXER_ENDPOINT_PREPROD: string;
+  INDEXER_ENDPOINT_MAINNET: string;
   REACT_SERVER_API_URL: string;
   REACT_SERVER_URL: string;
   SIMULATION_MODE: string;
@@ -45,7 +47,9 @@ const defaultConfig: RuntimeConfig = {
   PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME: '',
   PREPROD_CNIGHT_CURRENCY_ENCODEDNAME: '',
   MAINNET_CNIGHT_CURRENCY_ENCODEDNAME: '',
-  INDEXER_ENDPOINT: 'https://indexer.preview.midnight.network/api/v3/graphql',
+  INDEXER_ENDPOINT_PREVIEW: 'https://indexer.preview.midnight.network/api/v3/graphql',
+  INDEXER_ENDPOINT_PREPROD: 'https://indexer.preprod.midnight.network/api/v3/graphql',
+  INDEXER_ENDPOINT_MAINNET: 'https://indexer.midnight.network/api/v3/graphql',
   REACT_SERVER_API_URL: '',
   REACT_SERVER_URL: '',
   SIMULATION_MODE: 'false',
@@ -79,7 +83,9 @@ export function getServerRuntimeConfig(): RuntimeConfig {
       process.env.NEXT_PUBLIC_PREPROD_CNIGHT_CURRENCY_ENCODEDNAME ?? defaultConfig.PREPROD_CNIGHT_CURRENCY_ENCODEDNAME,
     MAINNET_CNIGHT_CURRENCY_ENCODEDNAME:
       process.env.NEXT_PUBLIC_MAINNET_CNIGHT_CURRENCY_ENCODEDNAME ?? defaultConfig.MAINNET_CNIGHT_CURRENCY_ENCODEDNAME,
-    INDEXER_ENDPOINT: process.env.NEXT_PUBLIC_INDEXER_ENDPOINT || defaultConfig.INDEXER_ENDPOINT,
+    INDEXER_ENDPOINT_PREVIEW: process.env.INDEXER_ENDPOINT_PREVIEW || defaultConfig.INDEXER_ENDPOINT_PREVIEW,
+    INDEXER_ENDPOINT_PREPROD: process.env.INDEXER_ENDPOINT_PREPROD || defaultConfig.INDEXER_ENDPOINT_PREPROD,
+    INDEXER_ENDPOINT_MAINNET: process.env.INDEXER_ENDPOINT_MAINNET || defaultConfig.INDEXER_ENDPOINT_MAINNET,
     REACT_SERVER_API_URL: process.env.NEXT_PUBLIC_REACT_SERVER_API_URL || defaultConfig.REACT_SERVER_API_URL,
     REACT_SERVER_URL: process.env.NEXT_PUBLIC_REACT_SERVER_URL || defaultConfig.REACT_SERVER_URL,
     SIMULATION_MODE: process.env.NEXT_PUBLIC_SIMULATION_MODE || defaultConfig.SIMULATION_MODE,
@@ -152,6 +158,22 @@ export function isRuntimeConfigLoaded(): boolean {
     return true; // Always available on server
   }
   return clientConfigCache !== null;
+}
+
+/**
+ * Get the indexer endpoint for the current network (server-side).
+ */
+export function getIndexerEndpoint(): string {
+  const config = getServerRuntimeConfig();
+  switch (config.CARDANO_NET) {
+    case 'Mainnet':
+      return config.INDEXER_ENDPOINT_MAINNET;
+    case 'Preprod':
+      return config.INDEXER_ENDPOINT_PREPROD;
+    case 'Preview':
+    default:
+      return config.INDEXER_ENDPOINT_PREVIEW;
+  }
 }
 
 // Export default config for build-time usage

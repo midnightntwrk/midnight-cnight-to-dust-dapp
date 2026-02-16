@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { Subgraph } from '@/lib/subgraph/query';
-import { getServerRuntimeConfig } from '@/config/runtime-config';
+import { getIndexerEndpoint } from '@/config/runtime-config';
 import { validateOrigin, addCorsHeaders } from '@/lib/cors';
 import { checkRateLimit, addRateLimitHeaders, rateLimitExceededResponse } from '@/lib/rate-limit';
 
@@ -15,8 +15,7 @@ const isValidRewardAddress = (address: string): boolean => {
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ key: string }> }) {
   const startTime = Date.now();
-  const config = getServerRuntimeConfig();
-  const INDEXER_ENDPOINT = config.INDEXER_ENDPOINT;
+  const INDEXER_ENDPOINT = getIndexerEndpoint();
 
   // Validate origin
   const validOrigin = validateOrigin(request);

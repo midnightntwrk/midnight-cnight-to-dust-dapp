@@ -1,5 +1,5 @@
 import * as Contracts from '@/config/contract_blueprint';
-import { getRuntimeConfig } from '@/config/runtime-config';
+import { getIndexerEndpoint, getRuntimeConfig } from '@/config/runtime-config';
 import { addressFromValidator, Script as BlazeScript, CredentialType, PolicyId, RewardAddress } from '@blaze-cardano/core';
 import { serialize } from '@blaze-cardano/data';
 import { Script as LucidScript } from '@lucid-evolution/lucid';
@@ -134,7 +134,7 @@ export function logContractAddresses(): void {
 
   // Indexer Configuration
   logger.log('[Startup]', '📊 INDEXER:');
-  logger.log('[Startup]', `   Endpoint: ${config.INDEXER_ENDPOINT || '(not configured)'}`);
+  logger.log('[Startup]', `   Endpoint: ${getIndexerEndpoint() || '(not configured)'}`);
 
   try {
     // DUST Generator (Mapping) Contract
