@@ -47,7 +47,7 @@ export default function WalletsModal({
               <ModalBody>
                 <div>
                   <p>No wallets detected.</p>
-                  <p>Please install a wallet like Nami, Eternl, or Lace first.</p>
+                  <p>Please install a CIP-30-compatible Cardano wallet firs</p>
                   <div className="flex flex-col gap-2">
                     <a href="https://namiwallet.io/" target="_blank" rel="noopener noreferrer">
                       Install Nami

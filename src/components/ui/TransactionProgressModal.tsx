@@ -31,7 +31,13 @@ export default function TransactionProgressModal({ isOpen, onOpenChange, labels 
   const { getCardanoScanUrl } = useRuntimeConfig();
 
   // Get transaction state from context
-  const { transactionState, transactionProgress: progress, txHash, transactionError: error, resetTransaction } = useTransaction();
+  const {
+    transactionState,
+    transactionProgress: progress,
+    txHash,
+    transactionError: error,
+    resetTransaction,
+  } = useTransaction();
 
   // Merge provided labels with defaults
   const finalLabels = { ...defaultLabels, ...labels };
@@ -88,7 +94,14 @@ export default function TransactionProgressModal({ isOpen, onOpenChange, labels 
   };
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} isDismissable={canClose} hideCloseButton={!canClose} size="xl" backdrop="blur">
+    <Modal
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      isDismissable={canClose}
+      hideCloseButton={!canClose}
+      size="xl"
+      backdrop="blur"
+    >
       <ModalContent>
         {() => (
           <>
@@ -106,13 +119,20 @@ export default function TransactionProgressModal({ isOpen, onOpenChange, labels 
               {txHash && transactionState === 'success' && (
                 <div className="mb-4 p-4 bg-green-500/20 border border-green-400 rounded-lg">
                   <h4 className="font-semibold text-green-200 mb-2">{finalLabels.success}</h4>
-                  {finalLabels.successDescription && <p className="text-green-300 text-sm mb-3">{finalLabels.successDescription}</p>}
+                  {finalLabels.successDescription && (
+                    <p className="text-green-300 text-sm mb-3">{finalLabels.successDescription}</p>
+                  )}
                   <div className="mb-3">
                     <span className="block mb-1 text-green-300 text-sm">Transaction Hash:</span>
                     <span className="font-mono text-green-200 text-xs break-all">{txHash}</span>
                   </div>
-                  <a href={getCardanoScanUrl('transaction', txHash)} target="_blank" rel="noopener noreferrer" className="text-green-400 hover:text-green-300 text-sm underline">
-                    View on CardanoScan →
+                  <a
+                    href={getCardanoScanUrl('transaction', txHash)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-green-400 hover:text-green-300 text-sm underline"
+                  >
+                    View on Block Explorer →
                   </a>
                 </div>
               )}
@@ -156,7 +176,7 @@ export default function TransactionProgressModal({ isOpen, onOpenChange, labels 
                         rel="noopener noreferrer"
                         className="text-yellow-400 hover:text-yellow-300 text-xs underline"
                       >
-                        View on CardanoScan →
+                        View on Block Explorer →
                       </a>
                     </div>
                   )}

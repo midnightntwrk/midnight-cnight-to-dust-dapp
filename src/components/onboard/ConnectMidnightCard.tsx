@@ -103,7 +103,7 @@ export default function ConnectMidnightCard({
                 {/* Manual Address Input */}
                 {onManualAddressSubmit && (
                   <div className="space-y-4">
-                    <p className="text-[#FFFFFF50] text-sm">Add a DUST address manually</p>
+                    <p className="text-[#FFFFFF50] text-sm">Enter a DUST address manually</p>
                     <div className="space-y-2">
                       <div className="flex gap-3">
                         <Input
@@ -128,7 +128,7 @@ export default function ConnectMidnightCard({
                         </Button>
                       </div>
                       {!isValidAddress && manualAddress.trim() && (
-                        <p className="text-red-400 text-xs ml-1">Invalid Midnight Dust address format</p>
+                        <p className="text-red-400 text-xs ml-1">Invalid Midnight DUST address format</p>
                       )}
                     </div>
                   </div>

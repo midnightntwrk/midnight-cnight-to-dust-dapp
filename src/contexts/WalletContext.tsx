@@ -19,7 +19,9 @@ import React, { createContext, ReactNode, useContext, useEffect, useRef, useStat
 async function initializeLucidWithBlockfrost(network: CardanoNetwork, apiServerUrl: string) {
   logger.log('[Network]', `initializeLucidWithBlockfrost for ${network}`);
   try {
-    const protocolParameters = protocolParametersForLucid[network as keyof typeof protocolParametersForLucid] as ProtocolParameters;
+    const protocolParameters = protocolParametersForLucid[
+      network as keyof typeof protocolParametersForLucid
+    ] as ProtocolParameters;
     const { Lucid, Blockfrost } = await import('@lucid-evolution/lucid');
 
     const lucid = await Lucid(new Blockfrost(apiServerUrl + '/api/blockfrost', 'xxxx'), network as Network, {
@@ -154,7 +156,12 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   // Generation status hook - queries the Midnight indexer using reward address
   // This runs in parallel with the Blockfrost-based registration UTXO check
-  const { data: generationStatus, isLoading: isCheckingRegistration, error: registrationError, refetch: refetchGenerationStatus } = useGenerationStatus(cardanoState.rewardAddress);
+  const {
+    data: generationStatus,
+    isLoading: isCheckingRegistration,
+    error: registrationError,
+    refetch: refetchGenerationStatus,
+  } = useGenerationStatus(cardanoState.rewardAddress);
 
   // Registration UTXO hook
   const {
@@ -170,7 +177,16 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     if (typeof window === 'undefined') return [];
 
     const wallets: SupportedWallet[] = [];
-    const supportedWallets: SupportedWallet[] = ['nami', 'eternl', 'lace', 'flint', 'typhoncip30', 'nufi', 'gero', 'ccvault'];
+    const supportedWallets: SupportedWallet[] = [
+      'nami',
+      'eternl',
+      'lace',
+      'flint',
+      'typhoncip30',
+      'nufi',
+      'gero',
+      'ccvault',
+    ];
 
     supportedWallets.forEach((wallet) => {
       if (window.cardano?.[wallet]) {
@@ -333,13 +349,16 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
       // Determine the Midnight network based on Cardano network
       const cardanoNetwork = currentNetwork.toLowerCase();
-      const midnightNetwork = cardanoNetwork === 'mainnet' ? 'mainnet' : cardanoNetwork === 'preprod' ? 'preprod' : 'preview';
+      const midnightNetwork =
+        cardanoNetwork === 'mainnet' ? 'mainnet' : cardanoNetwork === 'preprod' ? 'preprod' : 'preview';
 
       logger.log('[Wallet]', 'Connecting to Midnight network:', { cardanoNetwork, midnightNetwork });
 
       // Connect to Midnight wallet using the new API (v4+)
       if (!walletObj || typeof walletObj.connect !== 'function') {
-        throw new Error('Midnight wallet does not support the connect() method. Please ensure you are using a compatible wallet version.');
+        throw new Error(
+          'Midnight wallet does not support the connect() method. Please ensure you are using a compatible wallet version.'
+        );
       }
 
       const api = await walletObj.connect(midnightNetwork);
@@ -363,7 +382,9 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
       // Get Dust address from Midnight API (v4+) - this is what we use for registration
       if (!api || typeof api.getDustAddress !== 'function') {
-        throw new Error('Midnight API does not support getDustAddress(). Please ensure you are using a compatible wallet version.');
+        throw new Error(
+          'Midnight API does not support getDustAddress(). Please ensure you are using a compatible wallet version.'
+        );
       }
 
       logger.log('[Wallet]', 'Using Midnight API (v4+) - getDustAddress()');
@@ -467,7 +488,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     // Validate that it's a valid Dust address first
     const networkId = currentNetwork === 'Mainnet' ? 'mainnet' : currentNetwork.toLowerCase();
     if (!validateDustAddress(address, networkId)) {
-      logger.error('[Wallet]', 'Invalid Dust address format', { address, networkId });
+      logger.error('[Wallet]', 'Invalid DUST address format', { address, networkId });
       setMidnightState({
         isConnected: false,
         address: null,
@@ -476,7 +497,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         walletName: null,
         api: null,
         isLoading: false,
-        error: 'Invalid Midnight Dust address format',
+        error: 'Invalid Midnight DUST address format',
         dustAddress: null,
         dustBalance: null,
       });
@@ -487,7 +508,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const coinPublicKey = getDustAddressBytes(address, networkId);
 
     if (!coinPublicKey) {
-      logger.error('[Wallet]', 'Failed to convert Dust address to bytes');
+      logger.error('[Wallet]', 'Failed to convert DUST address to bytes');
       setMidnightState({
         isConnected: false,
         address: null,
@@ -496,7 +517,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         walletName: null,
         api: null,
         isLoading: false,
-        error: 'Failed to convert Dust address to bytes',
+        error: 'Failed to convert DUST address to bytes',
         dustAddress: null,
         dustBalance: null,
       });
@@ -617,7 +638,15 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         router.push('/');
       }
     }
-  }, [cardanoState.isConnected, midnightState, registrationUtxo, isLoadingRegistrationUtxo, isAutoReconnecting, pathname, router]);
+  }, [
+    cardanoState.isConnected,
+    midnightState,
+    registrationUtxo,
+    isLoadingRegistrationUtxo,
+    isAutoReconnecting,
+    pathname,
+    router,
+  ]);
 
   // Auto-redirect to dashboard if user is already registered
   // useEffect(() => {

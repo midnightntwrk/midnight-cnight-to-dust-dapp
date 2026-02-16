@@ -42,8 +42,8 @@ const IndexerSyncBanner = ({ isVisible }: IndexerSyncBannerProps) => {
           </div>
           <p className="text-amber-100/80 text-sm leading-relaxed">
             Your registration was successful and recorded on the Cardano blockchain. It may take up to{' '}
-            <span className="font-semibold text-amber-200">12 hours</span> to see the Dust generation start. Once
-            complete, your DUST generation details will appear below.
+            <span className="font-semibold text-amber-200">12 hours</span> for DUST generation to start on your Midnight
+            address. Once available, your DUST generation details will appear below.
           </p>
         </div>
       </div>

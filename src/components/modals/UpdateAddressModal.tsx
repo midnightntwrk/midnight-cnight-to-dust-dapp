@@ -46,7 +46,7 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
 
     if (!newCoinPublicKey) {
       showToast({
-        message: 'Failed to convert Dust address to bytes. Please check the address format.',
+        message: 'Failed to convert DUST address to bytes. Please check the address format.',
         type: 'error',
       });
       return;
@@ -103,11 +103,13 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
             <ModalHeader className="flex flex-col gap-1 text-white">
               <div className="flex items-center gap-2">
                 <Image src={CheckIcon} alt="success" width={20} height={20} />
-                <span className="text-lg font-medium">Address changed</span>
+                <span className="text-lg font-medium">DUST Address updsate</span>
               </div>
             </ModalHeader>
             <ModalBody className="pb-6">
-              <p className="text-gray-300 text-sm mb-4">This address will receive your generated DUST tokens.</p>
+              <p className="text-gray-300 text-sm mb-4">
+                DUST generation to the previous address will stop, and generation will start at the new address.
+              </p>
 
               <div className="bg-[#2a2a2a] p-3 rounded-lg border border-gray-600">
                 <p className="text-white text-sm font-mono break-all">{newAddress}</p>
@@ -170,7 +172,7 @@ export default function UpdateAddressModal({ isOpen, onOpenChange, onAddressUpda
                 maxRows={3}
                 isDisabled={transaction.isAnyTransactionRunning()}
                 isInvalid={!isValidAddress}
-                errorMessage={!isValidAddress && newAddress.trim() ? 'Invalid Midnight Dust address format' : ''}
+                errorMessage={!isValidAddress && newAddress.trim() ? 'Invalid Midnight DUST address format' : ''}
               />
             </div>
 

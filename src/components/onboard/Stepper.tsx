@@ -42,7 +42,7 @@ export default function Stepper({ currentStep, cardanoConnected, midnightConnect
     },
     {
       number: 3,
-      label: 'READY TO MATCH',
+      label: 'READY TO PAIR',
       status: getStepStatus(3),
     },
   ];
@@ -115,7 +115,10 @@ export default function Stepper({ currentStep, cardanoConnected, midnightConnect
                                     `}
                   />
                   <div className="w-2 h-2 mx-1">
-                    <svg viewBox="0 0 8 8" className={`w-2 h-2 ${step.status === 'completed' ? 'text-green-500' : 'text-gray-600'}`}>
+                    <svg
+                      viewBox="0 0 8 8"
+                      className={`w-2 h-2 ${step.status === 'completed' ? 'text-green-500' : 'text-gray-600'}`}
+                    >
                       <path d="M0,4 L8,4" stroke="currentColor" strokeWidth="1" />
                       <path d="M6,2 L8,4 L6,6" stroke="currentColor" strokeWidth="1" fill="none" />
                     </svg>
@@ -169,7 +172,10 @@ export default function Stepper({ currentStep, cardanoConnected, midnightConnect
                                     `}
                   />
                   <div className="w-2 h-2 my-1 rotate-90">
-                    <svg viewBox="0 0 8 8" className={`w-2 h-2 ${step.status === 'completed' ? 'text-green-500' : 'text-gray-600'}`}>
+                    <svg
+                      viewBox="0 0 8 8"
+                      className={`w-2 h-2 ${step.status === 'completed' ? 'text-green-500' : 'text-gray-600'}`}
+                    >
                       <path d="M0,4 L8,4" stroke="currentColor" strokeWidth="1" />
                       <path d="M6,2 L8,4 L6,6" stroke="currentColor" strokeWidth="1" fill="none" />
                     </svg>
