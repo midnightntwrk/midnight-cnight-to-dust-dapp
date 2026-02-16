@@ -61,7 +61,7 @@ const defaultConfig: RuntimeConfig = {
  */
 export function getServerRuntimeConfig(): RuntimeConfig {
   return {
-    CARDANO_NET: (process.env.NEXT_PUBLIC_CARDANO_NET as CardanoNetwork) || defaultConfig.CARDANO_NET,
+    CARDANO_NET: (process.env.CARDANO_NET as CardanoNetwork) || defaultConfig.CARDANO_NET,
     BLOCKFROST_URL_PREVIEW: process.env.NEXT_PUBLIC_BLOCKFROST_URL_PREVIEW || defaultConfig.BLOCKFROST_URL_PREVIEW,
     BLOCKFROST_URL_PREPROD: process.env.NEXT_PUBLIC_BLOCKFROST_URL_PREPROD || defaultConfig.BLOCKFROST_URL_PREPROD,
     BLOCKFROST_URL_MAINNET: process.env.NEXT_PUBLIC_BLOCKFROST_URL_MAINNET || defaultConfig.BLOCKFROST_URL_MAINNET,
