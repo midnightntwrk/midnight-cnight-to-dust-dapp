@@ -2,7 +2,7 @@
 import { logger } from '@/lib/logger';
 
 import React, { useState } from 'react';
-import { Button, Input, Link, Checkbox } from '@heroui/react';
+import { Link } from '@heroui/react';
 import Image from 'next/image';
 import MidnightLogo from '@/assets/icons/midnight-logo.svg';
 
@@ -35,19 +35,31 @@ export default function Footer() {
               <h3 className="text-white font-medium mb-4 text-sm uppercase tracking-wider">EXPLORE</h3>
               <div className="space-y-3">
                 <div>
-                  <Link href="https://midnight.network" target="_blank" className="text-gray-400 hover:text-white text-sm flex items-center gap-2">
+                  <Link
+                    href="https://midnight.network"
+                    target="_blank"
+                    className="text-gray-400 hover:text-white text-sm flex items-center gap-2"
+                  >
                     midnight.network
                     <span className="text-xs">↗</span>
                   </Link>
                 </div>
                 <div>
-                  <Link href="https://midnight.foundation" target="_blank" className="text-gray-400 hover:text-white text-sm flex items-center gap-2">
+                  <Link
+                    href="https://midnight.foundation"
+                    target="_blank"
+                    className="text-gray-400 hover:text-white text-sm flex items-center gap-2"
+                  >
                     midnight.foundation
                     <span className="text-xs">↗</span>
                   </Link>
                 </div>
                 <div>
-                  <Link href="https://docs.midnight.network" target="_blank" className="text-gray-400 hover:text-white text-sm flex items-center gap-2">
+                  <Link
+                    href="https://docs.midnight.network"
+                    target="_blank"
+                    className="text-gray-400 hover:text-white text-sm flex items-center gap-2"
+                  >
                     docs.midnight.network
                     <span className="text-xs">↗</span>
                   </Link>
@@ -101,26 +113,46 @@ export default function Footer() {
                 </Button>
               </div>
             </form>
-          </div>
-        </div> */}
+          </div>*/}
+        </div>
 
         {/* Social Media Links */}
         <div className="mb-12">
           <h3 className="text-white font-medium mb-4 text-sm uppercase tracking-wider">FOLLOW MIDNIGHT</h3>
           <div className="flex flex-wrap gap-4">
-            <Link href="#" className="text-gray-400 hover:text-white text-sm flex items-center gap-2">
+            <Link
+              href="https://x.com/MidnightNtwrk/highlights"
+              target="_blank"
+              className="text-gray-400 hover:text-white text-sm flex items-center gap-2"
+            >
               TWITTER
             </Link>
-            <Link href="#" className="text-gray-400 hover:text-white text-sm flex items-center gap-2">
+            <Link
+              href="https://discord.com/invite/midnightnetwork"
+              target="_blank"
+              className="text-gray-400 hover:text-white text-sm flex items-center gap-2"
+            >
               DISCORD
             </Link>
-            <Link href="#" className="text-gray-400 hover:text-white text-sm flex items-center gap-2">
+            <Link
+              href="https://t.me/Midnight_Network_Official"
+              target="_blank"
+              className="text-gray-400 hover:text-white text-sm flex items-center gap-2"
+            >
               TELEGRAM
             </Link>
-            <Link href="#" className="text-gray-400 hover:text-white text-sm flex items-center gap-2">
+            <Link
+              href="https://www.linkedin.com/showcase/midnight-ntwrk/"
+              target="_blank"
+              className="text-gray-400 hover:text-white text-sm flex items-center gap-2"
+            >
               LINKEDIN
             </Link>
-            <Link href="#" className="text-gray-400 hover:text-white text-sm flex items-center gap-2">
+            <Link
+              href="https://www.youtube.com/@midnight.network"
+              target="_blank"
+              className="text-gray-400 hover:text-white text-sm flex items-center gap-2"
+            >
               YOUTUBE
             </Link>
           </div>

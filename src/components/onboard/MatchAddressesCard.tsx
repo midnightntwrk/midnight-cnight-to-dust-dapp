@@ -74,14 +74,14 @@ export default function MatchAddressesCard({
         <CardBody className="p-6 md:p-8">
           {/* Header */}
           <div className="mb-8">
-            <h2 className="text-xl md:text-2xl font-bold text-white">Match addresses</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-white">Pair addresses</h2>
           </div>
 
           {/* Origin Address Cardano Section */}
           <div className="mb-8 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h3 className="text-white font-medium">Origin Address Cardano</h3>
+                <h3 className="text-white font-medium">Generating Address Cardano</h3>
                 <Tooltip
                   content="This Cardano address needs to hold ADA and NIGHT."
                   placement="top"
@@ -133,9 +133,9 @@ export default function MatchAddressesCard({
           <div className="mb-8 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h3 className="text-white font-medium">Destination Address Midnight</h3>
+                <h3 className="text-white font-medium">Recipient Address Midnight</h3>
                 <Tooltip
-                  content="This address will received the generated DUST."
+                  content="Midnight address where DUST will be generated."
                   placement="top"
                   classNames={{
                     content: 'bg-gray-800 text-white text-sm px-2 py-1',
@@ -188,12 +188,12 @@ export default function MatchAddressesCard({
             radius="md"
           >
             {isMatching
-              ? 'MATCHING...'
+              ? 'PAIRING...'
               : transaction.isCurrentTransaction('register') && transaction.transactionState === 'success'
                 ? 'REGISTRATION COMPLETED ✅'
                 : !hasEnoughBalance
                   ? `INSUFFICIENT BALANCE (Min. ${MIN_ADA_FOR_REGISTRATION} ADA)`
-                  : 'MATCH ADDRESSES'}
+                  : 'PAIR ADDRESSES'}
           </Button>
         </CardBody>
       </Card>

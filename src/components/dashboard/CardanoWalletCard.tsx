@@ -70,7 +70,7 @@ const CardanoWalletCard = () => {
         <Image src={CardanoBg} alt="cardano bg" width={100} height={100} />
       </div>
       <div className="flex flex-row gap-2 z-10 relative">
-        <span className="text-[18px] font-normal">Night Balance</span>
+        <span className="text-[18px] font-normal">NIGHT Balance</span>
         <Tooltip
           content="Your NIGHT token balance on Cardano"
           placement="top"
@@ -108,13 +108,13 @@ const CardanoWalletCard = () => {
         )}
       </div>
       <div className="flex flex-row gap-2 items-center z-10">
-        <Image src={NightBalanceIcon} alt="night balance" width={42} height={42} />
+        <Image src={NightBalanceIcon} alt="NIGHT balance" width={42} height={42} />
         <span className="text-[24px] font-bold">{getNightBalance()}</span>
         <span className="text-[24px]">NIGHT</span>
       </div>
       <div className="flex flex-col gap-2">
         <div className="flex flex-row gap-2 items-center z-10">
-          <span className="text-[14px] font-normal text-gray-400">Origin Address Cardano</span>
+          <span className="text-[14px] font-normal text-gray-400">Generating Address Cardano</span>
           <Tooltip
             content="Your Cardano wallet address where NIGHT is locked"
             placement="top"

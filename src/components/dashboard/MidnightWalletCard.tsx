@@ -138,9 +138,18 @@ const MidnightWalletCard = () => {
       });
 
       // Create the unregistration executor and execute it
-      const unregistrationExecutor = DustTransactionsUtils.createUnregistrationExecutor(cardano.lucid as LucidEvolution, dustPKHValue, registrationUtxo);
+      const unregistrationExecutor = DustTransactionsUtils.createUnregistrationExecutor(
+        cardano.lucid as LucidEvolution,
+        dustPKHValue,
+        registrationUtxo
+      );
 
-      const transactionState = await transaction.executeTransaction('unregister', unregistrationExecutor, {}, cardano.lucid as LucidEvolution);
+      const transactionState = await transaction.executeTransaction(
+        'unregister',
+        unregistrationExecutor,
+        {},
+        cardano.lucid as LucidEvolution
+      );
 
       // Only open success modal if transaction actually succeeded
       if (transactionState === 'success') {
@@ -195,7 +204,12 @@ const MidnightWalletCard = () => {
         registrationUtxo
       );
 
-      const transactionState = await transaction.executeTransaction('update', updateExecutor, {}, cardano.lucid as LucidEvolution);
+      const transactionState = await transaction.executeTransaction(
+        'update',
+        updateExecutor,
+        {},
+        cardano.lucid as LucidEvolution
+      );
 
       // Only open success modal if transaction actually succeeded
       if (transactionState === 'success') {
@@ -255,7 +269,9 @@ const MidnightWalletCard = () => {
       <div className="flex flex-row gap-2 z-10">
         <span className="text-[18px] font-normal">DUST Balance</span>
         <Tooltip
-          content={isWalletConnected ? 'We are fetching this data directly from your wallet' : 'We are fetching your generation capacity from the indexer'}
+          content={
+            isWalletConnected ? 'Fetching data directly from your wallet' : 'Fetching maximum DUST generation capacity'
+          }
           placement="top"
           classNames={{
             content: 'bg-gray-800 text-white text-sm px-2 py-1',
@@ -266,14 +282,18 @@ const MidnightWalletCard = () => {
       </div>
       <div className="flex flex-row gap-2 items-center z-10">
         <Image src={DustBalanceIcon} alt="dust balance" width={42} height={42} />
-        <span className={`text-[24px] font-bold ${!isWalletConnected && isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}>{getDustBalance()}</span>
+        <span
+          className={`text-[24px] font-bold ${!isWalletConnected && isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}
+        >
+          {getDustBalance()}
+        </span>
         <span className="text-[24px]">DUST</span>
       </div>
       <div className="flex flex-col gap-2">
         <div className="flex flex-row gap-2 items-center z-10">
-          <span className="text-[14px] font-normal text-gray-400">Destination Address Midnight</span>
+          <span className="text-[14px] font-normal text-gray-400">Recipient Address Midnight</span>
           <Tooltip
-            content="Your Midnight wallet address where DUST will be sent"
+            content="Midnight DUST address where DUST will be generated."
             placement="top"
             classNames={{
               content: 'bg-gray-800 text-white text-sm px-2 py-1',
@@ -285,7 +305,14 @@ const MidnightWalletCard = () => {
         <div className="flex flex-row gap-2 items-center z-10">
           <Image src={CheckIcon} alt="check" width={18} height={18} />
           <span>{handleFormatWalletAddress(getDustAddress())}</span>
-          <Image src={CopyIcon} alt="copy" width={18} height={18} className="cursor-pointer hover:opacity-70" onClick={handleCopyAddress} />
+          <Image
+            src={CopyIcon}
+            alt="copy"
+            width={18}
+            height={18}
+            className="cursor-pointer hover:opacity-70"
+            onClick={handleCopyAddress}
+          />
         </div>
       </div>
 
@@ -300,16 +327,16 @@ const MidnightWalletCard = () => {
               onPress={() => setIsUpdateModalOpen(true)}
               isLoading={isLoadingRegistrationUtxo}
               isDisabled={
-                // !isContractsLoaded ||
-                isLoadingRegistrationUtxo || !registrationUtxo || (!transaction.isCurrentTransaction('update') && transaction.isAnyTransactionRunning())
+                isLoadingRegistrationUtxo ||
+                !registrationUtxo ||
+                (!transaction.isCurrentTransaction('update') && transaction.isAnyTransactionRunning())
               }
             >
-              {
-                // !isContractsLoaded
-                //     ? 'DUST SMART CONTRACT NOT LOADED'
-                //     :
-                isLoadingRegistrationUtxo ? 'LOADING REGISTRATION UTXO...' : !registrationUtxo ? 'NO REGISTRATION FOUND' : 'CHANGE ADDRESS'
-              }
+              {isLoadingRegistrationUtxo
+                ? 'LOADING REGISTRATION UTXO...'
+                : !registrationUtxo
+                  ? 'NO REGISTRATION FOUND'
+                  : 'CHANGE ADDRESS'}
             </Button>
             <Button
               className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-700 w-full py-2 text-sm disabled:bg-gray-600 disabled:text-gray-400"
@@ -318,16 +345,16 @@ const MidnightWalletCard = () => {
               onPress={() => setIsStopModalOpen(true)}
               isLoading={isLoadingRegistrationUtxo}
               isDisabled={
-                // !isContractsLoaded ||
-                isLoadingRegistrationUtxo || !registrationUtxo || (transaction.isCurrentTransaction('unregister') && transaction.isAnyTransactionRunning())
+                isLoadingRegistrationUtxo ||
+                !registrationUtxo ||
+                (transaction.isCurrentTransaction('unregister') && transaction.isAnyTransactionRunning())
               }
             >
-              {
-                // !isContractsLoaded
-                //     ? 'DUST SMART CONTRACT NOT LOADED'
-                //     :
-                isLoadingRegistrationUtxo ? 'LOADING REGISTRATION UTXO...' : !registrationUtxo ? 'NO REGISTRATION FOUND' : 'STOP GENERATION'
-              }
+              {isLoadingRegistrationUtxo
+                ? 'LOADING REGISTRATION UTXO...'
+                : !registrationUtxo
+                  ? 'NO REGISTRATION FOUND'
+                  : 'STOP GENERATION'}
             </Button>
           </>
         ) : (
@@ -349,14 +376,32 @@ const MidnightWalletCard = () => {
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
       {/* Modals */}
-      <UpdateAddressModal isOpen={isUpdateModalOpen} onOpenChange={handleUpdateModalOpenChange} onAddressUpdate={handleUpdateAddress} />
+      <UpdateAddressModal
+        isOpen={isUpdateModalOpen}
+        onOpenChange={handleUpdateModalOpenChange}
+        onAddressUpdate={handleUpdateAddress}
+      />
 
-      <StopGenerationModal isOpen={isStopModalOpen} onOpenChange={handleStopModalOpenChange} dustAddress={midnight.address} onStopGeneration={handleUnregisterAddress} />
+      <StopGenerationModal
+        isOpen={isStopModalOpen}
+        onOpenChange={handleStopModalOpenChange}
+        dustAddress={midnight.address}
+        onStopGeneration={handleUnregisterAddress}
+      />
 
       {/* Midnight Wallet Selection Modal */}
-      <WalletsModal isOpen={isMidnightModalOpen} onOpenChange={setIsMidnightModalOpen} wallets={getAvailableMidnightWallets()} handleWalletSelect={handleMidnightWalletSelect} />
+      <WalletsModal
+        isOpen={isMidnightModalOpen}
+        onOpenChange={setIsMidnightModalOpen}
+        wallets={getAvailableMidnightWallets()}
+        handleWalletSelect={handleMidnightWalletSelect}
+      />
 
-      <LoadingBackdrop isVisible={isDisconnecting} title="Disconnecting wallet..." subtitle="Redirecting to home page" />
+      <LoadingBackdrop
+        isVisible={isDisconnecting}
+        title="Disconnecting wallet..."
+        subtitle="Redirecting to home page"
+      />
     </Card>
   );
 };

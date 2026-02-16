@@ -44,7 +44,7 @@ const GenerationRateCard = () => {
         <div className="flex flex-row gap-2 z-10">
           <span className="text-[18px] font-normal">Generation Rate</span>
           <Tooltip
-            content="Rate of DUST tokens generated per hour"
+            content="Rate of DUST generated per hour"
             placement="top"
             classNames={{
               content: 'bg-gray-800 text-white text-sm px-2 py-1',
@@ -57,14 +57,14 @@ const GenerationRateCard = () => {
           <span className={`text-[24px] font-bold ${isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}>
             {getGenerationRate()}
           </span>
-          <span className="text-[24px]">DUST/H</span>
+          <span className="text-[24px]">DUST/h</span>
         </div>
       </div>
       <div className="flex flex-col gap-1">
         <div className="flex flex-row gap-2 z-10">
           <span className="text-[18px] font-normal">CAP</span>
           <Tooltip
-            content="Maximum DUST you can generate (NIGHT Balance × 10)"
+            content="Maximum DUST you can generate (cap ratio: 5 DUST/NIGHT)"
             placement="top"
             classNames={{
               content: 'bg-gray-800 text-white text-sm px-2 py-1',

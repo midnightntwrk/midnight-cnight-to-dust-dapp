@@ -1,7 +1,16 @@
 'use client';
 
 import React from 'react';
-import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenuToggle, NavbarMenu, NavbarMenuItem, Link } from '@heroui/react';
+import {
+  Navbar,
+  NavbarBrand,
+  NavbarContent,
+  NavbarItem,
+  NavbarMenuToggle,
+  NavbarMenu,
+  NavbarMenuItem,
+  Link,
+} from '@heroui/react';
 import { useWalletContext } from '@/contexts/WalletContext';
 import Image from 'next/image';
 
@@ -32,15 +41,12 @@ export default function MidnightNavbar() {
         <NavbarMenuToggle aria-label={isMenuOpen ? 'Close menu' : 'Open menu'} className="sm:hidden" />
         <NavbarBrand className="flex items-center gap-4" as={Link} href="/">
           <Image src="/assets/midnight_logo.svg" alt="logo" width={50} height={50} />
-          <p className="font-bold text-inherit text-white">NIGHT to DUST</p>
+          <p className="font-bold text-inherit text-white">DUST Generator</p>
         </NavbarBrand>
       </NavbarContent>
 
-      <NavbarContent className="hidden sm:flex gap-4" justify="center">
-
-      </NavbarContent>
-      <NavbarContent justify="end" className="hidden sm:flex gap-4">
-      </NavbarContent>
+      <NavbarContent className="hidden sm:flex gap-4" justify="center"></NavbarContent>
+      <NavbarContent justify="end" className="hidden sm:flex gap-4"></NavbarContent>
       <NavbarMenu>
         {menuItems.map((item, index) => (
           <NavbarMenuItem key={`${item.name}-${index}`}>

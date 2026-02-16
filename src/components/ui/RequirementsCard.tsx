@@ -18,11 +18,11 @@ export default function RequirementsCard() {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="w-1 h-1 bg-white rounded-full flex-shrink-0 mt-2"></div>
-                <span className="text-gray-300 text-sm">CIP-30 compatible wallet</span>
+                <span className="text-gray-300 text-sm">CIP-30 compatible Cardano wallet</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-1 h-1 bg-white rounded-full flex-shrink-0 mt-2"></div>
-                <span className="text-gray-300 text-sm">NIGHT tokens in your wallet</span>
+                <span className="text-gray-300 text-sm">NIGHT tokens and enough ADA for a Cardano transaction</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-1 h-1 bg-white rounded-full flex-shrink-0 mt-2"></div>

@@ -15,12 +15,18 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center h-full gap-[40px]">
-      <LoadingBackdrop isVisible={showLoadingBackdrop} title="Checking registration status..." subtitle="Please wait while we verify your registration" />
+      <LoadingBackdrop
+        isVisible={showLoadingBackdrop}
+        title="Checking registration status..."
+        subtitle="Please wait while we verify your registration"
+      />
 
       <div className="flex-1" />
       <Image src="/assets/midnight_logo.svg" alt="logo" width={150} height={100} />
       <div className="flex flex-col items-center justify-center text-center px-4">
-        <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-tight">Generate DUST from your NIGHT</p>
+        <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-tight">
+          Register your Cardano-held NIGHT for DUST generation
+        </p>
       </div>
       <div className="w-full flex flex-col items-center justify-center gap-[20px]">
         <Onboard />
