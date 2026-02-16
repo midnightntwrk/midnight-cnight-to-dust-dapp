@@ -105,10 +105,6 @@ jobs:
           ls -la .next/ || echo "ERROR: .next directory not found!"
           ls -la .next/standalone/ || echo "ERROR: .next/standalone directory not found!"
 
-      - name: Generate release notes
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: node scripts/generate-release-notes.mjs --env Preview
-
       - name: Upload build artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f #v6.0.0
         with:
