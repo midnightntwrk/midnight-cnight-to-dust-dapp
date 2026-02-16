@@ -17,11 +17,54 @@ function safeCompare(a: string, b: string): boolean {
  */
 export function proxy(request: NextRequest) {
   const password = process.env.BASIC_AUTH_PASSWORD;
+  const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
+  const isDev = process.env.NODE_ENV === 'development';
 
+  const scriptSrc = isDev
+    ? "script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' 'unsafe-eval'"
+    : `script-src 'self' 'wasm-unsafe-eval' 'nonce-${nonce}'`;
+
+  const network = process.env.NEXT_PUBLIC_CARDANO_NET?.toLowerCase() || 'preview';
+  const indexerEndpointMap: Record<string, string> = {
+    mainnet: 'https://indexer.mainnet.midnight.network',
+    preview: 'https://indexer.preview.midnight.network',
+    preprod: 'https://indexer.preprod.midnight.network',
+  };
+  const indexerEndpoint = indexerEndpointMap[network] || indexerEndpointMap.preview;
+
+  const connectSrc = isDev
+    ? `connect-src 'self' ws://localhost:* http://localhost:* ${indexerEndpoint}`
+    : `connect-src 'self' ${indexerEndpoint}`;
+
+  const cspHeader = [
+    "default-src 'self'",
+    scriptSrc,
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: blob:",
+    "font-src 'self' https://fonts.gstatic.com",
+    connectSrc,
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "object-src 'none'",
+    'upgrade-insecure-requests',
+  ].join('; ');
+
+  /** Helper: build a NextResponse with CSP + nonce headers applied. */
+  const withCsp = (res: NextResponse): NextResponse => {
+    res.headers.set('Content-Security-Policy', cspHeader);
+    res.headers.set('x-nonce', nonce);
+    return res;
+  };
+
+  // No password set — skip auth, but still apply CSP
   if (!password) {
-    return NextResponse.next();
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-nonce', nonce);
+    return withCsp(NextResponse.next({ request: { headers: requestHeaders } }));
   }
 
+  // Basic Auth check
   const authHeader = request.headers.get('authorization');
 
   if (!authHeader?.startsWith('Basic ')) {
@@ -39,7 +82,9 @@ export function proxy(request: NextRequest) {
     const [, givenPassword] = decoded.split(':', 2);
 
     if (safeCompare(givenPassword ?? '', password)) {
-      return NextResponse.next();
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set('x-nonce', nonce);
+      return withCsp(NextResponse.next({ request: { headers: requestHeaders } }));
     }
   } catch (err) {
     logger.warn('[proxy] Malformed Basic Auth header:', err);
@@ -55,7 +100,5 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   // Protect all routes except static assets and health (for k8s probes)
-  matcher: [
-    '/((?!api/health|_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/((?!api/health|_next/static|_next/image|favicon.ico).*)'],
 };
