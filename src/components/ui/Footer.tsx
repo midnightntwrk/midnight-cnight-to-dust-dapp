@@ -57,7 +57,7 @@ export default function Footer() {
           </div>
 
           {/* Right Section - Email Signup */}
-          <div className="space-y-6">
+          {/* <div className="space-y-6">
             <div>
               <h3 className="text-white font-medium mb-2 text-sm uppercase tracking-wider">SIGN UP FOR UPDATES</h3>
             </div>
@@ -102,7 +102,7 @@ export default function Footer() {
               </div>
             </form>
           </div>
-        </div>
+        </div> */}
 
         {/* Social Media Links */}
         <div className="mb-12">
