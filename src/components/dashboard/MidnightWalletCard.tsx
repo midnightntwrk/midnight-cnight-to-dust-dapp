@@ -69,7 +69,7 @@ const MidnightWalletCard = () => {
     }
     // Otherwise, use indexer data
     if (isIndexerSynced && generationStatus?.currentCapacity) {
-      return generationStatus.currentCapacity;
+      return specksToTDust(generationStatus.currentCapacity);
     }
     if (isIndexerSyncing) {
       return '...';
