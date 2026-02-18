@@ -25,7 +25,7 @@ export function proxy(request: NextRequest) {
     ? "script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' 'unsafe-eval'"
     : `script-src 'self' 'wasm-unsafe-eval' 'nonce-${nonce}' 'sha256-${GTM_INLINE_SCRIPT_HASH}'`;
 
-  const network = process.env.NEXT_PUBLIC_CARDANO_NET?.toLowerCase() || 'preview';
+  const network = process.env.CARDANO_NET?.toLowerCase() || 'preview';
   const indexerEndpointMap: Record<string, string> = {
     mainnet: 'https://indexer.mainnet.midnight.network',
     preview: 'https://indexer.preview.midnight.network',

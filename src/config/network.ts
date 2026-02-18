@@ -8,7 +8,9 @@ import { protocolParametersForLucid } from './protocolParameters';
 // Validate environment variables at module load time (server-side only)
 // Skip validation during build time (Next.js build process)
 // During build, Next.js analyzes routes but env vars may not be set yet
-const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' || (process.env.NODE_ENV === 'production' && !process.env.NEXT_RUNTIME);
+const isBuildTime =
+  process.env.NEXT_PHASE === 'phase-production-build' ||
+  (process.env.NODE_ENV === 'production' && !process.env.NEXT_RUNTIME);
 
 if (typeof window === 'undefined' && !isBuildTime) {
   try {
@@ -66,7 +68,7 @@ const networkConfigs: Record<CardanoNetwork, NetworkConfig> = {
     BLOCKFROST_KEY: process.env.BLOCKFROST_KEY_PREPROD,
     CNIGHT_CURRENCY_POLICY_ID: process.env.NEXT_PUBLIC_PREPROD_CNIGHT_CURRENCY_POLICY_ID,
     CNIGHT_CURRENCY_ENCODEDNAME: process.env.NEXT_PUBLIC_PREPROD_CNIGHT_CURRENCY_ENCODEDNAME,
-  }
+  },
 };
 
 // Get current network from environment
@@ -74,7 +76,7 @@ const getCurrentNetwork = (): CardanoNetwork => {
   try {
     const network = CARDANO_NET as CardanoNetwork;
     if (!network || !networkConfigs[network]) {
-      throw new Error(`Invalid or missing NEXT_PUBLIC_CARDANO_NET: ${network}. Defaulting to Preview.`);
+      throw new Error(`Invalid or missing CARDANO_NET: ${network}. Defaulting to Preview.`);
     }
     return network;
   } catch (error) {
@@ -95,15 +97,21 @@ const getCurrentNetworkConfig = (): NetworkConfig => {
     }
 
     if (typeof window === 'undefined' && !config.BLOCKFROST_KEY) {
-      throw new Error(`Missing required environment variable: BLOCKFROST_KEY for network: ${network} in ${toJson(config)}`);
+      throw new Error(
+        `Missing required environment variable: BLOCKFROST_KEY for network: ${network} in ${toJson(config)}`
+      );
     }
 
     if (!config.CNIGHT_CURRENCY_POLICY_ID) {
-      throw new Error(`Missing required environment variable: CNIGHT_CURRENCY_POLICY_ID for network: ${network} in ${toJson(config)}`);
+      throw new Error(
+        `Missing required environment variable: CNIGHT_CURRENCY_POLICY_ID for network: ${network} in ${toJson(config)}`
+      );
     }
 
     if (config.CNIGHT_CURRENCY_ENCODEDNAME === undefined) {
-      throw new Error(`Missing required environment variable: CNIGHT_CURRENCY_ENCODEDNAME for network: ${network} in ${toJson(config)}`);
+      throw new Error(
+        `Missing required environment variable: CNIGHT_CURRENCY_ENCODEDNAME for network: ${network} in ${toJson(config)}`
+      );
     }
 
     return config;
@@ -130,7 +138,9 @@ const initializeLucidWithBlockfrostClientSide = async () => {
   logger.log('[Network]', `initializeLucidWithBlockfrostClientSide`);
   try {
     //-----------------
-    const protocolParameters = protocolParametersForLucid[CARDANO_NET! as keyof typeof protocolParametersForLucid] as ProtocolParameters;
+    const protocolParameters = protocolParametersForLucid[
+      CARDANO_NET! as keyof typeof protocolParametersForLucid
+    ] as ProtocolParameters;
     //-----------------
     // Dynamic import to avoid SSR issues
     const { Lucid, Blockfrost } = await import('@lucid-evolution/lucid');
@@ -150,7 +160,7 @@ const initializeLucidWithBlockfrostClientSide = async () => {
 //---------------------------------------------------
 
 // During build, provide a default value if not set
-export const CARDANO_NET = process.env.NEXT_PUBLIC_CARDANO_NET || 'Preview';
+export const CARDANO_NET = process.env.CARDANO_NET || 'Preview';
 
 export const LUCID_NETWORK_MAINNET_NAME = 'Mainnet';
 export const LUCID_NETWORK_PREVIEW_NAME = 'Preview';
@@ -172,7 +182,6 @@ export const isPreview = CARDANO_NET === LUCID_NETWORK_PREVIEW_NAME;
 export const isPreprod = CARDANO_NET === LUCID_NETWORK_PREPROD_NAME;
 export const isMainnet = CARDANO_NET === LUCID_NETWORK_MAINNET_NAME;
 
-
 //---------------------------------------------------
 // Export current network constants
 // During build time, use default values to avoid errors
@@ -181,7 +190,7 @@ let config: NetworkConfig;
 if (isBuildTime) {
   // During build, use Preview config directly without validation
   config = networkConfigs.Preview;
-  logger.info("Configuration picked up.")
+  logger.info('Configuration picked up.');
 } else {
   try {
     config = getCurrentNetworkConfig();
@@ -202,5 +211,13 @@ export const CNIGHT_CURRENCY_ENCODEDNAME = config.CNIGHT_CURRENCY_ENCODEDNAME!;
 export const INDEXER_ENDPOINT = process.env.INDEXER_ENDPOINT || process.env.NEXT_PUBLIC_INDEXER_ENDPOINT;
 //---------------------------------------------------
 // Export utility functions
-export { config as currentNetworkConfig, getCardanoScanUrl, getCurrentNetwork, getCurrentNetworkConfig, getLucidNetwork, initializeLucidWithBlockfrostClientSide, networkConfigs };
+export {
+  config as currentNetworkConfig,
+  getCardanoScanUrl,
+  getCurrentNetwork,
+  getCurrentNetworkConfig,
+  getLucidNetwork,
+  initializeLucidWithBlockfrostClientSide,
+  networkConfigs,
+};
 //---------------------------------------------------

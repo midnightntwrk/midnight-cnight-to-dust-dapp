@@ -6,7 +6,6 @@ import { Accordion, AccordionItem, Tooltip } from '@heroui/react';
 import Image from 'next/image';
 import { useState } from 'react';
 import CardanoWalletCard from './dashboard/CardanoWalletCard';
-import DustLifecycleChart from './dashboard/DustLifecycleChart';
 import GenerationRateCard from './dashboard/GenerationRateCard';
 import IndexerSyncBanner from './dashboard/IndexerSyncBanner';
 import MidnightWalletCard from './dashboard/MidnightWalletCard';
@@ -48,7 +47,11 @@ export default function Dashboard() {
   if (isAutoReconnecting) {
     return (
       <div className="max-w-6xl mx-auto p-6">
-        <LoadingBackdrop isVisible={true} title="Connecting to saved wallets..." subtitle="Please wait while we restore your wallet connections" />
+        <LoadingBackdrop
+          isVisible={true}
+          title="Connecting to saved wallets..."
+          subtitle="Please wait while we restore your wallet connections"
+        />
       </div>
     );
   }
@@ -56,7 +59,11 @@ export default function Dashboard() {
   if (isLoadingRegistrationUtxo) {
     return (
       <div className="max-w-6xl mx-auto p-6">
-        <LoadingBackdrop isVisible={true} title="Loading registration UTXO..." subtitle="Please wait while we load your registration UTXO" />
+        <LoadingBackdrop
+          isVisible={true}
+          title="Loading registration UTXO..."
+          subtitle="Please wait while we load your registration UTXO"
+        />
       </div>
     );
   }
@@ -126,47 +133,23 @@ export default function Dashboard() {
           >
             <RegistrationUtxoCard />
           </AccordionItem>
-
-          <AccordionItem
-            key="lifecycle"
-            aria-label="DUST Generation Lifecycle"
-            isDisabled={shouldDisableLifecycleChart}
-            title={
-              <div className="flex flex-row gap-2 items-center">
-                <span className="text-[18px] font-normal">DUST Generation Lifecycle</span>
-                <Tooltip
-                  content={
-                    isIndexerSyncing
-                      ? 'Chart will be available once indexer syncs'
-                      : dustBalance === 0
-                        ? 'Chart will be available once you start generating DUST'
-                        : 'Visual representation of your DUST generation progress over time'
-                  }
-                  placement="top"
-                  classNames={{
-                    content: 'bg-gray-800 text-white text-sm px-2 py-1',
-                  }}
-                >
-                  <Image src={InfoIcon} alt="info" width={24} height={24} className="cursor-pointer" />
-                </Tooltip>
-              </div>
-            }
-            classNames={{
-              base: 'bg-[#70707035]',
-              title: 'text-white',
-              trigger: 'py-4 px-6',
-              content: 'pb-6 px-6',
-            }}
-          >
-            <DustLifecycleChart />
-          </AccordionItem>
         </Accordion>
       </div>
 
       {/* Wallet Selection Modals */}
-      <WalletsModal isOpen={isCardanoModalOpen} onOpenChange={setIsCardanoModalOpen} wallets={getAvailableCardanoWallets()} handleWalletSelect={handleCardanoWalletSelect} />
+      <WalletsModal
+        isOpen={isCardanoModalOpen}
+        onOpenChange={setIsCardanoModalOpen}
+        wallets={getAvailableCardanoWallets()}
+        handleWalletSelect={handleCardanoWalletSelect}
+      />
 
-      <WalletsModal isOpen={isMidnightModalOpen} onOpenChange={setIsMidnightModalOpen} wallets={getAvailableMidnightWallets()} handleWalletSelect={handleMidnightWalletSelect} />
+      <WalletsModal
+        isOpen={isMidnightModalOpen}
+        onOpenChange={setIsMidnightModalOpen}
+        wallets={getAvailableMidnightWallets()}
+        handleWalletSelect={handleMidnightWalletSelect}
+      />
     </div>
   );
 }

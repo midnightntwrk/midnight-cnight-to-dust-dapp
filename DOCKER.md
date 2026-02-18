@@ -42,7 +42,7 @@ All environment variables are loaded from `.env` file. Copy `EXAMPLE.env` to `.e
 
 **Required:**
 
-- `NEXT_PUBLIC_CARDANO_NET` - Network: Mainnet, Preview, Preprod
+- `CARDANO_NET` - Network: Mainnet, Preview, Preprod
 - `BLOCKFROST_KEY_*` - Blockfrost API keys for each network
 - `NEXT_PUBLIC_*_CNIGHT_CURRENCY_POLICY_ID` - cNIGHT policy IDs
 
@@ -97,7 +97,7 @@ docker run -it --entrypoint /bin/sh protofire/midnight-cnight-to-dust-dapp:lates
 cat .env
 
 # Test with explicit variables
-docker run -e NEXT_PUBLIC_CARDANO_NET=Preview -p 3000:3000 protofire/midnight-cnight-to-dust-dapp:latest
+docker run -e CARDANO_NET=Preview -p 3000:3000 protofire/midnight-cnight-to-dust-dapp:latest
 ```
 
 ### Build fails
