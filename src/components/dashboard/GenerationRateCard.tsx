@@ -17,7 +17,7 @@ const GenerationRateCard = () => {
   const calculateCap = () => {
     if (!cardano.balanceNight) return '0';
     const balance = parseFloat(cardano.balanceNight);
-    const cap = Math.floor(balance * 10);
+    const cap = Math.floor(balance * 5);
     return formatNumber(cap);
   };
 

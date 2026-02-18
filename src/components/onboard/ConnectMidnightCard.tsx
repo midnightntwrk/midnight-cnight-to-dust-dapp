@@ -78,7 +78,9 @@ export default function ConnectMidnightCard({
               /* Disconnected State */
               <div className="space-y-6">
                 {/* Title */}
-                <h2 className="text-xl md:text-2xl font-bold text-white">Connect your Midnight Wallet</h2>
+                <h2 className="text-xl md:text-2xl font-bold text-white">
+                  Register your Cardano-held NIGHT for DUST generation
+                </h2>
 
                 {/* Connect Button */}
                 <Button

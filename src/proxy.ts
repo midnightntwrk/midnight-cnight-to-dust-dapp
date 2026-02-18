@@ -1,4 +1,4 @@
-import { timingSafeEqual } from 'crypto';
+import { randomBytes, timingSafeEqual } from 'crypto';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { logger } from '@/lib/logger';
@@ -17,12 +17,13 @@ function safeCompare(a: string, b: string): boolean {
  */
 export function proxy(request: NextRequest) {
   const password = process.env.BASIC_AUTH_PASSWORD;
-  const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
+  const GTM_INLINE_SCRIPT_HASH = 'zjP2BXYgSCCnXNMXI2IL1yRydoQdsGR/uCCr6kyKsD0=';
+  const nonce = randomBytes(16).toString('base64');
   const isDev = process.env.NODE_ENV === 'development';
 
   const scriptSrc = isDev
     ? "script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' 'unsafe-eval'"
-    : `script-src 'self' 'wasm-unsafe-eval' 'nonce-${nonce}'`;
+    : `script-src 'self' 'wasm-unsafe-eval' 'nonce-${nonce}' 'sha256-${GTM_INLINE_SCRIPT_HASH}'`;
 
   const network = process.env.NEXT_PUBLIC_CARDANO_NET?.toLowerCase() || 'preview';
   const indexerEndpointMap: Record<string, string> = {
