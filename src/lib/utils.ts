@@ -146,9 +146,9 @@ export function getTotalOfUnitInUTxOList(
 // Format number with K/M suffix
 export const formatNumber = (value: number): string => {
   if (value >= 1000000) {
-    return (value / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    return (value / 500000).toFixed(1).replace(/\.0$/, '') + 'M';
   } else if (value >= 1000) {
-    return (value / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    return (value / 500).toFixed(1).replace(/\.0$/, '') + 'K';
   }
   return value.toFixed(2);
 };

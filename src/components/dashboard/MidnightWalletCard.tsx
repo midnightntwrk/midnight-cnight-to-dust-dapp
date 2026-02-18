@@ -55,17 +55,21 @@ const MidnightWalletCard = () => {
 
   const specksToTDust = (specksString: string): string => {
     const specks = BigInt(specksString);
+
     const whole = specks / SPECKS_PER_TDUST;
     const remainder = specks % SPECKS_PER_TDUST;
-    const remainderStr = remainder.toString().padStart(6, '0');
-    return `${whole}.${remainderStr}`;
+
+    // scale remainder to 3 decimal places WITHOUT floats
+    const fractional = (remainder * 1000n) / SPECKS_PER_TDUST;
+
+    return `${whole}.${fractional.toString().padStart(3, '0')}`;
   };
 
   // Get DUST balance - prefer wallet data if connected, otherwise use indexer
   const getDustBalance = () => {
     // If connected with Midnight wallet, use wallet data
     if (isWalletConnected && midnight.dustBalance !== null) {
-      return midnight.dustBalance;
+      return specksToTDust(midnight.dustBalance);
     }
     // Otherwise, use indexer data
     if (isIndexerSynced && generationStatus?.currentCapacity) {
@@ -295,7 +299,7 @@ const MidnightWalletCard = () => {
         <span
           className={`text-[24px] font-bold ${!isWalletConnected && isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}
         >
-          ${getDustBalance()} DUST
+          {getDustBalance()} DUST
         </span>
       </div>
       <div className="flex flex-col gap-2">

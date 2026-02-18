@@ -37,7 +37,11 @@ function validateUrl(name: string, value: string): string | null {
 /**
  * Validates that a value is one of the allowed options
  */
-function validateEnum<T extends string>(name: string, value: string | undefined, allowedValues: readonly T[]): string | null {
+function validateEnum<T extends string>(
+  name: string,
+  value: string | undefined,
+  allowedValues: readonly T[]
+): string | null {
   if (!value) {
     return `Missing required environment variable: ${name}`;
   }
@@ -88,8 +92,8 @@ export function validateEnv(): ValidationResult {
   const errors: string[] = [];
 
   // Validate network selection
-  const cardanoNet = process.env.NEXT_PUBLIC_CARDANO_NET;
-  const networkError = validateEnum('NEXT_PUBLIC_CARDANO_NET', cardanoNet, ['Mainnet', 'Preview', 'Preprod', 'Emulator', 'Custom'] as const);
+  const cardanoNet = process.env.CARDANO_NET;
+  const networkError = validateEnum('CARDANO_NET', cardanoNet, ['Mainnet', 'Preview', 'Preprod'] as const);
   if (networkError) {
     errors.push(networkError);
     // If network is invalid, we can't continue with network-specific validation
@@ -116,7 +120,9 @@ export function validateEnv(): ValidationResult {
   if (serverApiUrl) {
     // Allow relative URLs (starting with /) or full URLs
     if (!serverApiUrl.startsWith('/') && !serverApiUrl.startsWith('http')) {
-      errors.push(`Invalid URL format for NEXT_PUBLIC_REACT_SERVER_API_URL: ${serverApiUrl}. Must be a full URL or start with /`);
+      errors.push(
+        `Invalid URL format for NEXT_PUBLIC_REACT_SERVER_API_URL: ${serverApiUrl}. Must be a full URL or start with /`
+      );
     }
   }
 
@@ -140,7 +146,7 @@ export function validateEnvOrThrow(): void {
       ...result.errors.map((error, index) => `  ${index + 1}. ${error}`),
       '',
       'Please check your .env.local file and ensure all required variables are set.',
-      `Current network: ${process.env.NEXT_PUBLIC_CARDANO_NET || 'NOT SET'}`,
+      `Current network: ${process.env.CARDANO_NET || 'NOT SET'}`,
     ].join('\n');
 
     throw new Error(errorMessage);

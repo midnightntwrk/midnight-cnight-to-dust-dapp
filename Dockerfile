@@ -19,7 +19,7 @@ WORKDIR /app
 # Build with default values - these are used as fallbacks
 # Runtime configuration is served via /api/runtime-config endpoint
 # Server-side code reads from process.env at runtime
-ENV NEXT_PUBLIC_CARDANO_NET=Preview \
+ENV CARDANO_NET=Preview \
     NEXT_PUBLIC_BLOCKFROST_URL_PREVIEW=https://cardano-preview.blockfrost.io/api/v0 \
     NEXT_PUBLIC_BLOCKFROST_URL_PREPROD=https://cardano-preprod.blockfrost.io/api/v0 \
     NEXT_PUBLIC_BLOCKFROST_URL_MAINNET=https://cardano-mainnet.blockfrost.io/api/v0 \

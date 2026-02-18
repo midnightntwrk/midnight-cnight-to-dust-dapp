@@ -62,7 +62,7 @@ Required environment variables in `.env.local`:
 
 ```bash
 # Network Selection
-NEXT_PUBLIC_CARDANO_NET="Preview"
+CARDANO_NET="Preview"
 
 # Blockfrost API Keys (server-side only)
 BLOCKFROST_KEY_MAINNET=""
@@ -89,7 +89,7 @@ docker run -p 3000:3000 --env-file .env.local midnight-dapp
 
 # Then to run with logs:
 docker run -p 3000:3000 -e LOG_LEVEL=debug --env-file .env.local midnight-dapp
- ```
+```
 
 ## Transaction Processes
 
