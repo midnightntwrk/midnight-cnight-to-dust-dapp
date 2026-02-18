@@ -9,6 +9,7 @@ import { ReactNode } from 'react';
 
 interface ClientWrapperProps {
   children: ReactNode;
+  nonce: string | undefined;
 }
 
 export default function ClientWrapper({ children }: ClientWrapperProps) {
