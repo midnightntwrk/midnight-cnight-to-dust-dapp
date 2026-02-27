@@ -20,6 +20,7 @@ import WalletsModal from '../wallet-connect/WalletsModal';
 import { SupportedMidnightWallet, SupportedWallet } from '@/contexts/WalletContext';
 import LoadingBackdrop from '../ui/LoadingBackdrop';
 import { useRouter } from 'next/navigation';
+import { specksToTDust } from '@/lib/specksToTDust';
 
 const MidnightWalletCard = () => {
   const { toasts, showToast, removeToast } = useToast();
@@ -50,20 +51,6 @@ const MidnightWalletCard = () => {
 
   // Check if user is connected with Midnight wallet (has wallet API access)
   const isWalletConnected = midnight.isConnected && midnight.walletName !== 'Manual' && midnight.api !== null;
-
-  const SPECKS_PER_TDUST = 1_000_000_000_000_000n; //1 tDUST = 10^15 SPECK
-
-  const specksToTDust = (specksString: string): string => {
-    const specks = BigInt(specksString);
-
-    const whole = specks / SPECKS_PER_TDUST;
-    const remainder = specks % SPECKS_PER_TDUST;
-
-    // scale remainder to 3 decimal places WITHOUT floats
-    const fractional = (remainder * 1000n) / SPECKS_PER_TDUST;
-
-    return `${whole}.${fractional.toString().padStart(3, '0')}`;
-  };
 
   // Get DUST balance - prefer wallet data if connected, otherwise use indexer
   const getDustBalance = () => {
