@@ -5,9 +5,12 @@ import IndexerSyncBanner from '../IndexerSyncBanner';
 
 // Mock heroui
 vi.mock('@heroui/react', () => ({
-  Card: ({ children, className }: { children: React.ReactNode; className?: string }) =>
-    React.createElement('div', { 'data-testid': 'card', className }, children),
-  Tooltip: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children),
+  Card: function MockCard({ children, className }: { children: React.ReactNode; className?: string }) {
+    return React.createElement('div', { 'data-testid': 'card', className }, children);
+  },
+  Tooltip: function MockTooltip({ children }: { children: React.ReactNode }) {
+    return React.createElement('div', null, children);
+  },
 }));
 
 describe('IndexerSyncBanner', () => {

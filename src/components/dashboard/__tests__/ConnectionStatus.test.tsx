@@ -5,10 +5,12 @@ import ConnectionStatus from '../ConnectionStatus';
 
 // Mock heroui
 vi.mock('@heroui/react', () => ({
-  Chip: ({ children }: { children: React.ReactNode }) =>
-    React.createElement('span', { 'data-testid': 'chip' }, children),
-  Progress: ({ value }: { value: number }) =>
-    React.createElement('div', { 'data-testid': 'progress', 'data-value': value }),
+  Chip: function MockChip({ children }: { children: React.ReactNode }) {
+    return React.createElement('span', { 'data-testid': 'chip' }, children);
+  },
+  Progress: function MockProgress({ value }: { value: number }) {
+    return React.createElement('div', { 'data-testid': 'progress', 'data-value': value });
+  },
 }));
 
 // Mock wallet context

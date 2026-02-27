@@ -5,7 +5,9 @@ import RegistrationUtxoCard from '../RegistrationUtxoCard';
 
 // Mock heroui
 vi.mock('@heroui/react', () => ({
-  Tooltip: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children),
+  Tooltip: function MockTooltip({ children }: { children: React.ReactNode }) {
+    return React.createElement('div', null, children);
+  },
 }));
 
 // Mock sub-components

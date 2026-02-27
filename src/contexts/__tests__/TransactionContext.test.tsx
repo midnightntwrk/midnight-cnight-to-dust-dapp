@@ -15,9 +15,10 @@ vi.mock('@/lib/logger', () => ({
   },
 }));
 
-const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <TransactionProvider>{children}</TransactionProvider>
-);
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return <TransactionProvider>{children}</TransactionProvider>;
+}
+const wrapper = Wrapper;
 
 describe('TransactionContext', () => {
   beforeEach(() => {

@@ -38,9 +38,10 @@ import { RuntimeConfigProvider, useRuntimeConfig, useRuntimeConfigWhenReady } fr
 
 const makeWrapper = (overrides?: Partial<RuntimeConfig>) => {
   currentConfig = { ...baseConfig, ...overrides };
-  return ({ children }: { children: React.ReactNode }) => (
-    <RuntimeConfigProvider>{children}</RuntimeConfigProvider>
-  );
+  function Wrapper({ children }: { children: React.ReactNode }) {
+    return <RuntimeConfigProvider>{children}</RuntimeConfigProvider>;
+  }
+  return Wrapper;
 };
 
 describe('RuntimeConfigContext', () => {
