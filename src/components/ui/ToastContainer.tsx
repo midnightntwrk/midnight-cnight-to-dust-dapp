@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from '@heroui/react';
+import { Card } from '@heroui/card';
 import { Toast } from '@/hooks/useToast';
 
 interface ToastContainerProps {

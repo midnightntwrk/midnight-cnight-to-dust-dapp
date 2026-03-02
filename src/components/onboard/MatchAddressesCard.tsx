@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Card, CardBody, Button, Tooltip } from '@heroui/react';
+import { Card, CardBody } from '@heroui/card';
+import { Button } from '@heroui/button';
+import { Tooltip } from '@heroui/tooltip';
 import Image from 'next/image';
 import CopyIcon from '@/assets/icons/copy.svg';
 import CheckIcon from '@/assets/icons/check.svg';

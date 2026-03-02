@@ -2,7 +2,8 @@
 
 import InfoIcon from '@/assets/icons/info.svg';
 import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/contexts/WalletContext';
-import { Accordion, AccordionItem, Tooltip } from '@heroui/react';
+import { Accordion, AccordionItem } from '@heroui/accordion';
+import { Tooltip } from '@heroui/tooltip';
 import Image from 'next/image';
 import { useState } from 'react';
 import CardanoWalletCard from './dashboard/CardanoWalletCard';

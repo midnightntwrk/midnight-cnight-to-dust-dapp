@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Accordion, AccordionItem } from '@heroui/react';
+import { Accordion, AccordionItem } from '@heroui/accordion';
 
 export default function Faqs() {
   const faqData = [

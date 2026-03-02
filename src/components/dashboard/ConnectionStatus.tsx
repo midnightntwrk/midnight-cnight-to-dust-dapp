@@ -1,5 +1,6 @@
 import { useWalletContext } from '@/contexts/WalletContext';
-import { Chip, Progress } from '@heroui/react';
+import { Chip } from '@heroui/chip';
+import { Progress } from '@heroui/progress';
 import React from 'react';
 
 const ConnectionStatus = () => {

@@ -9,8 +9,8 @@ import {
   NavbarMenuToggle,
   NavbarMenu,
   NavbarMenuItem,
-  Link,
-} from '@heroui/react';
+} from '@heroui/navbar';
+import { Link } from '@heroui/link';
 import { useWalletContext } from '@/contexts/WalletContext';
 import Image from 'next/image';
 

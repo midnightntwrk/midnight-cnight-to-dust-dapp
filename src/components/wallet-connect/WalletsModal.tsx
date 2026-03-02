@@ -1,5 +1,6 @@
 import { SupportedMidnightWallet, SupportedWallet } from '@/contexts/WalletContext';
-import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react';
+import { Button } from '@heroui/button';
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/modal';
 
 export default function WalletsModal({
   wallets,

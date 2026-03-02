@@ -3,7 +3,10 @@
 import CheckIcon from '@/assets/icons/check.svg';
 import InfoIcon from '@/assets/icons/info.svg';
 import MidnightLogo from '@/assets/midnight.svg';
-import { Button, Card, CardBody, Input, Tooltip } from '@heroui/react';
+import { Button } from '@heroui/button';
+import { Card, CardBody } from '@heroui/card';
+import { Input } from '@heroui/input';
+import { Tooltip } from '@heroui/tooltip';
 import Image from 'next/image';
 import { useState } from 'react';
 import { validateDustAddress, getMidnightNetworkId } from '@/lib/utils';

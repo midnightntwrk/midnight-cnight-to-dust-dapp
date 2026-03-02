@@ -1,7 +1,7 @@
 'use client';
 
 import { logContractAddresses } from '@/lib/contractUtils';
-import { HeroUIProvider } from '@heroui/react';
+import { HeroUIProvider } from '@heroui/system';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { useEffect, useRef } from 'react';
 import { RuntimeConfigProvider } from './RuntimeConfigContext';

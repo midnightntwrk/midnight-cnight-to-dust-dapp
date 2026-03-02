@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Progress, Button } from '@heroui/react';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/modal';
+import { Progress } from '@heroui/progress';
+import { Button } from '@heroui/button';
 import { useTransaction } from '@/contexts/TransactionContext';
 import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 import { TransactionLabels } from './TransactionProgress';

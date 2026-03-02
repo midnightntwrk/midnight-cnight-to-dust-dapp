@@ -1,4 +1,6 @@
-import { Card, Button, Tooltip } from '@heroui/react';
+import { Card } from '@heroui/card';
+import { Button } from '@heroui/button';
+import { Tooltip } from '@heroui/tooltip';
 import Image from 'next/image';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
