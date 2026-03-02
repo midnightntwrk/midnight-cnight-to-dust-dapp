@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Progress, Button } from '@heroui/react';
+import { Progress } from '@heroui/progress';
+import { Button } from '@heroui/button';
 import { useTransaction } from '@/contexts/TransactionContext';
 import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/contexts/WalletContext';
-import { Button } from '@heroui/react';
+import { Button } from '@heroui/button';
 import React, { useState } from 'react';
 import WalletsModal from './WalletsModal';
 

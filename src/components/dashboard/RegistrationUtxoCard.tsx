@@ -1,4 +1,4 @@
-import { Tooltip } from '@heroui/react';
+import { Tooltip } from '@heroui/tooltip';
 import Image from 'next/image';
 import React from 'react';
 import InfoIcon from '@/assets/icons/info.svg';

@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Modal, ModalContent, ModalHeader, ModalBody, Button, Tooltip } from '@heroui/react';
+import { Modal, ModalContent, ModalHeader, ModalBody } from '@heroui/modal';
+import { Button } from '@heroui/button';
+import { Tooltip } from '@heroui/tooltip';
 import InfoIcon from '@/assets/icons/info.svg';
 import CheckIcon from '@/assets/icons/check.svg';
 import CopyIcon from '@/assets/icons/copy.svg';

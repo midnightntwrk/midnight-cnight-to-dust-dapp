@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Card, CardBody } from '@heroui/react';
+import { Card, CardBody } from '@heroui/card';
 import Image from 'next/image';
 import WalletIcon from '@/assets/icons/wallet.svg';
 

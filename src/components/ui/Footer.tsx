@@ -2,7 +2,7 @@
 import { logger } from '@/lib/logger';
 
 import React, { useState } from 'react';
-import { Link } from '@heroui/react';
+import { Link } from '@heroui/link';
 import Image from 'next/image';
 import MidnightLogo from '@/assets/icons/midnight-logo.svg';
 

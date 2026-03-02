@@ -1,4 +1,5 @@
-import { Card, Tooltip } from '@heroui/react';
+import { Card } from '@heroui/card';
+import { Tooltip } from '@heroui/tooltip';
 import Image from 'next/image';
 import InfoIcon from '@/assets/icons/info.svg';
 
