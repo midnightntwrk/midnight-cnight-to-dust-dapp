@@ -49,6 +49,7 @@ export interface GenerationStatusData {
   nightBalance: string;
   generationRate: string;
   currentCapacity: string;
+  maxCapacity: string;
 }
 
 // Types
