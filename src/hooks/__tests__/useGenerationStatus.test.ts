@@ -53,6 +53,7 @@ describe('useGenerationStatus', () => {
             nightBalance: '1000',
             generationRate: '500000000000000',
             currentCapacity: '2000000000000000',
+            maxCapacity: '5000000000000000',
           },
         ],
       },

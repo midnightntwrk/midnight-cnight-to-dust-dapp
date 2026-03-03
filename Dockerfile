@@ -71,17 +71,8 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
 
-# Copy only the specific packages with WASM files needed at runtime
-# Midnight network packages
-COPY --from=deps /app/node_modules/@midnight-ntwrk/ledger-v7 ./node_modules/@midnight-ntwrk/ledger-v7
-COPY --from=deps /app/node_modules/@midnight-ntwrk/zswap ./node_modules/@midnight-ntwrk/zswap
-
-# Cardano packages with WASM
-COPY --from=deps /app/node_modules/@anastasia-labs ./node_modules/@anastasia-labs
-COPY --from=deps /app/node_modules/@blaze-cardano/uplc ./node_modules/@blaze-cardano/uplc
-COPY --from=deps /app/node_modules/@emurgo ./node_modules/@emurgo
-COPY --from=deps /app/node_modules/@lucid-evolution/core-utils ./node_modules/@lucid-evolution/core-utils
-COPY --from=deps /app/node_modules/@lucid-evolution/uplc ./node_modules/@lucid-evolution/uplc
+# Copy full node_modules for server external packages and their transitive dependencies
+COPY --from=deps /app/node_modules ./node_modules
 
 # Switch to non-root user
 USER nextjs
