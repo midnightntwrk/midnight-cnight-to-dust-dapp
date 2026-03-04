@@ -5,23 +5,15 @@ import React from 'react';
 import InfoIcon from '@/assets/icons/info.svg';
 import Image from 'next/image';
 import { useWalletContext } from '@/contexts/WalletContext';
-import { formatNumber } from '@/lib/utils';
 import { specksToTDust } from '@/lib/specksToTDust';
 
 const GenerationRateCard = () => {
-  const { generationStatus, cardano, registrationUtxo } = useWalletContext();
+  const { generationStatus, registrationUtxo } = useWalletContext();
 
   // Check if indexer has synced (registered on-chain but indexer shows false)
   const isIndexerSyncing = registrationUtxo && generationStatus?.registered === false;
   const isIndexerSynced = generationStatus?.registered === true; // this doesn't mean it's synced...
 
-  // Calculate CAP as Night Balance * 10 (fallback when indexer not synced)
-  const calculateCap = () => {
-    if (!cardano.balanceNight) return '0';
-    const balance = parseFloat(cardano.balanceNight);
-    const cap = Math.floor(balance * 5);
-    return formatNumber(cap);
-  };
   // Get generation rate - use indexer data if synced, otherwise show syncing state
   const getGenerationRate = () => {
     if (isIndexerSynced) {
@@ -32,12 +24,15 @@ const GenerationRateCard = () => {
     }
     return '0';
   };
-  // Get CAP - always calculate from wallet balance (NIGHT * 10)
+  // Get CAP from indexer maxCapacity (in specks, converted to DUST)
   const getCapValue = () => {
-    if (!cardano.balanceNight) {
+    if (isIndexerSynced && generationStatus?.maxCapacity) {
+      return specksToTDust(generationStatus.maxCapacity);
+    }
+    if (isIndexerSyncing) {
       return '...';
     }
-    return calculateCap();
+    return '0';
   };
   return (
     <Card className="bg-[#70707035] p-[24px] w-full lg:w-[20%] gap-4">
@@ -75,7 +70,7 @@ const GenerationRateCard = () => {
           </Tooltip>
         </div>
         <div className="flex flex-row gap-2 items-center z-10">
-          <span className={`text-[24px] font-bold ${!cardano.balanceNight ? 'text-amber-400 animate-pulse' : ''}`}>
+          <span className={`text-[24px] font-bold ${isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}>
             {getCapValue()}
           </span>
           <span className="text-[24px]">DUST</span>

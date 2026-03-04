@@ -13,16 +13,14 @@ vi.mock('@/lib/specksToTDust', () => ({
   specksToTDust: vi.fn((s: string) => `converted_${s}`),
 }));
 
-// Mock formatNumber
-vi.mock('@/lib/utils', () => ({
-  formatNumber: vi.fn((n: number) => `${n}`),
-}));
-
 // Mock heroui
-vi.mock('@heroui/react', () => ({
+vi.mock('@heroui/card', () => ({
   Card: function MockCard({ children, className }: { children: React.ReactNode; className?: string }) {
     return React.createElement('div', { 'data-testid': 'card', className }, children);
   },
+}));
+
+vi.mock('@heroui/tooltip', () => ({
   Tooltip: function MockTooltip({ children }: { children: React.ReactNode }) {
     return React.createElement('div', null, children);
   },
@@ -30,8 +28,12 @@ vi.mock('@heroui/react', () => ({
 
 // Mock WalletContext
 const mockWalletContext = {
-  generationStatus: null as null | { registered: boolean; generationRate: string; currentCapacity: string },
-  cardano: { balanceNight: null as string | null },
+  generationStatus: null as null | {
+    registered: boolean;
+    generationRate: string;
+    currentCapacity: string;
+    maxCapacity: string;
+  },
   registrationUtxo: null as null | object,
 };
 
@@ -42,21 +44,20 @@ vi.mock('@/contexts/WalletContext', () => ({
 describe('GenerationRateCard', () => {
   beforeEach(() => {
     mockWalletContext.generationStatus = null;
-    mockWalletContext.cardano = { balanceNight: null };
     mockWalletContext.registrationUtxo = null;
-  });
-
-  it('should render "0" for generation rate when no data and not syncing', () => {
-    render(React.createElement(GenerationRateCard));
-    expect(screen.getByText('0')).toBeDefined();
   });
 
   it('should render "..." when indexer is syncing', () => {
     mockWalletContext.registrationUtxo = { txHash: 'abc', outputIndex: 0 };
-    mockWalletContext.generationStatus = { registered: false, generationRate: '0', currentCapacity: '0' };
+    mockWalletContext.generationStatus = {
+      registered: false,
+      generationRate: '0',
+      currentCapacity: '0',
+      maxCapacity: '0',
+    };
 
     render(React.createElement(GenerationRateCard));
-    // Both generation rate and CAP show "..." when syncing/no balance
+    // Both generation rate and CAP show "..." when syncing
     const dots = screen.getAllByText('...');
     expect(dots.length).toBeGreaterThanOrEqual(1);
   });
@@ -66,25 +67,30 @@ describe('GenerationRateCard', () => {
       registered: true,
       generationRate: '500000000000000',
       currentCapacity: '2000000000000000',
+      maxCapacity: '5000000000000000',
     };
 
     render(React.createElement(GenerationRateCard));
     expect(screen.getByText('converted_500000000000000')).toBeDefined();
   });
 
-  it('should show "..." for CAP when no NIGHT balance', () => {
-    mockWalletContext.cardano = { balanceNight: null };
+  it('should render converted CAP from indexer maxCapacity when synced', () => {
+    mockWalletContext.generationStatus = {
+      registered: true,
+      generationRate: '500000000000000',
+      currentCapacity: '2000000000000000',
+      maxCapacity: '5000000000000000',
+    };
+
     render(React.createElement(GenerationRateCard));
-    // There should be "..." text for CAP
-    const dots = screen.getAllByText('...');
-    expect(dots.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('converted_5000000000000000')).toBeDefined();
   });
 
-  it('should calculate CAP as NIGHT balance * 5', () => {
-    mockWalletContext.cardano = { balanceNight: '100' };
+  it('should show "0" for CAP when not registered and not syncing', () => {
     render(React.createElement(GenerationRateCard));
-    // 100 * 5 = 500, formatNumber returns "500"
-    expect(screen.getByText('500')).toBeDefined();
+    // Both generation rate and CAP show "0"
+    const zeros = screen.getAllByText('0');
+    expect(zeros.length).toBeGreaterThanOrEqual(1);
   });
 
   it('should render Generation Rate and CAP labels', () => {
