@@ -5980,11 +5980,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*, @types/node@npm:>=20.0.0, @types/node@npm:^25":
-  version: 25.3.2
-  resolution: "@types/node@npm:25.3.2"
+  version: 25.3.3
+  resolution: "@types/node@npm:25.3.3"
   dependencies:
     undici-types: "npm:~7.18.0"
-  checksum: 10c0/946c8758668762d3c3b475281b420e580d0ce828c6847534a822b92be791e23e5879b53001ea928e5352dec8908082d854b8076b7bcfc69549e23ad54b1f98ab
+  checksum: 10c0/63e1d3816a9f4a706ab5d588d18cb98aa824b97748ff585537d327528e9438f58f69f45c7762e7cd3a1ab32c1619f551aabe8075d13172f9273cf10f6d83ab91
   languageName: node
   linkType: hard
 
@@ -8716,9 +8716,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"happy-dom@npm:^20.6.2":
-  version: 20.7.0
-  resolution: "happy-dom@npm:20.7.0"
+"happy-dom@npm:^20.8.3":
+  version: 20.8.3
+  resolution: "happy-dom@npm:20.8.3"
   dependencies:
     "@types/node": "npm:>=20.0.0"
     "@types/whatwg-mimetype": "npm:^3.0.2"
@@ -8726,7 +8726,7 @@ __metadata:
     entities: "npm:^7.0.1"
     whatwg-mimetype: "npm:^3.0.0"
     ws: "npm:^8.18.3"
-  checksum: 10c0/775161e92f2512883c67492539a5870cb3742c2a6ef0bd9feeb660f784b08cdc279519f98e1b6cfcfe222ce9e757753d2f16bffd4b6bceacdba1b2c62bca529f
+  checksum: 10c0/79a2b6d32e2f778b015511c9d2de7f7859954cbd27a30720736e60552a88e0345ffc8b2c5e77140c5f2f7fef95c563aea7ab0b2edba5d8c7edd5676b43ecef55
   languageName: node
   linkType: hard
 
@@ -10178,7 +10178,7 @@ __metadata:
     framer-motion: "npm:^12.35.0"
     graphql: "npm:^16.11.0"
     graphql-request: "npm:^7.2.0"
-    happy-dom: "npm:^20.6.2"
+    happy-dom: "npm:^20.8.3"
     libsodium-wrappers-sumo: "npm:^0.8.2"
     next: "npm:^16.1.6"
     next-themes: "npm:^0.4.6"
