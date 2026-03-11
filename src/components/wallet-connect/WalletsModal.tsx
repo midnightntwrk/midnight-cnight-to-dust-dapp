@@ -31,7 +31,7 @@ export default function WalletsModal({
         {(onClose) => (
           <>
             <ModalHeader className="flex flex-col gap-1">Connect your wallet</ModalHeader>
-            {wallets.length > 0 ? (
+            {wallets?.length > 0 ? (
               <ModalBody>
                 {wallets.map((wallet, index) => (
                   <Button
