@@ -318,7 +318,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     if (window.midnight && typeof window.midnight === 'object') {
       Object.keys(window.midnight).forEach((walletKey) => {
         if (window.midnight?.[walletKey]) {
-          wallets.push(walletKey);
+          wallets.push(window.midnight?.[walletKey].name);
         }
       });
     }
