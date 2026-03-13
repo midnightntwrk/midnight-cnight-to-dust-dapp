@@ -14,11 +14,6 @@ const ConnectMidnightWallet: React.FC = () => {
 
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
-  // Wallet display names and icons
-  const walletInfo: Record<string, { name: string; icon: string }> = {
-    mnLace: { name: 'Lace (Midnight)', icon: '🌙' },
-  };
-
   const handleWalletSelect = async (wallet: SupportedWallet | SupportedMidnightWallet) => {
     await connectMidnightWallet(wallet as SupportedMidnightWallet);
   };
@@ -29,7 +24,7 @@ const ConnectMidnightWallet: React.FC = () => {
         <div>
           <h3>✅ Midnight Wallet Connected</h3>
           <p>
-            <strong>Wallet:</strong> {walletName ? walletInfo[walletName]?.name || walletName : 'Unknown'}
+            <strong>Wallet:</strong> {walletName || 'Unknown'}
           </p>
           <p>
             <strong>Balance:</strong> {balance}

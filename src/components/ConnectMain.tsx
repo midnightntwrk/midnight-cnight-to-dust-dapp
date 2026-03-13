@@ -45,7 +45,7 @@ export default function ConnectMain() {
                   • Namespace: <code>window.midnight</code>
                 </li>
                 <li>
-                  • Identifier: <code>mnLace</code> (not <code>lace</code>)
+                  • Wallets discovered dynamically via UUID-keyed entries
                 </li>
                 <li>• State-based API with shield addresses</li>
                 <li>• Enhanced privacy features</li>
