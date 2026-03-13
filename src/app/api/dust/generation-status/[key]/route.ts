@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { Subgraph } from '@/lib/subgraph/query';
 import { getIndexerEndpoint } from '@/config/runtime-config';
-import { validateOrigin, addCorsHeaders } from '@/lib/cors';
+import { validateOrigin, addCorsHeaders, addSecurityHeaders } from '@/lib/cors';
 import { checkRateLimit, addRateLimitHeaders, rateLimitExceededResponse } from '@/lib/rate-limit';
 
 /**
@@ -33,10 +33,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return rateLimitExceededResponse(rateLimitResult);
   }
 
-  // Create response headers with CORS and rate limit info
+  // Create response headers with CORS, rate limit, and security info
   const responseHeaders = new Headers();
   addCorsHeaders(responseHeaders, validOrigin);
   addRateLimitHeaders(responseHeaders, rateLimitResult);
+  addSecurityHeaders(responseHeaders);
 
   if (!INDEXER_ENDPOINT) {
     return NextResponse.json({ error: 'Indexer endpoint not configured' }, { status: 500, headers: responseHeaders });
@@ -105,6 +106,7 @@ export async function OPTIONS(request: NextRequest) {
 
   const headers = new Headers();
   addCorsHeaders(headers, validOrigin);
+  addSecurityHeaders(headers);
 
   return new Response(null, { status: 204, headers });
 }
