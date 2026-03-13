@@ -39,7 +39,13 @@ const NETWORK_MAINNET_ID = 1;
 const NETWORK_TESTNET_ID = 0;
 
 export type SupportedWallet = 'nami' | 'eternl' | 'lace' | 'flint' | 'typhoncip30' | 'nufi' | 'gero' | 'ccvault';
-export type SupportedMidnightWallet = string;
+export type SupportedMidnightWallet = {
+  uuid: string;
+  name: string;
+  icon: string;
+  rdns: string;
+  apiVersion: string;
+};
 
 // Generation Status Types
 export interface GenerationStatusData {
@@ -315,18 +321,25 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const wallets: SupportedMidnightWallet[] = [];
 
     // Dynamically discover available Midnight wallets from window.midnight
+    // The API returns a UUID-keyed object: { [uuid]: { apiVersion, name, icon, rdns } }
     if (window.midnight && typeof window.midnight === 'object') {
-      Object.keys(window.midnight).forEach((walletKey) => {
-        if (window.midnight?.[walletKey]) {
-          wallets.push(window.midnight?.[walletKey].name);
-        }
+      Object.entries(window.midnight).forEach(([uuid, walletInfo]) => {
+        if (!walletInfo || !walletInfo.name) return;
+
+        wallets.push({
+          uuid,
+          name: walletInfo.name,
+          icon: walletInfo.icon || '',
+          rdns: walletInfo.rdns || walletInfo.name,
+          apiVersion: walletInfo.apiVersion || '',
+        });
       });
     }
 
     return wallets;
   };
 
-  const connectMidnightWallet = async (walletName: SupportedMidnightWallet) => {
+  const connectMidnightWallet = async (wallet: SupportedMidnightWallet) => {
     try {
       setMidnightState((prev) => ({ ...prev, isLoading: true, error: null }));
 
@@ -334,24 +347,38 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         throw new Error('Client-side only feature');
       }
 
-      if (!window.midnight?.[walletName]) {
-        throw new Error(`${walletName} Midnight wallet not found. Please install it first.`);
+      if (!window.midnight?.[wallet.uuid]) {
+        throw new Error(`${wallet.name} Midnight wallet not found. Please install it first.`);
       }
 
       // Debug: Log what's available on the midnight wallet object
-      const walletObj = window.midnight[walletName];
+      const walletObj = window.midnight?.[wallet.uuid];
       logger.log('[Wallet]', 'Midnight wallet object:', {
-        walletName,
+        walletName: wallet.name,
+        uuid: wallet.uuid,
+        rdns: wallet.rdns,
         type: typeof walletObj,
         keys: walletObj ? Object.keys(walletObj) : [],
         hasConnect: typeof walletObj?.connect === 'function',
         apiVersion: walletObj?.apiVersion,
       });
-
-      // Determine the Midnight network based on Cardano network
       const cardanoNetwork = currentNetwork.toLowerCase();
-      const midnightNetwork =
-        cardanoNetwork === 'mainnet' ? 'mainnet' : cardanoNetwork === 'preprod' ? 'preprod' : 'preview';
+      // Determine the Midnight network based on Cardano network
+      // The Midnight wallet extension uses 'mainnet' or 'testnet' (matching zswap NetworkId),
+      // not Cardano-specific names like 'preprod' or 'preview'
+      let midnightNetwork: string;
+      switch (cardanoNetwork) {
+        case 'mainnet':
+          midnightNetwork = 'mainnet';
+          break;
+        case 'preprod':
+          midnightNetwork = 'preprod';
+          break;
+        case 'preview':
+        default:
+          midnightNetwork = 'preview';
+          break;
+      }
 
       logger.log('[Wallet]', 'Connecting to Midnight network:', { cardanoNetwork, midnightNetwork });
 
@@ -362,7 +389,29 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         );
       }
 
-      const api = await walletObj.connect(midnightNetwork);
+      let api;
+      try {
+        api = await walletObj.connect(midnightNetwork);
+      } catch (connectError) {
+        // If connect fails (e.g. network mismatch), try other UUIDs with the same rdns
+        const otherEntries = Object.entries(window.midnight || {}).filter(
+          ([uuid, info]) => uuid !== wallet.uuid && info?.rdns === wallet.rdns
+        );
+        let connected = false;
+        for (const [altUuid, altWalletObj] of otherEntries) {
+          try {
+            logger.log('[Wallet]', `Retrying with alternate UUID: ${altUuid}`);
+            api = await altWalletObj.connect(midnightNetwork);
+            connected = true;
+            break;
+          } catch {
+            // Continue to next UUID
+          }
+        }
+        if (!connected) {
+          throw connectError;
+        }
+      }
 
       // Hint to the wallet which methods we'll be using
       if (api && typeof api.hintUsage === 'function') {
@@ -449,7 +498,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         address: dustAddress, // Use Dust address as the main address
         coinPublicKey,
         balance,
-        walletName,
+        walletName: wallet.name,
         api,
         isLoading: false,
         error: null,
@@ -457,8 +506,8 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         dustBalance,
       });
 
-      // Store connection in localStorage
-      localStorage.setItem('connectedMidnightWallet', walletName);
+      // Store rdns in localStorage (stable across sessions, unlike ephemeral UUIDs)
+      localStorage.setItem('connectedMidnightWallet', wallet.rdns);
     } catch (error) {
       logger.error('[Wallet]', 'Failed to connect Midnight wallet:', error);
       setMidnightState((prev) => ({
@@ -586,10 +635,23 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         await connectCardanoWallet(savedCardanoWallet);
       }
 
-      // Auto-reconnect Midnight wallet
-      const savedMidnightWallet = localStorage.getItem('connectedMidnightWallet') as SupportedMidnightWallet;
-      if (savedMidnightWallet && window.midnight?.[savedMidnightWallet] && isMountedRef.current) {
-        await connectMidnightWallet(savedMidnightWallet);
+      // Auto-reconnect Midnight wallet by rdns
+      const savedMidnightRdns = localStorage.getItem('connectedMidnightWallet');
+      if (savedMidnightRdns && window.midnight && isMountedRef.current) {
+        // Find a wallet entry matching the saved rdns
+        const entry = Object.entries(window.midnight).find(
+          ([, info]) => info && (info.rdns === savedMidnightRdns || info.name === savedMidnightRdns)
+        );
+        if (entry) {
+          const [uuid, info] = entry;
+          await connectMidnightWallet({
+            uuid,
+            name: info.name,
+            icon: info.icon || '',
+            rdns: info.rdns || info.name,
+            apiVersion: info.apiVersion || '',
+          });
+        }
       }
 
       if (isMountedRef.current) {

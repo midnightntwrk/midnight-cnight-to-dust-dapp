@@ -45,14 +45,15 @@ beforeAll(() => {
     },
   };
 
-  // Mock Midnight wallet API
+  // Mock Midnight wallet API (UUID-keyed object with wallet metadata)
   // @ts-expect-error - Mocking browser globals
   global.window.midnight = {
-    mnLace: {
-      enable: vi.fn(),
-      isEnabled: vi.fn(),
-      apiVersion: '1.0.0',
-      name: 'Midnight Lace',
+    'c389fe2c-18c7-4537-bac4-93b17c8218cc': {
+      apiVersion: '4.0.1',
+      name: 'lace',
+      icon: '',
+      rdns: 'io.lace.wallet',
+      connect: vi.fn(),
     },
   };
 });
