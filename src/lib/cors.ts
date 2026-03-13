@@ -40,6 +40,18 @@ export const addCorsHeaders = (headers: Headers, origin: string): void => {
 };
 
 /**
+ * Add standard security headers to API responses.
+ * Mirrors the headers applied by the proxy for page routes.
+ */
+export const addSecurityHeaders = (headers: Headers): void => {
+  headers.set('X-Content-Type-Options', 'nosniff');
+  headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), browsing-topics=()');
+  headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+};
+
+/**
  * Validate Content-Type header for POST/PUT requests
  */
 export const validateContentType = (request: NextRequest): boolean => {

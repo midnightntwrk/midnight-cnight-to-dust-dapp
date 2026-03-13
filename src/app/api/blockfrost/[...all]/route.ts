@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { logger } from '@/lib/logger';
 import { getServerRuntimeConfig } from '@/config/runtime-config';
 import { NETWORKS } from '@/lib/contractUtils';
+import { addSecurityHeaders } from '@/lib/cors';
 
 // OPTIMIZATION: In-memory cache for Blockfrost API responses
 // This reduces duplicate API calls by caching responses for a short period
@@ -153,6 +154,7 @@ async function handleRequest(request: NextRequest) {
   if (!validateOrigin(request)) {
     const headers = new Headers();
     addCorsHeaders(headers, origin);
+    addSecurityHeaders(headers);
 
     return Response.json({ error: 'Forbidden - Invalid origin' }, { status: 403, headers });
   }
@@ -219,8 +221,9 @@ async function handleRequest(request: NextRequest) {
         responseHeaders.set('X-Cache', 'HIT');
         responseHeaders.set('X-Cache-Age', `${Math.floor((now - (cachedEntry.expiresAt - CACHE_TTL_MS)) / 1000)}s`);
 
-        // Add CORS headers
+        // Add CORS and security headers
         addCorsHeaders(responseHeaders, origin);
+        addSecurityHeaders(responseHeaders);
 
         return new Response(cachedEntry.responseBody, {
           status: cachedEntry.status,
@@ -272,8 +275,9 @@ async function handleRequest(request: NextRequest) {
     // Add cache status header
     responseHeaders.set('X-Cache', isGetRequest ? 'MISS' : 'BYPASS');
 
-    // Add CORS headers
+    // Add CORS and security headers
     addCorsHeaders(responseHeaders, origin);
+    addSecurityHeaders(responseHeaders);
 
     // CACHE OPTIMIZATION: Store successful GET responses in cache
     if (isGetRequest && fetchResponse.ok) {
@@ -332,9 +336,10 @@ async function handleRequest(request: NextRequest) {
     // In production, return generic error message to prevent information leakage
     const errorMessage = isDevelopment && error instanceof Error ? error.message : 'An error occurred while processing your request. Please try again later.';
 
-    // Add CORS headers to error response
+    // Add CORS and security headers to error response
     const errorHeaders = new Headers();
     addCorsHeaders(errorHeaders, origin);
+    addSecurityHeaders(errorHeaders);
 
     return Response.json(
       {

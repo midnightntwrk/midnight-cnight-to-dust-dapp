@@ -54,7 +54,6 @@ export function proxy(request: NextRequest) {
   /** Helper: build a NextResponse with security headers applied. */
   const withSecurityHeaders = (res: NextResponse): NextResponse => {
     res.headers.set('Content-Security-Policy', cspHeader);
-    res.headers.set('x-nonce', nonce);
     res.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
     res.headers.set('X-Content-Type-Options', 'nosniff');
     res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
