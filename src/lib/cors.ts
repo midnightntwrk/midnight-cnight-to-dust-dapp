@@ -49,6 +49,8 @@ export const addSecurityHeaders = (headers: Headers): void => {
   headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), browsing-topics=()');
   headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+  headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
+  headers.set('Cross-Origin-Resource-Policy', 'same-origin');
 };
 
 /**
