@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { addSecurityHeaders } from '@/lib/cors';
 import { logger } from '@/lib/logger';
 import { getServerRuntimeConfig } from '@/config/runtime-config';
 import { NETWORKS } from '@/lib/contractUtils';
@@ -50,7 +51,10 @@ export async function GET() {
 
   const httpStatus = response.status === 'ok' ? 200 : 503;
 
-  return NextResponse.json(response, { status: httpStatus });
+  const responseHeaders = new Headers();
+  addSecurityHeaders(responseHeaders);
+
+  return NextResponse.json(response, { status: httpStatus, headers: responseHeaders });
 }
 
 async function checkBlockfrost(url: string | undefined, key: string | undefined): Promise<DependencyStatus> {

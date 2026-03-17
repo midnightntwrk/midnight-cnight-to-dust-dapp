@@ -2,7 +2,7 @@ import { Subgraph } from '@/lib/subgraph/query';
 import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { getIndexerEndpoint } from '@/config/runtime-config';
-import { validateOrigin, addCorsHeaders } from '@/lib/cors';
+import { validateOrigin, addCorsHeaders, addSecurityHeaders } from '@/lib/cors';
 import { checkRateLimit, addRateLimitHeaders, rateLimitExceededResponse } from '@/lib/rate-limit';
 
 export async function GET(request: NextRequest) {
@@ -24,10 +24,11 @@ export async function GET(request: NextRequest) {
     return rateLimitExceededResponse(rateLimitResult);
   }
 
-  // Create response headers with CORS and rate limit info
+  // Create response headers with CORS, rate limit, and security info
   const responseHeaders = new Headers();
   addCorsHeaders(responseHeaders, validOrigin);
   addRateLimitHeaders(responseHeaders, rateLimitResult);
+  addSecurityHeaders(responseHeaders);
 
   if (!indexerEndpoint) {
     logger.error('[API:GenerationStatus]', 'Indexer endpoint not configured');
@@ -73,6 +74,7 @@ export async function OPTIONS(request: NextRequest) {
 
   const headers = new Headers();
   addCorsHeaders(headers, validOrigin);
+  addSecurityHeaders(headers);
 
   return new Response(null, { status: 204, headers });
 }
@@ -83,6 +85,7 @@ export async function POST(request: NextRequest) {
   if (validOrigin) {
     addCorsHeaders(responseHeaders, validOrigin);
   }
+  addSecurityHeaders(responseHeaders);
 
   return NextResponse.json(
     { error: 'Method not allowed' },

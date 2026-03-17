@@ -8,6 +8,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { addSecurityHeaders } from '@/lib/cors';
 import { getServerRuntimeConfig } from '@/config/runtime-config';
 
 export const dynamic = 'force-dynamic';
@@ -16,10 +17,11 @@ export async function GET() {
   // Read environment variables at runtime (not build time)
   const config = getServerRuntimeConfig();
 
-  return NextResponse.json(config, {
-    headers: {
-      // Cache for 5 minutes - config doesn't change often
-      'Cache-Control': 'public, max-age=300, s-maxage=300',
-    },
+  const headers = new Headers({
+    // Cache for 5 minutes - config doesn't change often
+    'Cache-Control': 'public, max-age=300, s-maxage=300',
   });
+  addSecurityHeaders(headers);
+
+  return NextResponse.json(config, { headers });
 }
