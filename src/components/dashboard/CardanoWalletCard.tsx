@@ -10,6 +10,7 @@ import CheckIcon from '@/assets/icons/check.svg';
 import CardanoBg from '@/assets/cardano.svg';
 import NightBalanceIcon from '@/assets/icons/NIGHT.svg';
 import { useWalletContext } from '@/contexts/WalletContext';
+import { starsToNight } from '@/lib/specksToTDust';
 import LoadingBackdrop from '../ui/LoadingBackdrop';
 import ToastContainer from '../ui/ToastContainer';
 import { useToast } from '@/hooks/useToast';
@@ -26,9 +27,10 @@ const CardanoWalletCard = () => {
   const isIndexerSyncing = registrationUtxo && generationStatus?.registered === false;
   const isIndexerSynced = generationStatus?.registered === true;
 
-  // Get NIGHT balance from wallet
+  // Get NIGHT balance from wallet (value is in stars, convert to NIGHT)
   const getNightBalance = () => {
-    return cardano.balanceNight || '0';
+    if (!cardano.balanceNight) return '0';
+    return starsToNight(cardano.balanceNight);
   };
 
   const handleFormatWalletAddress = (address: string) => {
