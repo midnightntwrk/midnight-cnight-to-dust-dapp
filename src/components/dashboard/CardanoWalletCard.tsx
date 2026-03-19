@@ -10,7 +10,7 @@ import CheckIcon from '@/assets/icons/check.svg';
 import CardanoBg from '@/assets/cardano.svg';
 import NightBalanceIcon from '@/assets/icons/NIGHT.svg';
 import { useWalletContext } from '@/contexts/WalletContext';
-import { starsToNight } from '@/lib/specksToTDust';
+import { starsToNight, starsToNightFull } from '@/lib/specksToTDust';
 import LoadingBackdrop from '../ui/LoadingBackdrop';
 import ToastContainer from '../ui/ToastContainer';
 import { useToast } from '@/hooks/useToast';
@@ -31,6 +31,11 @@ const CardanoWalletCard = () => {
   const getNightBalance = () => {
     if (!cardano.balanceNight) return '0';
     return starsToNight(cardano.balanceNight);
+  };
+
+  const getNightBalanceFull = () => {
+    if (!cardano.balanceNight) return null;
+    return starsToNightFull(cardano.balanceNight);
   };
 
   const handleFormatWalletAddress = (address: string) => {
@@ -113,7 +118,15 @@ const CardanoWalletCard = () => {
       </div>
       <div className="flex flex-row gap-2 items-center z-10">
         <Image src={NightBalanceIcon} alt="NIGHT balance" width={42} height={42} />
-        <span className="text-[24px] font-bold">{getNightBalance()}</span>
+        <Tooltip
+          content={`${getNightBalanceFull() ?? getNightBalance()} NIGHT`}
+          placement="top"
+          classNames={{
+            content: 'bg-gray-800 text-white text-sm px-2 py-1',
+          }}
+        >
+          <span className="text-[24px] font-bold cursor-help">{getNightBalance()}</span>
+        </Tooltip>
         <span className="text-[24px]">NIGHT</span>
       </div>
       <div className="flex flex-col gap-2">
