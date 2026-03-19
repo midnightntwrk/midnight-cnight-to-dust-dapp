@@ -16,6 +16,11 @@ vi.mock('@/lib/specksToTDust', () => ({
     const whole = stars / 1_000_000n;
     return whole.toString();
   }),
+  starsToNightFull: vi.fn((s: string) => {
+    const stars = BigInt(s);
+    const whole = stars / 1_000_000n;
+    return whole.toString();
+  }),
 }));
 
 // Mock heroui

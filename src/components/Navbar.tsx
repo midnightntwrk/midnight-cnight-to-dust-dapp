@@ -12,11 +12,13 @@ import {
 } from '@heroui/navbar';
 import { Link } from '@heroui/link';
 import { useWalletContext } from '@/contexts/WalletContext';
+import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 import Image from 'next/image';
 
 export default function MidnightNavbar() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const { cardano, midnight } = useWalletContext();
+  const { currentNetwork, isMainnet } = useRuntimeConfig();
 
   const menuItems = [
     { name: 'Home', href: '/' },
@@ -41,7 +43,9 @@ export default function MidnightNavbar() {
         <NavbarMenuToggle aria-label={isMenuOpen ? 'Close menu' : 'Open menu'} className="sm:hidden" />
         <NavbarBrand className="flex items-center gap-4" as={Link} href="/">
           <Image src="/assets/midnight_logo.svg" alt="logo" width={50} height={50} />
-          <p className="font-bold text-inherit text-white">DUST Generator</p>
+          <p className="font-bold text-inherit text-white">
+            DUST Generator{!isMainnet && <span className="text-xs font-normal text-gray-400 ml-2">{currentNetwork}</span>}
+          </p>
         </NavbarBrand>
       </NavbarContent>
 
