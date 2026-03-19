@@ -172,6 +172,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   // Registration UTXO hook
   const {
     registrationUtxo,
+    registrationDustPKH,
     isLoadingRegistrationUtxo,
     registrationUtxoError,
     refetch: findRegistrationUtxo,
@@ -665,6 +666,28 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       isMountedRef.current = false;
     };
   }, []);
+
+  // Auto-populate Midnight state from on-chain registration when Midnight wallet isn't connected
+  // This allows the app to detect existing registrations without requiring the user to pair again
+  useEffect(() => {
+    if (registrationUtxo && registrationDustPKH && !midnightState.isConnected && !midnightState.coinPublicKey) {
+      logger.log('[Wallet]', '🔗 Found existing on-chain registration, populating Midnight state from datum', {
+        registrationDustPKH,
+      });
+      setMidnightState({
+        isConnected: true,
+        address: null, // We don't have the bech32m address from the datum, only the PKH
+        coinPublicKey: registrationDustPKH,
+        balance: null,
+        walletName: 'OnChain',
+        api: null,
+        isLoading: false,
+        error: null,
+        dustAddress: null,
+        dustBalance: null,
+      });
+    }
+  }, [registrationUtxo, registrationDustPKH, midnightState.isConnected, midnightState.coinPublicKey]);
 
   // Centralized redirect logic based on registration status
   useEffect(() => {

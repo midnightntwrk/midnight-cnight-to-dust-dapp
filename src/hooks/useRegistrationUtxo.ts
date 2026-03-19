@@ -15,14 +15,21 @@ interface BlockfrostUtxo {
 
 export interface UseRegistrationUtxoReturn {
   registrationUtxo: UTxO | null;
+  registrationDustPKH: string | null;
   isLoadingRegistrationUtxo: boolean;
   registrationUtxoError: string | null;
   refetch: () => Promise<void>;
   pollUntilFound: () => Promise<void>;
 }
 
+interface SearchResult {
+  utxo: UTxO;
+  dustPKH: string;
+}
+
 export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: string | null): UseRegistrationUtxoReturn {
   const [registrationUtxo, setRegistrationUtxo] = useState<UTxO | null>(null);
+  const [registrationDustPKH, setRegistrationDustPKH] = useState<string | null>(null);
   const [isLoadingRegistrationUtxo, setIsLoadingRegistrationUtxo] = useState(false);
   const [registrationUtxoError, setRegistrationUtxoError] = useState<string | null>(null);
 
@@ -31,14 +38,14 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef<boolean>(true);
 
-  // Internal method to find registration UTXO - returns the UTXO or null
+  // Internal method to find registration UTXO - returns the UTXO and dustPKH from datum, or null
   const searchRegistrationUtxo = useCallback(
-    async (signal?: AbortSignal): Promise<UTxO | null> => {
+    async (signal?: AbortSignal): Promise<SearchResult | null> => {
       try {
         logger.log('[RegistrationUtxo]', '🔍 Searching for registration UTXO...', { cardanoAddress, dustPKH });
 
-        if (!cardanoAddress || !dustPKH) {
-          throw new Error('Missing cardanoAddress or dustPKH');
+        if (!cardanoAddress) {
+          throw new Error('Missing cardanoAddress');
         }
 
         // Get DUST Generator contract
@@ -102,6 +109,11 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
           return null;
         }
 
+        // Warn if multiple registration UTXOs found — one Cardano address should only map to one dust address
+        if (validUtxos.length > 1) {
+          logger.warn('[RegistrationUtxo]', `⚠️ Found ${validUtxos.length} registration UTXOs for this address. Expected at most 1. Using the first match.`);
+        }
+
         // Import Lucid for datum deserialization
         const { Data, Constr } = await import('@lucid-evolution/lucid');
 
@@ -135,11 +147,11 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
                 })
               );
 
-              // Check if this UTXO matches our registration
-              if (datumCardanoPKH === stakeKeyHash && dustPKHFromDatum === dustPKH) {
-                // ✅ OPTIMIZATION: Convert Blockfrost UTXO directly to Lucid format
-                // This eliminates a duplicate API call to lucid.utxosByOutRef()
+              // Match by stake key hash; if dustPKH is provided, also verify it
+              const stakeKeyMatches = datumCardanoPKH === stakeKeyHash;
+              const dustPKHMatches = !dustPKH || dustPKHFromDatum === dustPKH;
 
+              if (stakeKeyMatches && dustPKHMatches) {
                 // Convert Blockfrost amount array to Lucid assets Record
                 const assets: Record<string, bigint> = {};
                 if (utxo.amount) {
@@ -158,7 +170,8 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
                 };
 
                 logger.log('[RegistrationUtxo]', '✅ Found matching registration UTXO:', toJson(registrationUTxO));
-                return registrationUTxO;
+                logger.log('[RegistrationUtxo]', '🔑 Dust PKH from datum:', dustPKHFromDatum);
+                return { utxo: registrationUTxO, dustPKH: dustPKHFromDatum as string };
               }
             }
           } catch (datumError) {
@@ -198,10 +211,11 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
     setRegistrationUtxoError(null);
 
     try {
-      const utxo = await searchRegistrationUtxo(abortController.signal);
+      const result = await searchRegistrationUtxo(abortController.signal);
       // Only update state if component is still mounted and request wasn't aborted
       if (isMountedRef.current && !abortController.signal.aborted) {
-        setRegistrationUtxo(utxo);
+        setRegistrationUtxo(result?.utxo ?? null);
+        setRegistrationDustPKH(result?.dustPKH ?? null);
       }
     } catch (error) {
       // Don't set error if request was aborted or component unmounted
@@ -212,6 +226,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
         logger.error('[RegistrationUtxo]', '❌ Error finding registration UTXO:', error);
         setRegistrationUtxoError(error instanceof Error ? error.message : 'Failed to find registration UTXO');
         setRegistrationUtxo(null);
+        setRegistrationDustPKH(null);
       }
     } finally {
       if (isMountedRef.current) {
@@ -264,7 +279,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
 
       try {
         // Search for the UTXO
-        const utxo = await searchRegistrationUtxo(abortController.signal);
+        const result = await searchRegistrationUtxo(abortController.signal);
 
         // Check again if cancelled after async operation
         if (abortController.signal.aborted || !isMountedRef.current) {
@@ -272,10 +287,11 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
         }
 
         // If found, update state and return
-        if (utxo) {
+        if (result) {
           const elapsedSeconds = ((Date.now() - startTime) / 1000).toFixed(1);
           logger.log('[RegistrationUtxo]', `✅ Registration UTXO found after ${attempt} attempts in ${elapsedSeconds}s`);
-          setRegistrationUtxo(utxo);
+          setRegistrationUtxo(result.utxo);
+          setRegistrationDustPKH(result.dustPKH);
           setIsLoadingRegistrationUtxo(false);
           return;
         }
@@ -331,9 +347,9 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
   useEffect(() => {
     isMountedRef.current = true;
 
-    const fetchKey = `${cardanoAddress}-${dustPKH}`;
+    const fetchKey = `${cardanoAddress}-${dustPKH || 'any'}`;
 
-    if (cardanoAddress && dustPKH) {
+    if (cardanoAddress) {
       // Only fetch if params actually changed
       if (lastFetchedRef.current !== fetchKey) {
         lastFetchedRef.current = fetchKey;
@@ -360,6 +376,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
 
   return {
     registrationUtxo,
+    registrationDustPKH,
     isLoadingRegistrationUtxo,
     registrationUtxoError,
     refetch,
