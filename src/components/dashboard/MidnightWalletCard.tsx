@@ -85,12 +85,6 @@ const MidnightWalletCard = () => {
     return null;
   };
 
-  // Whether the displayed balance has an ellipsis abbreviation (not the syncing '...')
-  const balanceHasEllipsis = () => {
-    const bal = getDustBalance();
-    return bal.includes('0.0...');
-  };
-
   // Get DUST address - prefer wallet data if connected, otherwise use indexer or manual address
   const getDustAddress = () => {
     // If connected with Midnight wallet, use wallet's dust address

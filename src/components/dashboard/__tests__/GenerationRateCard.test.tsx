@@ -11,6 +11,8 @@ vi.mock('@/lib/logger', () => ({
 // Mock specksToTDust
 vi.mock('@/lib/specksToTDust', () => ({
   specksToTDust: vi.fn((s: string) => `converted_${s}`),
+  specksToTDustFull: vi.fn((s: string) => `full_${s}`),
+  SPECKS_PER_TDUST: 1_000_000_000_000_000n,
 }));
 
 // Mock heroui
@@ -32,9 +34,11 @@ const mockWalletContext = {
     registered: boolean;
     generationRate: string;
     currentCapacity: string;
-    maxCapacity: string;
   },
   registrationUtxo: null as null | object,
+  cardano: {
+    balanceNight: null as string | null,
+  },
 };
 
 vi.mock('@/contexts/WalletContext', () => ({
@@ -45,6 +49,7 @@ describe('GenerationRateCard', () => {
   beforeEach(() => {
     mockWalletContext.generationStatus = null;
     mockWalletContext.registrationUtxo = null;
+    mockWalletContext.cardano.balanceNight = null;
   });
 
   it('should render "..." when indexer is syncing', () => {
@@ -53,11 +58,10 @@ describe('GenerationRateCard', () => {
       registered: false,
       generationRate: '0',
       currentCapacity: '0',
-      maxCapacity: '0',
     };
 
     render(React.createElement(GenerationRateCard));
-    // Both generation rate and CAP show "..." when syncing
+    // Generation rate shows "..." when syncing
     const dots = screen.getAllByText('...');
     expect(dots.length).toBeGreaterThanOrEqual(1);
   });
@@ -67,28 +71,29 @@ describe('GenerationRateCard', () => {
       registered: true,
       generationRate: '500000000000000',
       currentCapacity: '2000000000000000',
-      maxCapacity: '5000000000000000',
     };
 
     render(React.createElement(GenerationRateCard));
     expect(screen.getByText('converted_500000000000000')).toBeDefined();
   });
 
-  it('should render converted CAP from indexer maxCapacity when synced', () => {
-    mockWalletContext.generationStatus = {
-      registered: true,
-      generationRate: '500000000000000',
-      currentCapacity: '2000000000000000',
-      maxCapacity: '5000000000000000',
-    };
-
+  it('should calculate CAP from cardano.balanceNight', () => {
+    mockWalletContext.cardano.balanceNight = '1000000'; // 1 NIGHT in stars
+    // CAP = 1000000 * 5 * (10^15 / 10^6) = 5000000000000000
     render(React.createElement(GenerationRateCard));
     expect(screen.getByText('converted_5000000000000000')).toBeDefined();
   });
 
-  it('should show "0" for CAP when not registered and not syncing', () => {
+  it('should show "0" for CAP when no NIGHT balance', () => {
+    mockWalletContext.cardano.balanceNight = null;
     render(React.createElement(GenerationRateCard));
-    // Both generation rate and CAP show "0"
+    const zeros = screen.getAllByText('0');
+    expect(zeros.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('should show "0" for CAP when NIGHT balance is zero', () => {
+    mockWalletContext.cardano.balanceNight = '0';
+    render(React.createElement(GenerationRateCard));
     const zeros = screen.getAllByText('0');
     expect(zeros.length).toBeGreaterThanOrEqual(1);
   });
