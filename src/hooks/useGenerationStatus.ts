@@ -19,7 +19,6 @@ const DUST_GENERATION_STATUS_QUERY = `
       nightBalance
       generationRate
       currentCapacity
-      maxCapacity
     }
   }
 `;

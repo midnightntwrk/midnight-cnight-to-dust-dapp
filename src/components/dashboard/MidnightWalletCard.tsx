@@ -22,7 +22,7 @@ import WalletsModal from '../wallet-connect/WalletsModal';
 import { SupportedMidnightWallet, SupportedWallet } from '@/contexts/WalletContext';
 import LoadingBackdrop from '../ui/LoadingBackdrop';
 import { useRouter } from 'next/navigation';
-import { specksToTDust } from '@/lib/specksToTDust';
+import { specksToTDust, specksToTDustFull } from '@/lib/specksToTDust';
 
 const MidnightWalletCard = () => {
   const { toasts, showToast, removeToast } = useToast();
@@ -56,7 +56,6 @@ const MidnightWalletCard = () => {
 
   // Get DUST balance - prefer wallet data if connected, otherwise use indexer
   const getDustBalance = () => {
-    // If connected with Midnight wallet, use wallet data
     if (isWalletConnected && midnight.dustBalance !== null) {
       return specksToTDust(midnight.dustBalance);
     }
@@ -68,6 +67,17 @@ const MidnightWalletCard = () => {
       return '...';
     }
     return '0';
+  };
+
+  // Full-precision balance for tooltip (no ellipsis)
+  const getDustBalanceFull = () => {
+    if (isWalletConnected && midnight.dustBalance !== null) {
+      return specksToTDustFull(midnight.dustBalance);
+    }
+    if (isIndexerSynced && generationStatus?.currentCapacity) {
+      return specksToTDustFull(generationStatus.currentCapacity);
+    }
+    return null;
   };
 
   // Get DUST address - prefer wallet data if connected, otherwise use indexer or manual address
@@ -285,11 +295,19 @@ const MidnightWalletCard = () => {
       </div>
       <div className="flex flex-row gap-2 items-center z-10">
         <Image src={DustBalanceIcon} alt="dust balance" width={42} height={42} />
-        <span
-          className={`text-[24px] font-bold ${!isWalletConnected && isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}
+        <Tooltip
+          content={`${getDustBalanceFull() ?? getDustBalance()} DUST`}
+          placement="top"
+          classNames={{
+            content: 'bg-gray-800 text-white text-sm px-2 py-1',
+          }}
         >
-          {getDustBalance()} DUST
-        </span>
+          <span
+            className={`text-[24px] font-bold cursor-help ${!isWalletConnected && isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}
+          >
+            {getDustBalance()} DUST
+          </span>
+        </Tooltip>
       </div>
       <div className="flex flex-col gap-2">
         <div className="flex flex-row gap-2 items-center z-10">
