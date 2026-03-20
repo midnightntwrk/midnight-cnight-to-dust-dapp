@@ -69,6 +69,7 @@ const mockWalletContext = {
   },
   midnight: {
     isConnected: false,
+    isRegisteredOnChain: false,
     address: null,
     coinPublicKey: null,
     balance: null,

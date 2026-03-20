@@ -56,13 +56,8 @@ const MidnightWalletCard = () => {
 
   // Get DUST balance - prefer wallet data if connected, otherwise use indexer
   const getDustBalance = () => {
-    // If connected with Midnight wallet, use wallet data (treat '0' as not yet loaded)
-    if (isWalletConnected && midnight.dustBalance !== null && midnight.dustBalance !== '0') {
+    if (isWalletConnected && midnight.dustBalance !== null) {
       return specksToTDust(midnight.dustBalance);
-    }
-    // If wallet is connected but balance is 0, show loading
-    if (isWalletConnected && midnight.dustBalance === '0') {
-      return '...';
     }
     // Otherwise, use indexer data
     if (isIndexerSynced && generationStatus?.currentCapacity) {
@@ -76,7 +71,7 @@ const MidnightWalletCard = () => {
 
   // Full-precision balance for tooltip (no ellipsis)
   const getDustBalanceFull = () => {
-    if (isWalletConnected && midnight.dustBalance !== null && midnight.dustBalance !== '0') {
+    if (isWalletConnected && midnight.dustBalance !== null) {
       return specksToTDustFull(midnight.dustBalance);
     }
     if (isIndexerSynced && generationStatus?.currentCapacity) {

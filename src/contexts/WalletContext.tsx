@@ -73,6 +73,7 @@ interface CardanoWalletState {
 
 interface MidnightWalletState {
   isConnected: boolean;
+  isRegisteredOnChain: boolean; // True when registration found on-chain without wallet connection
   address: string | null;
   coinPublicKey: string | null;
   balance: string | null;
@@ -142,6 +143,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   // Midnight wallet state
   const [midnightState, setMidnightState] = useState<MidnightWalletState>({
     isConnected: false,
+    isRegisteredOnChain: false,
     address: null,
     coinPublicKey: null,
     balance: null,
@@ -495,6 +497,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
       setMidnightState({
         isConnected: true,
+        isRegisteredOnChain: false,
         address: dustAddress, // Use Dust address as the main address
         coinPublicKey,
         balance,
@@ -521,6 +524,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const disconnectMidnightWallet = () => {
     setMidnightState({
       isConnected: false,
+      isRegisteredOnChain: false,
       address: null,
       coinPublicKey: null,
       balance: null,
@@ -541,6 +545,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       logger.error('[Wallet]', 'Invalid DUST address format', { address, networkId });
       setMidnightState({
         isConnected: false,
+        isRegisteredOnChain: false,
         address: null,
         coinPublicKey: null,
         balance: null,
@@ -561,6 +566,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       logger.error('[Wallet]', 'Failed to convert DUST address to bytes');
       setMidnightState({
         isConnected: false,
+        isRegisteredOnChain: false,
         address: null,
         coinPublicKey: null,
         balance: null,
@@ -576,6 +582,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     setMidnightState({
       isConnected: true,
+      isRegisteredOnChain: false,
       address: address,
       coinPublicKey: coinPublicKey, // Use extracted coin public key
       balance: 'Manual Address',
@@ -600,6 +607,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     setMidnightState({
       isConnected: true,
+      isRegisteredOnChain: false,
       address: address,
       coinPublicKey: coinPublicKey,
       balance: midnightState.balance, // Preserve existing balance
@@ -670,16 +678,17 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   // Auto-populate Midnight state from on-chain registration when Midnight wallet isn't connected
   // This allows the app to detect existing registrations without requiring the user to pair again
   useEffect(() => {
-    if (registrationUtxo && registrationDustPKH && !midnightState.isConnected && !midnightState.coinPublicKey) {
+    if (registrationUtxo && registrationDustPKH && !midnightState.isConnected && !midnightState.isRegisteredOnChain && !midnightState.coinPublicKey) {
       logger.log('[Wallet]', '🔗 Found existing on-chain registration, populating Midnight state from datum', {
         registrationDustPKH,
       });
       setMidnightState({
-        isConnected: true,
+        isConnected: false,
+        isRegisteredOnChain: true,
         address: null, // We don't have the bech32m address from the datum, only the PKH
         coinPublicKey: registrationDustPKH,
         balance: null,
-        walletName: 'OnChain',
+        walletName: null,
         api: null,
         isLoading: false,
         error: null,
@@ -687,7 +696,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         dustBalance: null,
       });
     }
-  }, [registrationUtxo, registrationDustPKH, midnightState.isConnected, midnightState.coinPublicKey]);
+  }, [registrationUtxo, registrationDustPKH, midnightState.isConnected, midnightState.isRegisteredOnChain, midnightState.coinPublicKey]);
 
   // Centralized redirect logic based on registration status
   useEffect(() => {
