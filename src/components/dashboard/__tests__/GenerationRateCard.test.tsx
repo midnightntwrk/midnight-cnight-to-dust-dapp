@@ -13,6 +13,7 @@ vi.mock('@/lib/specksToTDust', () => ({
   specksToTDust: vi.fn((s: string) => `converted_${s}`),
   specksToTDustFull: vi.fn((s: string) => `full_${s}`),
   SPECKS_PER_TDUST: 1_000_000_000_000_000n,
+  STARS_PER_NIGHT: 1_000_000n,
 }));
 
 // Mock heroui
