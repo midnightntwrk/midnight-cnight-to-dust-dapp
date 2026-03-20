@@ -8,14 +8,35 @@ vi.mock('@/lib/logger', () => ({
   logger: { log: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
 
+// Mock specksToTDust (starsToNight)
+vi.mock('@/lib/specksToTDust', () => ({
+  starsToNight: vi.fn((s: string) => {
+    // Simple mock: divide by 10^6 for display
+    const stars = BigInt(s);
+    const whole = stars / 1_000_000n;
+    return whole.toString();
+  }),
+  starsToNightFull: vi.fn((s: string) => {
+    const stars = BigInt(s);
+    const whole = stars / 1_000_000n;
+    return whole.toString();
+  }),
+}));
+
 // Mock heroui
-vi.mock('@heroui/react', () => ({
+vi.mock('@heroui/card', () => ({
   Card: function MockCard({ children, className }: { children: React.ReactNode; className?: string }) {
     return React.createElement('div', { 'data-testid': 'card', className }, children);
   },
+}));
+
+vi.mock('@heroui/button', () => ({
   Button: function MockButton({ children, onClick, onPress }: { children: React.ReactNode; onClick?: () => void; onPress?: () => void }) {
     return React.createElement('button', { onClick: onClick || onPress, 'data-testid': 'button' }, children);
   },
+}));
+
+vi.mock('@heroui/tooltip', () => ({
   Tooltip: function MockTooltip({ children }: { children: React.ReactNode }) {
     return React.createElement('div', null, children);
   },
@@ -37,7 +58,7 @@ const mockWalletContext = {
   cardano: {
     isConnected: true,
     address: 'addr_test1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwq2ytjqp',
-    balanceNight: '500',
+    balanceNight: '500000000', // 500 NIGHT in stars
     stakeKey: null,
     rewardAddress: null,
     balanceADA: null,
@@ -48,6 +69,7 @@ const mockWalletContext = {
   },
   midnight: {
     isConnected: false,
+    isRegisteredOnChain: false,
     address: null,
     coinPublicKey: null,
     balance: null,
@@ -80,11 +102,12 @@ describe('CardanoWalletCard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockWalletContext.cardano.address = 'addr_test1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwq2ytjqp';
-    mockWalletContext.cardano.balanceNight = '500';
+    mockWalletContext.cardano.balanceNight = '500000000'; // 500 NIGHT in stars
   });
 
-  it('should render NIGHT balance', () => {
+  it('should render NIGHT balance converted from stars', () => {
     render(React.createElement(CardanoWalletCard));
+    // starsToNight mock converts 500000000 stars → "500"
     expect(screen.getByText('500')).toBeDefined();
     expect(screen.getByText('NIGHT')).toBeDefined();
   });
@@ -120,14 +143,12 @@ describe('CardanoWalletCard', () => {
   it('should handle empty address gracefully', () => {
     mockWalletContext.cardano.address = null;
     render(React.createElement(CardanoWalletCard));
-    // Should render truncated empty string without crashing
     expect(screen.getByText('...')).toBeDefined();
   });
 
   it('should show green dot when indexer confirms registration', () => {
     mockWalletContext.generationStatus = { registered: true } as never;
     const { container } = render(React.createElement(CardanoWalletCard));
-    // Check for the green dot element
     const greenDot = container.querySelector('.bg-\\[\\#34C759\\]');
     expect(greenDot).toBeDefined();
   });
