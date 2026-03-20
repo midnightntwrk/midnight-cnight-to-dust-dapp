@@ -57,6 +57,11 @@ describe('specksToTDust', () => {
     expect(specksToTDust(specks.toString())).toBe('500.00K');
   });
 
+  it('should round 1,999,999 to 2.00M instead of truncating to 1.99M', () => {
+    const specks = SPECKS_PER_TDUST * 1_999_999n;
+    expect(specksToTDust(specks.toString())).toBe('2.00M');
+  });
+
   it('should pad fractional digits to 3 places', () => {
     const specks = SPECKS_PER_TDUST + SPECKS_PER_TDUST / 1000n;
     expect(specksToTDust(specks.toString())).toBe('1.001');
@@ -128,7 +133,7 @@ describe('starsToNightFull', () => {
   });
 
   it('should return without separators for small numbers', () => {
-    expect(starsToNightFull('500000000')).toBe('500');
+    expect(starsToNightFull('500000000')).toBe('500.0');
   });
 
   it('should show fractional part trimmed of trailing zeros', () => {

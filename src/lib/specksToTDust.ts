@@ -23,8 +23,11 @@ const abbreviateNumber = (whole: bigint, fractional: string): string => {
 
   const suffixIndex = Math.min(Math.floor((len - 1) / 3), suffixes.length - 1);
   const divisor = 10n ** BigInt(suffixIndex * 3);
-  const shortened = whole / divisor;
-  const remainderPart = whole % divisor;
+  // Round to nearest by adding half of the rounding unit (divisor / 200)
+  const roundingUnit = divisor / 200n; // 0.005 of the suffix unit
+  const rounded = whole + roundingUnit;
+  const shortened = rounded / divisor;
+  const remainderPart = rounded % divisor;
   // Get 2 decimal digits from the remainder
   const decimalPart = (remainderPart * 100n) / divisor;
   const decimal = decimalPart.toString().padStart(2, '0');
@@ -78,7 +81,7 @@ export const starsToNightFull = (starsString: string): string => {
   const remainder = stars % STARS_PER_NIGHT;
 
   if (remainder === 0n) {
-    return formatWithSeparators(`${whole}`);
+    return formatWithSeparators(`${whole}.0`);
   }
 
   const fractional = remainder.toString().padStart(6, '0').replace(/0+$/, '');

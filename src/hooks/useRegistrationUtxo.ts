@@ -147,6 +147,11 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
                 })
               );
 
+              if (typeof dustPKHFromDatum !== 'string') {
+                logger.warn('[RegistrationUtxo]', '⚠️ Unexpected dustPKH type in datum:', typeof dustPKHFromDatum);
+                continue;
+              }
+
               // Match by stake key hash; if dustPKH is provided, also verify it
               const stakeKeyMatches = datumCardanoPKH === stakeKeyHash;
               const dustPKHMatches = !dustPKH || dustPKHFromDatum === dustPKH;
@@ -171,7 +176,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
 
                 logger.log('[RegistrationUtxo]', '✅ Found matching registration UTXO:', toJson(registrationUTxO));
                 logger.log('[RegistrationUtxo]', '🔑 Dust PKH from datum:', dustPKHFromDatum);
-                return { utxo: registrationUTxO, dustPKH: dustPKHFromDatum as string };
+                return { utxo: registrationUTxO, dustPKH: dustPKHFromDatum };
               }
             }
           } catch (datumError) {

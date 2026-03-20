@@ -5,9 +5,8 @@ import React from 'react';
 import InfoIcon from '@/assets/icons/info.svg';
 import Image from 'next/image';
 import { useWalletContext } from '@/contexts/WalletContext';
-import { specksToTDust, specksToTDustFull, SPECKS_PER_TDUST } from '@/lib/specksToTDust';
+import { specksToTDust, specksToTDustFull, SPECKS_PER_TDUST, STARS_PER_NIGHT } from '@/lib/specksToTDust';
 
-const STARS_PER_NIGHT = 1_000_000n; // 1 NIGHT = 10^6 Stars
 const CAP_RATIO = 5n; // 5 DUST per NIGHT
 
 const GenerationRateCard = () => {
@@ -19,8 +18,8 @@ const GenerationRateCard = () => {
 
   // Get generation rate - use indexer data if synced, otherwise show syncing state
   const getGenerationRate = () => {
-    if (isIndexerSynced) {
-      return specksToTDust(generationStatus?.generationRate) || '0';
+    if (isIndexerSynced && generationStatus?.generationRate) {
+      return specksToTDust(generationStatus.generationRate);
     }
     if (isIndexerSyncing) {
       return '...';
@@ -29,8 +28,8 @@ const GenerationRateCard = () => {
   };
 
   const getGenerationRateFull = () => {
-    if (isIndexerSynced) {
-      return specksToTDustFull(generationStatus?.generationRate) || null;
+    if (isIndexerSynced && generationStatus?.generationRate) {
+      return specksToTDustFull(generationStatus.generationRate);
     }
     return null;
   };
