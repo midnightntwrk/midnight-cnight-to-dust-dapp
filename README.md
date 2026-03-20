@@ -342,7 +342,7 @@ Releases are fully automated. When a PR merges to `main`:
 
 1. CI runs and, on success, triggers the Release workflow
 2. [semantic-release](https://github.com/semantic-release/semantic-release) analyzes commits since the last release
-3. If a releasable commit is found, it bumps the version in `package.json`, updates `CHANGELOG.md`, creates a Git tag, and publishes a GitHub Release
+3. If a releasable commit is found, it creates a Git tag and publishes a GitHub Release with auto-generated release notes
 4. The Docker build picks up the new version tag and produces semver-tagged images
 
 No manual version bumping or release PRs are needed.
