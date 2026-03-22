@@ -114,7 +114,7 @@ interface WalletContextType {
   registrationUtxoError: string | null;
   // Registration UTXO methods
   findRegistrationUtxo: () => Promise<void>;
-  pollRegistrationUtxo: () => Promise<void>;
+  pollRegistrationUtxo: (txHash?: string) => Promise<void>;
 }
 
 // Create context
@@ -124,7 +124,7 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { config, currentNetwork, isMainnet, isTestnet, getCnightPolicyId, getCnightEncodedName } = useRuntimeConfig();
+  const { config, currentNetwork, isMainnet, isTestnet, getCnightPolicyId, getCnightEncodedName, isLoading: isConfigLoading } = useRuntimeConfig();
 
   // Cardano wallet state
   const [cardanoState, setCardanoState] = useState<CardanoWalletState>({
@@ -623,12 +623,15 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   };
 
   // Auto-reconnect on page load (only once per session)
+  // Wait for runtime config to load before connecting - avoids wrong network check with default Preview config
   useEffect(() => {
     isMountedRef.current = true;
 
-    // Only auto-reconnect once on initial mount
     if (hasInitializedRef.current) {
       return;
+    }
+    if (isConfigLoading) {
+      return; // Defer until we have the actual network config (Mainnet/Preview/etc.)
     }
 
     const autoReconnect = async () => {
@@ -673,7 +676,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     return () => {
       isMountedRef.current = false;
     };
-  }, []);
+  }, [isConfigLoading]);
 
   // Auto-populate Midnight state from on-chain registration when Midnight wallet isn't connected
   // This allows the app to detect existing registrations without requiring the user to pair again
