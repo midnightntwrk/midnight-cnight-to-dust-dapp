@@ -1,4 +1,5 @@
 name: Docker Build and Push
+permissions: {}
 
 on:
   # Only run after CI workflow completes successfully

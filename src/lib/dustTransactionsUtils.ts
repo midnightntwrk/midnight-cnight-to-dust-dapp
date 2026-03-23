@@ -312,113 +312,12 @@ export class DustTransactionsUtils {
   }
 
   /**
-   * Check if stake address is registered using Blockfrost API (backend proxy)
+   * Build the update transaction: spend old registration UTXO, create new one
+   * with the same auth token but updated datum. No mint, no burn.
+   * Rotates all cNIGHT UTXOs and uses a zero-value withdrawal for script authorization.
    */
-  private static async checkStakeAddressRegistration(stakeAddress: string): Promise<boolean> {
-    try {
-      // Use backend Blockfrost proxy - same pattern as useRegistrationUtxo
-      const response = await fetch(`/api/blockfrost/accounts/${stakeAddress}`);
-
-      if (response.status === 200) {
-        const accountData = await response.json();
-        // Stake address is registered if it has EVER been active (has active_epoch)
-        // OR currently has a pool delegation
-        const isRegistered = accountData.active_epoch !== null || accountData.pool_id !== null;
-        logger.log('[DustTransactions]', `📊 Stake address registration status: ${isRegistered}`, {
-          active: accountData.active,
-          active_epoch: accountData.active_epoch,
-          pool_id: accountData.pool_id,
-        });
-        return isRegistered;
-      } else if (response.status === 404) {
-        logger.log('[DustTransactions]', '❌ Stake address not found (not registered)');
-        return false;
-      } else {
-        logger.error('[DustTransactions]', `⚠️ Unexpected response from Blockfrost: ${response.status}`);
-        return false;
-      }
-    } catch (error) {
-      logger.error('[DustTransactions]', '❌ Error checking stake address registration:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Build DUST update transaction - Pure function
-   * Based on Haskell buildUpdateTx implementation
-   * Consumes existing registration UTXO and creates a new one with updated datum
-   * First checks if stake address is registered, registers if needed, then updates
-   */
-  static async buildUpdateTransaction(lucid: LucidEvolution, newDustPKH: string, registrationUtxo: UTxO): Promise<TxSignBuilder> {
+  private static async buildUpdateTransaction(lucid: LucidEvolution, newDustPKH: string, registrationUtxo: UTxO): Promise<TxSignBuilder> {
     logger.log('[DustTransactions]', '🔧 Building DUST Address Update Transaction...');
-
-    // Get DUST Generator contract
-    const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
-    const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
-    const dustGeneratorStakeAddress = getStakeAddress(dustGenerator.Script);
-
-    logger.log(
-      '[DustTransactions]',
-      '📋 DUST Generator Address:',
-      toJson({
-        dustGeneratorAddress,
-      })
-    );
-    logger.log(
-      '[DustTransactions]',
-      '📋 DUST Generator Stake Address:',
-      toJson({
-        dustGeneratorStakeAddress,
-      })
-    );
-
-    // Check if stake address is registered
-    logger.log('[DustTransactions]', '🔍 Checking stake address registration...');
-    const isStakeRegistered = await this.checkStakeAddressRegistration(dustGeneratorStakeAddress);
-
-    if (!isStakeRegistered) {
-      logger.log('[DustTransactions]', '❌ Stake address not registered - doing registration transaction...');
-      return this.buildStakeRegistrationOnlyTransaction(lucid);
-    } else {
-      logger.log('[DustTransactions]', '✅ Stake address already registered - doing update transaction...');
-      return this.buildUpdateOnlyTransaction(lucid, newDustPKH, registrationUtxo);
-    }
-  }
-
-  /**
-   * Build stake registration ONLY transaction
-   */
-  private static async buildStakeRegistrationOnlyTransaction(lucid: LucidEvolution): Promise<TxSignBuilder> {
-    logger.log('[DustTransactions]', '🔧 Building Stake Registration ONLY Transaction...');
-
-    // Get DUST Generator contract
-    const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
-    const dustGeneratorStakeAddress = getStakeAddress(dustGenerator.Script);
-
-    // Build the transaction
-    logger.log('[DustTransactions]', '🔨 Building stake registration transaction...');
-    const txBuilder = lucid.newTx();
-
-    // Register stake address ONLY
-    logger.log('[DustTransactions]', '📝 Registering stake address...');
-    txBuilder.registerStake(dustGeneratorStakeAddress);
-
-    // Add signer
-    txBuilder.addSigner(await lucid.wallet().address());
-
-    // Complete transaction
-    logger.log('[DustTransactions]', '🔧 Completing stake registration transaction...');
-    const completedTx = await txBuilder.complete();
-
-    logger.log('[DustTransactions]', '✅ Stake registration transaction completed successfully');
-    return completedTx;
-  }
-
-  /**
-   * Build update ONLY transaction (when stake is already registered)
-   */
-  private static async buildUpdateOnlyTransaction(lucid: LucidEvolution, newDustPKH: string, registrationUtxo: UTxO): Promise<TxSignBuilder> {
-    logger.log('[DustTransactions]', '🔧 Building Update ONLY Transaction...');
 
     // Get current user's Cardano address and stake key hash
     const cardanoAddress = await lucid.wallet().address();
@@ -449,98 +348,86 @@ export class DustTransactionsUtils {
     const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
     const dustGeneratorStakeAddress = getStakeAddress(dustGenerator.Script);
 
-    // Build the transaction
-    logger.log('[DustTransactions]', '🔨 Building update transaction...');
+    // Find all cNIGHT UTXOs to include as explicit inputs so all cNIGHT rotates = voiding the dust production transaction
+    const { fullUnit: cnightUnit } = getCnightUnitFromConfig();
+    const utxos = await lucid.wallet().getUtxos();
+    const cnightUtxos = utxos.filter((cNightUtxo) => cNightUtxo.assets[cnightUnit] !== undefined);
+
+    if (cnightUtxos.length === 0) {
+      logger.error('[DustTransactions]', '❌ No cNIGHT UTXO found in wallet');
+      throw new Error('No cNIGHT tokens found in wallet. You need cNIGHT to update.');
+    }
+
+    logger.log('[DustTransactions]', `🪙 Found ${cnightUtxos.length} cNIGHT UTXO(s) for rotation:`, toJson(
+      cnightUtxos.map((u) => ({
+        txHash: u.txHash,
+        outputIndex: u.outputIndex,
+        cnightAmount: u.assets[cnightUnit],
+      }))
+    ));
+
+    const { Data } = await import('@lucid-evolution/lucid');
     const txBuilder = lucid.newTx();
 
-    // CONSUME INPUT: Existing registration UTXO from DUST Mapping Validator
+    // Add all cNIGHT UTXOs as explicit inputs to ensure full rotation
+    txBuilder.collectFrom(cnightUtxos);
 
-    // Redeemer for update (empty constructor)
-    const { Data } = await import('@lucid-evolution/lucid');
-    const updateRedeemer = Data.void(); // Empty constructor for update
-
-    logger.log(
-      '[DustTransactions]',
-      '🔄 Consuming existing registration UTXO:',
-      toJson({
-        txHash: registrationUtxo.txHash,
-        outputIndex: registrationUtxo.outputIndex,
-        redeemerCBORHEX: updateRedeemer,
-      })
-    );
-
-    txBuilder.collectFrom([registrationUtxo], updateRedeemer);
-
-    // Attach the required script
-    logger.log('[DustTransactions]', '📎 Attaching DUST Mapping Validator Script...');
-    txBuilder.attach.SpendingValidator(blazeToLucidScript(dustGenerator.Script));
-
-    // OUTPUT: New registration UTXO with updated datum
-
-    // Get the DUST Auth Token from the existing UTXO to preserve it
-    // Construct the NFT asset name
+    // Consume existing registration UTXO (spend redeemer)
     const dustNFTTokenName = '';
     const dustNFTAssetName = getPolicyId(dustGenerator.Script) + dustNFTTokenName;
 
+    const spendRedeemer = Data.void();
     logger.log(
       '[DustTransactions]',
-      '🪙 Re Using DUST NFT:',
+      '📦 Consuming existing registration UTXO:',
       toJson({
-        policyId: getPolicyId(dustGenerator.Script),
-        assetName: dustNFTAssetName,
-        amount: 1n,
+        txHash: registrationUtxo.txHash,
+        outputIndex: registrationUtxo.outputIndex,
       })
     );
+    txBuilder.collectFrom([registrationUtxo], spendRedeemer);
+    txBuilder.attach.SpendingValidator(blazeToLucidScript(dustGenerator.Script));
 
-    // Create dust mapping datum with user's stake key hash and dust address
-    const updatedRegistrationDatumData: Contracts.DustMappingDatum = {
+    // Create new registration UTXO with same auth token + updated datum
+    const dustMappingDatum: Contracts.DustMappingDatum = {
       c_wallet: {
-        VerificationKey: [stakeKeyHash!], // Stake key hash (28 bytes hex string)
+        VerificationKey: [stakeKeyHash!],
       },
-      dust_address: newDustPKH, // DUST PKH (32 bytes hex string)
+      dust_address: newDustPKH,
     };
 
-    const serializedUpdatedRegistrationDatum = serializeToCbor(Contracts.DustMappingDatum, updatedRegistrationDatumData);
+    const serializedDatum = serializeToCbor(Contracts.DustMappingDatum, dustMappingDatum);
 
     logger.log(
       '[DustTransactions]',
-      '📤 Creating updated output to DUST Mapping Validator:',
+      '📤 Creating new registration UTXO with updated datum:',
       toJson({
         address: dustGeneratorAddress,
         assets: {
-          lovelace: LOVELACE_FOR_REGISTRATION, // Minimum ADA for UTxO
-          [dustNFTAssetName]: 1n, // DUST NFT Token (preserved)
+          lovelace: LOVELACE_FOR_REGISTRATION,
+          [dustNFTAssetName]: 1n,
         },
-        datumData: updatedRegistrationDatumData,
-        datumCBORHEX: serializedUpdatedRegistrationDatum,
+        datumData: dustMappingDatum,
       })
     );
 
     txBuilder.pay.ToContract(
-      dustGeneratorAddress, // DUST Mapping Validator Address (same as before)
-      { kind: 'inline', value: serializedUpdatedRegistrationDatum }, // Updated Registration Datum (INLINE)
+      dustGeneratorAddress,
+      { kind: 'inline', value: serializedDatum },
       {
-        lovelace: LOVELACE_FOR_REGISTRATION, // Minimum ADA for UTxO
-        [dustNFTAssetName]: 1n, // DUST NFT Token (preserved)
+        lovelace: LOVELACE_FOR_REGISTRATION,
+        [dustNFTAssetName]: 1n,
       }
     );
 
-    // WITHDRAWAL from script validator
-
-    txBuilder.withdraw(
-      dustGeneratorStakeAddress, // ← Reward address, no payment address
-      0n,
-      Data.void()
-    );
-
-    // Attach the required script
-    logger.log('[DustTransactions]', '📎 Attaching DUST Withdrawal Script...');
+    // Zero-value withdrawal from script stake address for authorization
+    logger.log('[DustTransactions]', '🔑 Adding withdrawal for script authorization:', dustGeneratorStakeAddress);
+    txBuilder.withdraw(dustGeneratorStakeAddress, 0n, Data.void());
     txBuilder.attach.WithdrawalValidator(blazeToLucidScript(dustGenerator.Script));
 
     // Add signers: payment address + stake address
-    txBuilder.addSigner(await lucid.wallet().address());
+    txBuilder.addSigner(cardanoAddress);
 
-    // Add stake address as signer to validate stake key hash
     const stakeAddress = await lucid.wallet().rewardAddress();
     if (stakeAddress) {
       txBuilder.addSigner(stakeAddress);
@@ -556,15 +443,15 @@ export class DustTransactionsUtils {
   }
 
   /**
-   * Create a transaction executor for DUST update - Pure function
+   * Create a transaction executor for DUST update — single transaction.
+   * Builds the update tx, signs, and submits. The script stake address
+   * must already be registered globally (done once at deployment).
    */
   static createUpdateExecutor(lucid: LucidEvolution, newDustPKH: string, registrationUtxo: UTxO) {
     return async (params: Record<string, unknown>, onProgress?: (step: string, progress: number) => void): Promise<string> => {
-      // Step 1: Build transaction
       onProgress?.('Preparing update transaction...', 20);
       const completedTx = await DustTransactionsUtils.buildUpdateTransaction(lucid, newDustPKH, registrationUtxo);
 
-      // Step 2: Sign and submit transaction
       onProgress?.('Signing update transaction...', 40);
       logger.log('[DustTransactions]', '✍️ Signing update transaction...');
       const signedTx = await completedTx.sign.withWallet().complete();
