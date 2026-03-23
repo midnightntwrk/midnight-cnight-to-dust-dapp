@@ -315,73 +315,25 @@ export class DustTransactionsUtils {
    * Check if stake address is registered using Blockfrost API (backend proxy)
    */
   private static async checkStakeAddressRegistration(stakeAddress: string): Promise<boolean> {
-    try {
-      // Use backend Blockfrost proxy - same pattern as useRegistrationUtxo
-      const response = await fetch(`/api/blockfrost/accounts/${stakeAddress}`);
+    // Use backend Blockfrost proxy - same pattern as useRegistrationUtxo
+    const response = await fetch(`/api/blockfrost/accounts/${stakeAddress}`);
 
-      if (response.status === 200) {
-        const accountData = await response.json();
-        // Stake address is registered if it has EVER been active (has active_epoch)
-        // OR currently has a pool delegation
-        const isRegistered = accountData.active_epoch !== null || accountData.pool_id !== null;
-        logger.log('[DustTransactions]', `📊 Stake address registration status: ${isRegistered}`, {
-          active: accountData.active,
-          active_epoch: accountData.active_epoch,
-          pool_id: accountData.pool_id,
-        });
-        return isRegistered;
-      } else if (response.status === 404) {
-        logger.log('[DustTransactions]', '❌ Stake address not found (not registered)');
-        return false;
-      } else {
-        logger.error('[DustTransactions]', `⚠️ Unexpected response from Blockfrost: ${response.status}`);
-        return false;
-      }
-    } catch (error) {
-      logger.error('[DustTransactions]', '❌ Error checking stake address registration:', error);
+    if (response.status === 200) {
+      const accountData = await response.json();
+      // Stake address is registered if it has EVER been active (has active_epoch)
+      // OR currently has a pool delegation
+      const isRegistered = accountData.active_epoch !== null || accountData.pool_id !== null;
+      logger.log('[DustTransactions]', `📊 Stake address registration status: ${isRegistered}`, {
+        active: accountData.active,
+        active_epoch: accountData.active_epoch,
+        pool_id: accountData.pool_id,
+      });
+      return isRegistered;
+    } else if (response.status === 404) {
+      logger.log('[DustTransactions]', '❌ Stake address not found (not registered)');
       return false;
-    }
-  }
-
-  /**
-   * Build DUST update transaction - Pure function
-   * Based on Haskell buildUpdateTx implementation
-   * Consumes existing registration UTXO and creates a new one with updated datum
-   * First checks if stake address is registered, registers if needed, then updates
-   */
-  static async buildUpdateTransaction(lucid: LucidEvolution, newDustPKH: string, registrationUtxo: UTxO): Promise<TxSignBuilder> {
-    logger.log('[DustTransactions]', '🔧 Building DUST Address Update Transaction...');
-
-    // Get DUST Generator contract
-    const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
-    const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
-    const dustGeneratorStakeAddress = getStakeAddress(dustGenerator.Script);
-
-    logger.log(
-      '[DustTransactions]',
-      '📋 DUST Generator Address:',
-      toJson({
-        dustGeneratorAddress,
-      })
-    );
-    logger.log(
-      '[DustTransactions]',
-      '📋 DUST Generator Stake Address:',
-      toJson({
-        dustGeneratorStakeAddress,
-      })
-    );
-
-    // Check if stake address is registered
-    logger.log('[DustTransactions]', '🔍 Checking stake address registration...');
-    const isStakeRegistered = await this.checkStakeAddressRegistration(dustGeneratorStakeAddress);
-
-    if (!isStakeRegistered) {
-      logger.log('[DustTransactions]', '❌ Stake address not registered - doing registration transaction...');
-      return this.buildStakeRegistrationOnlyTransaction(lucid);
     } else {
-      logger.log('[DustTransactions]', '✅ Stake address already registered - doing update transaction...');
-      return this.buildUpdateOnlyTransaction(lucid, newDustPKH, registrationUtxo);
+      throw new Error(`Failed to check stake address registration: Blockfrost returned ${response.status}`);
     }
   }
 
@@ -556,20 +508,78 @@ export class DustTransactionsUtils {
   }
 
   /**
-   * Create a transaction executor for DUST update - Pure function
+   * Wait for a transaction to be confirmed on-chain via Blockfrost polling.
+   */
+  private static async awaitTxConfirmation(txHash: string, maxDurationMs = 120000): Promise<void> {
+    const startTime = Date.now();
+    const INITIAL_INTERVAL_MS = 3000;
+    const MAX_INTERVAL_MS = 15000;
+    const BACKOFF_MULTIPLIER = 1.5;
+    let attempt = 0;
+
+    while (Date.now() - startTime < maxDurationMs) {
+      attempt++;
+      try {
+        const response = await fetch(`/api/blockfrost/txs/${txHash}`);
+        if (response.ok) {
+          const txInfo = await response.json();
+          if (txInfo && !txInfo.error) {
+            logger.log('[DustTransactions]', `Transaction ${txHash} confirmed after ${attempt} attempts`);
+            return;
+          }
+        }
+      } catch {
+        // continue polling
+      }
+      const interval = Math.min(INITIAL_INTERVAL_MS * Math.pow(BACKOFF_MULTIPLIER, attempt - 1), MAX_INTERVAL_MS);
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
+    throw new Error(`Transaction ${txHash} not confirmed after ${maxDurationMs / 1000}s`);
+  }
+
+  /**
+   * Create a transaction executor for DUST update.
+   * If the script stake address is not yet registered, performs a two-step flow:
+   *   1. Submit stake registration tx, wait for confirmation
+   *   2. Submit the actual update tx
+   * The user signs twice but only clicks "Change Address" once.
    */
   static createUpdateExecutor(lucid: LucidEvolution, newDustPKH: string, registrationUtxo: UTxO) {
     return async (params: Record<string, unknown>, onProgress?: (step: string, progress: number) => void): Promise<string> => {
-      // Step 1: Build transaction
-      onProgress?.('Preparing update transaction...', 20);
-      const completedTx = await DustTransactionsUtils.buildUpdateTransaction(lucid, newDustPKH, registrationUtxo);
+      // Check if stake registration is needed
+      const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
+      const dustGeneratorStakeAddress = getStakeAddress(dustGenerator.Script);
+      const isStakeRegistered = await DustTransactionsUtils.checkStakeAddressRegistration(dustGeneratorStakeAddress);
 
-      // Step 2: Sign and submit transaction
-      onProgress?.('Signing update transaction...', 40);
+      if (!isStakeRegistered) {
+        // Step 1a: Build, sign, and submit stake registration
+        onProgress?.('Registering stake address...', 10);
+        logger.log('[DustTransactions]', '📝 Stake not registered — submitting registration first...');
+        const stakeRegTx = await DustTransactionsUtils.buildStakeRegistrationOnlyTransaction(lucid);
+
+        onProgress?.('Signing stake registration...', 15);
+        const signedStakeRegTx = await stakeRegTx.sign.withWallet().complete();
+
+        onProgress?.('Submitting stake registration...', 20);
+        const stakeRegTxHash = await signedStakeRegTx.submit();
+        logger.log('[DustTransactions]', '📤 Stake registration submitted:', stakeRegTxHash);
+
+        // Step 1b: Wait for stake registration to confirm
+        onProgress?.('Waiting for stake registration confirmation...', 25);
+        await DustTransactionsUtils.awaitTxConfirmation(stakeRegTxHash);
+        logger.log('[DustTransactions]', '✅ Stake registration confirmed');
+      }
+
+      // Step 2: Build the actual update transaction
+      onProgress?.('Preparing update transaction...', 40);
+      const completedTx = await DustTransactionsUtils.buildUpdateOnlyTransaction(lucid, newDustPKH, registrationUtxo);
+
+      // Step 3: Sign and submit update transaction
+      onProgress?.('Signing update transaction...', 60);
       logger.log('[DustTransactions]', '✍️ Signing update transaction...');
       const signedTx = await completedTx.sign.withWallet().complete();
 
-      onProgress?.('Submitting update transaction...', 60);
+      onProgress?.('Submitting update transaction...', 80);
       logger.log('[DustTransactions]', '📤 Submitting update transaction...');
       const txHash = await signedTx.submit();
 
