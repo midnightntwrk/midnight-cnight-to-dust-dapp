@@ -123,17 +123,13 @@ describe('RuntimeConfigContext', () => {
     it('should build transaction URL', () => {
       const wrapper = makeWrapper({ CARDANO_NET: 'Preview' });
       const { result } = renderHook(() => useRuntimeConfig(), { wrapper });
-      expect(result.current.getCardanoScanUrl('transaction', 'tx123')).toBe(
-        'https://preview.cexplorer.io/tx/tx123'
-      );
+      expect(result.current.getCardanoScanUrl('transaction', 'tx123')).toBe('https://preview.cexplorer.io/tx/tx123');
     });
 
     it('should build address URL', () => {
       const wrapper = makeWrapper({ CARDANO_NET: 'Preview' });
       const { result } = renderHook(() => useRuntimeConfig(), { wrapper });
-      expect(result.current.getCardanoScanUrl('address', 'addr123')).toBe(
-        'https://preview.cexplorer.io/addr/addr123'
-      );
+      expect(result.current.getCardanoScanUrl('address', 'addr123')).toBe('https://preview.cexplorer.io/addr/addr123');
     });
 
     it('should build policy URL', () => {
