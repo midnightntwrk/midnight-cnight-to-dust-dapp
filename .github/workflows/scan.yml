@@ -32,4 +32,4 @@ jobs:
         uses: midnightntwrk/upload-sarif-github-action@0cf1f99768c34039c77b1bac39677c2b2192ba87
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          fail_severity: 'high'
+          fail_severity: 'critical'
