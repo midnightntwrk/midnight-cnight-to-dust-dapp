@@ -6,6 +6,7 @@ import InfoIcon from '@/assets/icons/info.svg';
 import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
 import { Tooltip } from '@heroui/tooltip';
+import { starsToNight } from '@/lib/specksToTDust';
 import pkg from '../../../package.json';
 import Image from 'next/image';
 
@@ -107,7 +108,7 @@ export default function ConnectCardanoCard({
 
                 {/* Balance Info */}
                 <div className="text-gray-400 text-sm">
-                  Balance: <span className="text-white font-medium">{balanceNight} NIGHT</span>
+                  Balance: <span className="text-white font-medium">{balanceNight ? starsToNight(balanceNight) : '0'} NIGHT</span>
                 </div>
 
                 {/* Wallet Info */}

@@ -1,6 +1,7 @@
 'use client';
 
 import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/contexts/WalletContext';
+import { starsToNight } from '@/lib/specksToTDust';
 import { Button } from '@heroui/button';
 import React, { useState } from 'react';
 import WalletsModal from './WalletsModal';
@@ -42,7 +43,7 @@ const ConnectCardanoWallet: React.FC = () => {
             <strong>ADA Balance:</strong> {balanceADA} ADA
           </p>
           <p>
-            <strong>NIGHT Balance:</strong> {balanceNight} NIGHT
+            <strong>NIGHT Balance:</strong> {balanceNight ? starsToNight(balanceNight) : '0'} NIGHT
           </p>
           <p>
             <strong>Address:</strong> {address?.slice(0, 20)}...{address?.slice(-10)}
