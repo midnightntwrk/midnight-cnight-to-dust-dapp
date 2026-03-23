@@ -1,10 +1,28 @@
 import * as Contracts from '@/config/contract_blueprint';
-import { CNIGHT_CURRENCY_ENCODEDNAME, CNIGHT_CURRENCY_POLICY_ID } from '@/config/network';
+import { getRuntimeConfig } from '@/config/runtime-config';
 import { LOVELACE_FOR_REGISTRATION } from '@/config/transactionConstants';
 import { logger } from '@/lib/logger';
 import { toJson } from '@/lib/utils';
 import { getAddressDetails, LucidEvolution, TxSignBuilder, UTxO } from '@lucid-evolution/lucid';
 import { blazeToLucidScript, getPolicyId, getStakeAddress, getValidatorAddress, serializeToCbor } from './contractUtils';
+
+/** Get NIGHT/cNIGHT policy ID and encoded name from runtime config (network-aware, works on client). */
+function getCnightUnitFromConfig(): { policyId: string; encodedName: string; fullUnit: string } {
+  const config = getRuntimeConfig();
+  const policyId =
+    config.CARDANO_NET === 'Mainnet'
+      ? config.MAINNET_CNIGHT_CURRENCY_POLICY_ID
+      : config.CARDANO_NET === 'Preprod'
+        ? config.PREPROD_CNIGHT_CURRENCY_POLICY_ID
+        : config.PREVIEW_CNIGHT_CURRENCY_POLICY_ID;
+  const encodedName =
+    config.CARDANO_NET === 'Mainnet'
+      ? config.MAINNET_CNIGHT_CURRENCY_ENCODEDNAME
+      : config.CARDANO_NET === 'Preprod'
+        ? config.PREPROD_CNIGHT_CURRENCY_ENCODEDNAME
+        : config.PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME;
+  return { policyId, encodedName, fullUnit: policyId + encodedName };
+}
 
 export class DustTransactionsUtils {
   /**
@@ -37,7 +55,8 @@ export class DustTransactionsUtils {
     );
 
     // Find all cNIGHT UTXOs to include as explicit inputs so all cNIGHT rotates
-    const cnightUnit = CNIGHT_CURRENCY_POLICY_ID + CNIGHT_CURRENCY_ENCODEDNAME;
+    const { policyId, encodedName, fullUnit: cnightUnit } = getCnightUnitFromConfig();
+    logger.log('[DustTransactions]', '🪙 NIGHT/cNIGHT token lookup:', toJson({ policyId, encodedName, fullUnit: cnightUnit }));
     const utxos = await lucid.wallet().getUtxos();
     const cnightUtxos = utxos.filter((cNightUtxo) => cNightUtxo.assets[cnightUnit] !== undefined);
 
@@ -198,7 +217,7 @@ export class DustTransactionsUtils {
     );
 
     // Find all cNIGHT UTXOs to include as explicit inputs so all cNIGHT rotates creating this a double transaction = voiding the dust production transaction
-    const cnightUnit = CNIGHT_CURRENCY_POLICY_ID + CNIGHT_CURRENCY_ENCODEDNAME;
+    const { fullUnit: cnightUnit } = getCnightUnitFromConfig();
     const utxos = await lucid.wallet().getUtxos();
     const cnightUtxos = utxos.filter((cNightUtxo) => cNightUtxo.assets[cnightUnit] !== undefined);
 

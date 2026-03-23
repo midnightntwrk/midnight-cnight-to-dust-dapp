@@ -1,13 +1,19 @@
+'use client';
+
 import { Card } from '@heroui/card';
 import { Tooltip } from '@heroui/tooltip';
 import Image from 'next/image';
 import InfoIcon from '@/assets/icons/info.svg';
+import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 
 interface IndexerSyncBannerProps {
   isVisible: boolean;
 }
 
 const IndexerSyncBanner = ({ isVisible }: IndexerSyncBannerProps) => {
+  const { isPreview } = useRuntimeConfig();
+  const durationText = isPreview ? '2.5 hours' : '12 hours';
+
   if (!isVisible) return null;
 
   return (
@@ -43,8 +49,8 @@ const IndexerSyncBanner = ({ isVisible }: IndexerSyncBannerProps) => {
           </div>
           <p className="text-amber-100/80 text-sm leading-relaxed">
             Your registration was successful and recorded on the Cardano blockchain. It may take up to{' '}
-            <span className="font-semibold text-amber-200">12 hours</span> for DUST generation to start on your Midnight
-            address. Once available, your DUST generation details will appear below.
+            <span className="font-semibold text-amber-200">{durationText}</span> for DUST generation to start on your
+            Midnight address. Once available, your DUST generation details will appear below.
           </p>
         </div>
       </div>
