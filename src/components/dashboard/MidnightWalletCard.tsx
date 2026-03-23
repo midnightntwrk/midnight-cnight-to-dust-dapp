@@ -227,11 +227,11 @@ const MidnightWalletCard = () => {
       // Only open success modal if transaction actually succeeded
       if (transactionState === 'success') {
         // Update Midnight wallet state with new address
+        // This changes coinPublicKey, which triggers useRegistrationUtxo's useEffect automatically
         updateMidnightAddress(newAddress, newCoinPublicKey);
 
         transaction.resetTransaction();
         refetchGenerationStatus();
-        findRegistrationUtxo();
       } else {
         logger.error('transactionState:', transactionState);
         throw new Error('transactionState:' + transactionState);
