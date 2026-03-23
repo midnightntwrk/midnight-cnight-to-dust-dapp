@@ -59,6 +59,7 @@ const ALLOWED_ORIGINS = [
   'https://dust.preview.midnight.network',
   'https://dust.preprod.midnight.network',
   'https://dust.midnight.network',
+  'https://dust.mainnet.midnight.network',
   process.env.NEXT_PUBLIC_PRODUCTION_URL,
 ].filter((origin): origin is string => Boolean(origin));
 
