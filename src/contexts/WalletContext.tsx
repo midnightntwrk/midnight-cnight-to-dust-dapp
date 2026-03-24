@@ -7,7 +7,12 @@ import { CardanoNetwork } from '@/config/runtime-config';
 import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 import { useGenerationStatus } from '@/hooks/useGenerationStatus';
 import { useRegistrationUtxo } from '@/hooks/useRegistrationUtxo';
-import { getTotalOfUnitInUTxOList, getDustAddressBytes, getDustAddressFromBytes, validateDustAddress } from '@/lib/utils';
+import {
+  getTotalOfUnitInUTxOList,
+  getDustAddressBytes,
+  getDustAddressFromBytes,
+  validateDustAddress,
+} from '@/lib/utils';
 import { Network, ProtocolParameters, UTxO } from '@lucid-evolution/lucid';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { createContext, ReactNode, useContext, useEffect, useRef, useState, useCallback } from 'react';
@@ -124,7 +129,15 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { config, currentNetwork, isMainnet, isTestnet, getCnightPolicyId, getCnightEncodedName, isLoading: isConfigLoading } = useRuntimeConfig();
+  const {
+    config,
+    currentNetwork,
+    isMainnet,
+    isTestnet,
+    getCnightPolicyId,
+    getCnightEncodedName,
+    isLoading: isConfigLoading,
+  } = useRuntimeConfig();
 
   // Cardano wallet state
   const [cardanoState, setCardanoState] = useState<CardanoWalletState>({
@@ -328,11 +341,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       Object.entries(window.midnight).forEach(([uuid, walletInfo]) => {
         if (!walletInfo || !walletInfo.name) return;
 
-        // Only include wallets that support the Midnight API (connect method).
-        // Cardano wallets (e.g. Eternl) may register under window.midnight
-        // but use enable() instead of connect() — skip those.
-        if (typeof walletInfo.connect !== 'function') return;
-
         wallets.push({
           uuid,
           name: walletInfo.name,
@@ -390,9 +398,9 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       logger.log('[Wallet]', 'Connecting to Midnight network:', { cardanoNetwork, midnightNetwork });
 
       // Connect to Midnight wallet using the new API (v4+)
-      if (!walletObj || typeof walletObj.connect !== 'function') {
+      if (!walletObj) {
         throw new Error(
-          'Midnight wallet does not support the connect() method. Please ensure you are using a compatible wallet version.'
+          `${wallet.name} Midnight wallet not found. Please ensure it is installed and enabled.`
         );
       }
 
@@ -490,8 +498,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         // Don't throw - balance is optional for connection
       }
 
-      // Use Dust address as the main address for this wallet connection
-      const address = dustAddress;
       logger.log('[Wallet]', '✅ Final Midnight wallet data:', {
         address: dustAddress,
         coinPublicKey,
@@ -654,9 +660,9 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       // Auto-reconnect Midnight wallet by rdns
       const savedMidnightRdns = localStorage.getItem('connectedMidnightWallet');
       if (savedMidnightRdns && window.midnight && isMountedRef.current) {
-        // Find a wallet entry matching the saved rdns that supports the Midnight API
+        // Find a wallet entry matching the saved rdns
         const entry = Object.entries(window.midnight).find(
-          ([, info]) => info && typeof info.connect === 'function' && (info.rdns === savedMidnightRdns || info.name === savedMidnightRdns)
+          ([, info]) => info && (info.rdns === savedMidnightRdns || info.name === savedMidnightRdns)
         );
         if (entry) {
           const [uuid, info] = entry;
@@ -686,7 +692,13 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   // Auto-populate Midnight state from on-chain registration when Midnight wallet isn't connected
   // This allows the app to detect existing registrations without requiring the user to pair again
   useEffect(() => {
-    if (registrationUtxo && registrationDustPKH && !midnightState.isConnected && !midnightState.isRegisteredOnChain && !midnightState.coinPublicKey) {
+    if (
+      registrationUtxo &&
+      registrationDustPKH &&
+      !midnightState.isConnected &&
+      !midnightState.isRegisteredOnChain &&
+      !midnightState.coinPublicKey
+    ) {
       // Reconstruct the bech32m dust address from the on-chain PKH bytes
       const networkId = currentNetwork === 'Mainnet' ? 'mainnet' : currentNetwork.toLowerCase();
       const reconstructedAddress = getDustAddressFromBytes(registrationDustPKH, networkId);
@@ -697,7 +709,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       setMidnightState({
         isConnected: false,
         isRegisteredOnChain: true,
-        address: reconstructedAddress,
+        address: reconstructedAddress ?? null,
         coinPublicKey: registrationDustPKH,
         balance: null,
         walletName: null,
@@ -708,7 +720,13 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         dustBalance: null,
       });
     }
-  }, [registrationUtxo, registrationDustPKH, midnightState.isConnected, midnightState.isRegisteredOnChain, midnightState.coinPublicKey]);
+  }, [
+    registrationUtxo,
+    registrationDustPKH,
+    midnightState.isConnected,
+    midnightState.isRegisteredOnChain,
+    midnightState.coinPublicKey,
+  ]);
 
   // Centralized redirect logic based on registration status
   useEffect(() => {

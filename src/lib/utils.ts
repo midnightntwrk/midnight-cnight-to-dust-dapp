@@ -98,8 +98,8 @@ export const extractCoinPublicKeyFromMidnightAddress = (address: string): string
  */
 export const getDustAddressFromBytes = (hexString: string, networkId: NetworkId): string | null => {
   try {
-    const data = BigInt('0x' + hexString);
-    const dustAddress = new DustAddress(data);
+    const buffer = Buffer.from(hexString, 'hex');
+    const dustAddress = DustAddress.codec.dataFromBytes(buffer);
     const encoded = MidnightBech32m.encode(networkId, dustAddress);
     return encoded.asString();
   } catch (error) {
