@@ -29,6 +29,7 @@ export default function Onboard() {
     setManualMidnightAddress,
     refetchGenerationStatus,
     pollRegistrationUtxo,
+    refreshCardanoBalance,
   } = useWalletContext();
 
   const [isCardanoModalOpen, setIsCardanoModalOpen] = useState(false);
@@ -80,6 +81,7 @@ export default function Onboard() {
       if (transactionState === 'success') {
         const txHash = transaction.txHash ?? undefined;
         transaction.resetTransaction();
+        refreshCardanoBalance();
         refetchGenerationStatus();
         // Redirect to dashboard immediately - user sees "Loading registration UTXO..." while we poll.
         // On mainnet, Blockfrost address index can lag; txs/{hash}/utxos is faster when txHash is known.
