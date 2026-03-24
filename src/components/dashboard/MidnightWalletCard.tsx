@@ -336,10 +336,9 @@ const MidnightWalletCard = () => {
         </div>
       </div>
 
-      <div className="flex z-10 mt-4 gap-4">
-        {midnight.isConnected || midnight.isRegisteredOnChain ? (
-          // Registered (via wallet or on-chain): Show update and stop buttons
-          <>
+      <div className="flex flex-col z-10 mt-4 gap-3">
+        {(midnight.isConnected || midnight.isRegisteredOnChain) && (
+          <div className="flex gap-4">
             <Button
               className="bg-brand-primary hover:bg-brand-primary-hover text-white w-full py-2 text-sm disabled:bg-gray-600 disabled:text-gray-400"
               radius="md"
@@ -376,9 +375,9 @@ const MidnightWalletCard = () => {
                   ? 'NO REGISTRATION FOUND'
                   : 'STOP GENERATION'}
             </Button>
-          </>
-        ) : (
-          // Not connected and no on-chain registration: Show connect button
+          </div>
+        )}
+        {!midnight.isConnected && !midnight.isRegisteredOnChain && (
           <Button
             className="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 text-sm"
             radius="md"
