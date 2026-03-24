@@ -156,15 +156,10 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
           return hasAuthToken && hasInlineDatum;
         });
 
-        logger.log('[RegistrationUtxo]', `🔍 Found ${validUtxos.length} valid UTXOs with auth token and inline datum`);
+        logger.log('[RegistrationUtxo]', `🔍 Found ${validUtxos.length} UTXOs at validator address with auth token (all users, pre-filter)`);
 
         if (validUtxos.length === 0) {
           return null;
-        }
-
-        // Warn if multiple registration UTXOs found — one Cardano address should only map to one dust address
-        if (validUtxos.length > 1) {
-          logger.warn('[RegistrationUtxo]', `⚠️ Found ${validUtxos.length} registration UTXOs for this address. Expected at most 1. Using the first match.`);
         }
 
         // Import Lucid for datum deserialization
