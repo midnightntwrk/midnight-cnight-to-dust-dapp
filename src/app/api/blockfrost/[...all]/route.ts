@@ -4,6 +4,24 @@ import { getServerRuntimeConfig } from '@/config/runtime-config';
 import { NETWORKS } from '@/lib/contractUtils';
 import { addSecurityHeaders } from '@/lib/cors';
 
+// Fail fast: validate Blockfrost env vars at module load
+(function validateBlockfrostEnv() {
+  const config = getServerRuntimeConfig();
+  const network = config.CARDANO_NET;
+  const keyVar =
+    network === 'Mainnet'
+      ? 'BLOCKFROST_KEY_MAINNET'
+      : network === 'Preprod'
+        ? 'BLOCKFROST_KEY_PREPROD'
+        : 'BLOCKFROST_KEY_PREVIEW';
+
+  if (!process.env[keyVar]) {
+    const msg = `[BlockfrostProxy] Missing required environment variable: ${keyVar} (CARDANO_NET=${network})`;
+    logger.error(msg);
+    throw new Error(msg);
+  }
+})();
+
 // OPTIMIZATION: In-memory cache for Blockfrost API responses
 // This reduces duplicate API calls by caching responses for a short period
 interface CacheEntry {
@@ -198,12 +216,15 @@ async function handleRequest(request: NextRequest) {
     // Standard proxy to Blockfrost using native fetch
     const targetUrl = `${target}${blockfrostPath}${search}`;
 
-    // CACHE OPTIMIZATION: Only cache GET requests
+    // CACHE OPTIMIZATION: Only cache GET requests, skip UTxO endpoints
+    // UTxO queries must always be fresh for registration polling (pollUntilFound)
     const isGetRequest = request.method === 'GET';
+    const isUtxoQuery = /\/(utxos|txs\/[a-f0-9]+\/utxos)/.test(blockfrostPath);
+    const isCacheable = isGetRequest && !isUtxoQuery;
     const cacheKey = `${request.method}:${targetUrl}`;
 
-    // Check cache for GET requests
-    if (isGetRequest) {
+    // Check cache for cacheable requests
+    if (isCacheable) {
       const now = Date.now();
       const cachedEntry = cache.get(cacheKey);
 
@@ -274,14 +295,14 @@ async function handleRequest(request: NextRequest) {
     });
 
     // Add cache status header
-    responseHeaders.set('X-Cache', isGetRequest ? 'MISS' : 'BYPASS');
+    responseHeaders.set('X-Cache', isCacheable ? 'MISS' : 'BYPASS');
 
     // Add CORS and security headers
     addCorsHeaders(responseHeaders, origin);
     addSecurityHeaders(responseHeaders);
 
-    // CACHE OPTIMIZATION: Store successful GET responses in cache
-    if (isGetRequest && fetchResponse.ok) {
+    // CACHE OPTIMIZATION: Store successful cacheable responses in cache
+    if (isCacheable && fetchResponse.ok) {
       // Clone response to read body without consuming the original stream
       const responseClone = fetchResponse.clone();
       const responseBody = await responseClone.arrayBuffer();
