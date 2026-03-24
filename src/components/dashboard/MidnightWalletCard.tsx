@@ -337,8 +337,8 @@ const MidnightWalletCard = () => {
       </div>
 
       <div className="flex z-10 mt-4 gap-4">
-        {midnight.isConnected ? (
-          // Connected: Show update and stop buttons
+        {midnight.isConnected || midnight.isRegisteredOnChain ? (
+          // Registered (via wallet or on-chain): Show update and stop buttons
           <>
             <Button
               className="bg-brand-primary hover:bg-brand-primary-hover text-white w-full py-2 text-sm disabled:bg-gray-600 disabled:text-gray-400"
@@ -378,7 +378,7 @@ const MidnightWalletCard = () => {
             </Button>
           </>
         ) : (
-          // Not connected: Show connect button
+          // Not connected and no on-chain registration: Show connect button
           <Button
             className="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 text-sm"
             radius="md"
