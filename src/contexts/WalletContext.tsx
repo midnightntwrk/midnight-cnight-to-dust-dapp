@@ -7,7 +7,12 @@ import { CardanoNetwork } from '@/config/runtime-config';
 import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 import { useGenerationStatus } from '@/hooks/useGenerationStatus';
 import { useRegistrationUtxo } from '@/hooks/useRegistrationUtxo';
-import { getTotalOfUnitInUTxOList, getDustAddressBytes, validateDustAddress } from '@/lib/utils';
+import {
+  getTotalOfUnitInUTxOList,
+  getDustAddressBytes,
+  getDustAddressFromBytes,
+  validateDustAddress,
+} from '@/lib/utils';
 import { Network, ProtocolParameters, UTxO } from '@lucid-evolution/lucid';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { createContext, ReactNode, useContext, useEffect, useRef, useState, useCallback } from 'react';
@@ -124,7 +129,15 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { config, currentNetwork, isMainnet, isTestnet, getCnightPolicyId, getCnightEncodedName, isLoading: isConfigLoading } = useRuntimeConfig();
+  const {
+    config,
+    currentNetwork,
+    isMainnet,
+    isTestnet,
+    getCnightPolicyId,
+    getCnightEncodedName,
+    isLoading: isConfigLoading,
+  } = useRuntimeConfig();
 
   // Cardano wallet state
   const [cardanoState, setCardanoState] = useState<CardanoWalletState>({
@@ -385,7 +398,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       logger.log('[Wallet]', 'Connecting to Midnight network:', { cardanoNetwork, midnightNetwork });
 
       // Connect to Midnight wallet using the new API (v4+)
-      if (!walletObj || typeof walletObj.connect !== 'function') {
+      if (!walletObj) {
         throw new Error(
           'Midnight wallet does not support the connect() method. Please ensure you are using a compatible wallet version.'
         );
@@ -485,8 +498,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         // Don't throw - balance is optional for connection
       }
 
-      // Use Dust address as the main address for this wallet connection
-      const address = dustAddress;
       logger.log('[Wallet]', '✅ Final Midnight wallet data:', {
         address: dustAddress,
         coinPublicKey,
@@ -681,14 +692,24 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   // Auto-populate Midnight state from on-chain registration when Midnight wallet isn't connected
   // This allows the app to detect existing registrations without requiring the user to pair again
   useEffect(() => {
-    if (registrationUtxo && registrationDustPKH && !midnightState.isConnected && !midnightState.isRegisteredOnChain && !midnightState.coinPublicKey) {
+    if (
+      registrationUtxo &&
+      registrationDustPKH &&
+      !midnightState.isConnected &&
+      !midnightState.isRegisteredOnChain &&
+      !midnightState.coinPublicKey
+    ) {
+      // Reconstruct the bech32m dust address from the on-chain PKH bytes
+      const networkId = currentNetwork === 'Mainnet' ? 'mainnet' : currentNetwork.toLowerCase();
+      const reconstructedAddress = getDustAddressFromBytes(registrationDustPKH, networkId);
       logger.log('[Wallet]', '🔗 Found existing on-chain registration, populating Midnight state from datum', {
         registrationDustPKH,
+        reconstructedAddress,
       });
       setMidnightState({
         isConnected: false,
         isRegisteredOnChain: true,
-        address: null, // We don't have the bech32m address from the datum, only the PKH
+        address: reconstructedAddress ?? null,
         coinPublicKey: registrationDustPKH,
         balance: null,
         walletName: null,
@@ -699,7 +720,13 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         dustBalance: null,
       });
     }
-  }, [registrationUtxo, registrationDustPKH, midnightState.isConnected, midnightState.isRegisteredOnChain, midnightState.coinPublicKey]);
+  }, [
+    registrationUtxo,
+    registrationDustPKH,
+    midnightState.isConnected,
+    midnightState.isRegisteredOnChain,
+    midnightState.coinPublicKey,
+  ]);
 
   // Centralized redirect logic based on registration status
   useEffect(() => {
