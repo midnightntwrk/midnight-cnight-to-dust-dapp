@@ -400,7 +400,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       // Connect to Midnight wallet using the new API (v4+)
       if (!walletObj) {
         throw new Error(
-          `${wallet.name} Midnight wallet not found. Please ensure it is installed and enabled.`
+          'Midnight wallet does not support the connect() method. Please ensure you are using a compatible wallet version.'
         );
       }
 
