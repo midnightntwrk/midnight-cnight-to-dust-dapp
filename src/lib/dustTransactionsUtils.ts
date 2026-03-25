@@ -420,9 +420,16 @@ export class DustTransactionsUtils {
       }
     );
 
-    // Zero-value withdrawal from script stake address for authorization
-    logger.log('[DustTransactions]', '🔑 Adding withdrawal for script authorization:', dustGeneratorStakeAddress);
-    txBuilder.withdraw(dustGeneratorStakeAddress, 0n, Data.void());
+    // Query actual rewards for the script stake address, then withdraw the exact amount
+    // Protocol requires withdrawals to consume rewards in full (cannot be partial or zero if rewards exist)
+    const rewardsResponse = await fetch(`/api/blockfrost/accounts/${dustGeneratorStakeAddress}`);
+    let withdrawalAmount = 0n;
+    if (rewardsResponse.ok) {
+      const accountInfo = await rewardsResponse.json();
+      withdrawalAmount = BigInt(accountInfo.withdrawable_amount || '0');
+    }
+    logger.log('[DustTransactions]', '🔑 Adding withdrawal for script authorization:', dustGeneratorStakeAddress, 'amount:', withdrawalAmount.toString());
+    txBuilder.withdraw(dustGeneratorStakeAddress, withdrawalAmount, Data.void());
     txBuilder.attach.WithdrawalValidator(blazeToLucidScript(dustGenerator.Script));
 
     // Add signers: payment address + stake address
