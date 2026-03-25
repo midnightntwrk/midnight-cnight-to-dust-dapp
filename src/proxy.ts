@@ -15,7 +15,7 @@ function safeCompare(a: string, b: string): boolean {
  * Optional HTTP Basic Auth. Enabled only when BASIC_AUTH_PASSWORD is set.
  * Remove or leave unset to disable. Use any username; only the password is checked.
  */
-export function proxy(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const password = process.env.BASIC_AUTH_PASSWORD;
   const GTM_INLINE_SCRIPT_HASH = 'zjP2BXYgSCCnXNMXI2IL1yRydoQdsGR/uCCr6kyKsD0=';
   const nonce = randomBytes(16).toString('base64');
