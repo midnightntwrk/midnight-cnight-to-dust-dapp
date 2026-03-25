@@ -4,8 +4,8 @@ import { getServerRuntimeConfig } from '@/config/runtime-config';
 import { NETWORKS } from '@/lib/contractUtils';
 import { addSecurityHeaders } from '@/lib/cors';
 
-// Fail fast: validate Blockfrost env vars at module load
-(function validateBlockfrostEnv() {
+// Validate Blockfrost env vars at request time (not module load, where env may not be ready)
+function validateBlockfrostEnv() {
   const config = getServerRuntimeConfig();
   const network = config.CARDANO_NET;
   const keyVar =
@@ -20,7 +20,7 @@ import { addSecurityHeaders } from '@/lib/cors';
     logger.error(msg);
     throw new Error(msg);
   }
-})();
+}
 
 // OPTIMIZATION: In-memory cache for Blockfrost API responses
 // This reduces duplicate API calls by caching responses for a short period
@@ -166,6 +166,7 @@ export async function PATCH(request: NextRequest) {
 }
 
 async function handleRequest(request: NextRequest) {
+  validateBlockfrostEnv();
   const startTime = Date.now();
   const origin = request.headers.get('origin');
 
