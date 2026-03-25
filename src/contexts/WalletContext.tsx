@@ -329,12 +329,12 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     localStorage.removeItem('connectedCardanoWallet');
   };
 
-  // Auto-refresh Cardano balance on an interval while connected
+  // Auto-refresh dashboard data on an interval while connected
   useEffect(() => {
     const lucid = cardanoState.lucid as import('@lucid-evolution/lucid').LucidEvolution | null;
     if (!lucid || !cardanoState.isConnected) return;
 
-    const refreshBalance = async () => {
+    const refreshDashboard = async () => {
       try {
         const utxos = await lucid.wallet().getUtxos();
 
@@ -352,14 +352,37 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           balanceADA: balanceInAdaStr,
           balanceNight: balanceNightStr,
         }));
+
+        // Refresh DUST balance from Midnight wallet if connected
+        const api = midnightState.api as Record<string, unknown> | null;
+        if (api && typeof api.getDustBalance === 'function') {
+          try {
+            const result = await api.getDustBalance();
+            setMidnightState((prev) => ({
+              ...prev,
+              dustBalance: result.balance.toString(),
+            }));
+          } catch {
+            // Non-blocking — DUST balance is optional
+          }
+        }
+
+        refetchGenerationStatus();
       } catch (error) {
-        logger.error('[Wallet]', 'Failed to refresh balance:', error);
+        logger.error('[Wallet]', 'Failed to refresh dashboard:', error);
       }
     };
 
-    const interval = setInterval(refreshBalance, 30000);
+    const interval = setInterval(refreshDashboard, 30000);
     return () => clearInterval(interval);
-  }, [cardanoState.lucid, cardanoState.isConnected, getCnightPolicyId, getCnightEncodedName]);
+  }, [
+    cardanoState.lucid,
+    cardanoState.isConnected,
+    midnightState.api,
+    getCnightPolicyId,
+    getCnightEncodedName,
+    refetchGenerationStatus,
+  ]);
 
   // Midnight wallet methods
   const getAvailableMidnightWallets = (): SupportedMidnightWallet[] => {
