@@ -45,7 +45,6 @@ const MidnightWalletCard = () => {
     disconnectMidnightWallet,
     disconnectCardanoWallet,
     updateMidnightAddress,
-    refreshCardanoBalance,
   } = useWalletContext();
 
   // Check if indexer has synced
@@ -230,7 +229,6 @@ const MidnightWalletCard = () => {
         updateMidnightAddress(newAddress, newCoinPublicKey);
 
         transaction.resetTransaction();
-        refreshCardanoBalance();
         refetchGenerationStatus();
       } else {
         logger.error('transactionState:', transactionState);

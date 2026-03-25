@@ -124,7 +124,7 @@ describe('GenerationRateCard', () => {
     expect(screen.getByText('converted_5000000000000000')).toBeDefined();
     unmount();
 
-    // Re-render with 2 NIGHT (simulating refreshCardanoBalance updating the context)
+    // Re-render with 2 NIGHT (simulating auto-refresh polling updating the context)
     mockWalletContext.cardano.balanceNight = '2000000'; // 2 NIGHT in stars
     render(React.createElement(GenerationRateCard));
     // CAP = 2000000 * 5 * (10^15 / 10^6) = 10000000000000000
