@@ -168,7 +168,6 @@ const MidnightWalletCard = () => {
       // Only open success modal if transaction actually succeeded
       if (transactionState === 'success') {
         transaction.resetTransaction();
-        refreshCardanoBalance();
         handleDisconnect();
       } else {
         logger.error('transactionState:', transactionState);
