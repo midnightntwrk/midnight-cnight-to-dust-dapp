@@ -115,4 +115,19 @@ describe('GenerationRateCard', () => {
     const dustLabels = screen.getAllByText('DUST');
     expect(dustLabels.length).toBeGreaterThanOrEqual(1);
   });
+
+  it('should update CAP when balanceNight changes (simulates balance refresh)', () => {
+    // Initial render with 1 NIGHT
+    mockWalletContext.cardano.balanceNight = '1000000'; // 1 NIGHT in stars
+    const { unmount } = render(React.createElement(GenerationRateCard));
+    // CAP = 1000000 * 5 * (10^15 / 10^6) = 5000000000000000
+    expect(screen.getByText('converted_5000000000000000')).toBeDefined();
+    unmount();
+
+    // Re-render with 2 NIGHT (simulating auto-refresh polling updating the context)
+    mockWalletContext.cardano.balanceNight = '2000000'; // 2 NIGHT in stars
+    render(React.createElement(GenerationRateCard));
+    // CAP = 2000000 * 5 * (10^15 / 10^6) = 10000000000000000
+    expect(screen.getByText('converted_10000000000000000')).toBeDefined();
+  });
 });
