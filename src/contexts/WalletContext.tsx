@@ -275,16 +275,16 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       logger.log('[Wallet]', `🎯 Stake Address (bech32): ${stakeAddressBech32}`);
       logger.log('[Wallet]', '🔑 ================================================');
 
+      // Fetch initial balances
       const utxos = await lucid.wallet().getUtxos();
 
       const tokenNightPolicy = getCnightPolicyId();
       const tokenNightEncodedName = getCnightEncodedName();
 
       const balanceNight = getTotalOfUnitInUTxOList(tokenNightPolicy + tokenNightEncodedName, utxos);
-      // cNIGHT/NIGHT has 0 decimals, so no division needed (unlike ADA which has 6 decimals)
+      // Raw value is in Stars (1 NIGHT = 10^6 Stars). Display conversion happens in specksToTDust.ts
       const balanceNightStr = Number(balanceNight).toString();
 
-      // Calculate balance (sum of all UTxOs)
       const balanceLovelace = utxos.reduce((acc, utxo) => acc + (utxo.assets?.lovelace || BigInt(0)), BigInt(0));
       const balanceInAdaStr = (Number(balanceLovelace) / 1_000_000).toFixed(6);
 
@@ -296,7 +296,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         balanceADA: balanceInAdaStr,
         balanceNight: balanceNightStr,
         walletName,
-        lucid, // from this variable we will execute all tx
+        lucid,
         isLoading: false,
         error: null,
       });
@@ -328,6 +328,38 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     });
     localStorage.removeItem('connectedCardanoWallet');
   };
+
+  // Auto-refresh Cardano balance on an interval while connected
+  useEffect(() => {
+    const lucid = cardanoState.lucid as import('@lucid-evolution/lucid').LucidEvolution | null;
+    if (!lucid || !cardanoState.isConnected) return;
+
+    const refreshBalance = async () => {
+      try {
+        const utxos = await lucid.wallet().getUtxos();
+
+        const tokenNightPolicy = getCnightPolicyId();
+        const tokenNightEncodedName = getCnightEncodedName();
+
+        const balanceNight = getTotalOfUnitInUTxOList(tokenNightPolicy + tokenNightEncodedName, utxos);
+        const balanceNightStr = Number(balanceNight).toString();
+
+        const balanceLovelace = utxos.reduce((acc, utxo) => acc + (utxo.assets?.lovelace || BigInt(0)), BigInt(0));
+        const balanceInAdaStr = (Number(balanceLovelace) / 1_000_000).toFixed(6);
+
+        setCardanoState((prev) => ({
+          ...prev,
+          balanceADA: balanceInAdaStr,
+          balanceNight: balanceNightStr,
+        }));
+      } catch (error) {
+        logger.error('[Wallet]', 'Failed to refresh balance:', error);
+      }
+    };
+
+    const interval = setInterval(refreshBalance, 30000);
+    return () => clearInterval(interval);
+  }, [cardanoState.lucid, cardanoState.isConnected, getCnightPolicyId, getCnightEncodedName]);
 
   // Midnight wallet methods
   const getAvailableMidnightWallets = (): SupportedMidnightWallet[] => {

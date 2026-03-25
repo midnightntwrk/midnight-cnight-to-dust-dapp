@@ -168,8 +168,6 @@ const MidnightWalletCard = () => {
       if (transactionState === 'success') {
         transaction.resetTransaction();
         handleDisconnect();
-        // refetchGenerationStatus();
-        // findRegistrationUtxo();
       } else {
         logger.error('transactionState:', transactionState);
         throw new Error('transactionState:' + transactionState);
