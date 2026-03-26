@@ -882,25 +882,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     pollRegistrationUtxo,
   };
 
-  // TEMPORARY: Expose test helper for creating replicate registrations from browser console
-  // Usage: window.__testCreateReplicate()
-  // Remove before production!
-  if (typeof window !== 'undefined') {
-    (window as unknown as Record<string, unknown>).__testCreateReplicate = async () => {
-      if (!cardanoState.lucid || !midnightState.coinPublicKey) {
-        console.error('Need connected Cardano wallet + Midnight address');
-        return;
-      }
-      const { DustTransactionsUtils } = await import('@/lib/dustTransactionsUtils');
-      const executor = DustTransactionsUtils.createRegistrationExecutor(
-        cardanoState.lucid as import('@lucid-evolution/lucid').LucidEvolution,
-        midnightState.coinPublicKey
-      );
-      const txHash = await executor({});
-      console.log('Replicate registration submitted:', txHash);
-      return txHash;
-    };
-  }
 
   return <WalletContext.Provider value={contextValue}>{children}</WalletContext.Provider>;
 };
