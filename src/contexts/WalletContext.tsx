@@ -115,6 +115,7 @@ interface WalletContextType {
   refetchGenerationStatus: () => void;
   // Registration UTXO state
   registrationUtxo: UTxO | null;
+  replicateUtxos: UTxO[];
   isLoadingRegistrationUtxo: boolean;
   registrationUtxoError: string | null;
   // Registration UTXO methods
@@ -188,6 +189,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const {
     registrationUtxo,
     registrationDustPKH,
+    replicateUtxos,
     isLoadingRegistrationUtxo,
     registrationUtxoError,
     refetch: findRegistrationUtxo,
@@ -368,6 +370,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         }
 
         refetchGenerationStatus();
+        findRegistrationUtxo();
       } catch (error) {
         logger.error('[Wallet]', 'Failed to refresh dashboard:', error);
       }
@@ -382,6 +385,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     getCnightPolicyId,
     getCnightEncodedName,
     refetchGenerationStatus,
+    findRegistrationUtxo,
   ]);
 
   // Midnight wallet methods
@@ -871,11 +875,13 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     registrationError,
     refetchGenerationStatus,
     registrationUtxo,
+    replicateUtxos,
     isLoadingRegistrationUtxo,
     registrationUtxoError,
     findRegistrationUtxo,
     pollRegistrationUtxo,
   };
+
 
   return <WalletContext.Provider value={contextValue}>{children}</WalletContext.Provider>;
 };
