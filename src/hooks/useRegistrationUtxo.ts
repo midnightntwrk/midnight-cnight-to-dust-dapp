@@ -306,7 +306,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
   }, [searchRegistrationUtxo]);
 
   const refetch = async () => {
-    if (cardanoAddress && dustPKH) {
+    if (cardanoAddress) {
       await findRegistrationUtxo();
     }
   };

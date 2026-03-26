@@ -5,8 +5,7 @@ import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/co
 import { Accordion, AccordionItem } from '@heroui/accordion';
 import { Tooltip } from '@heroui/tooltip';
 import Image from 'next/image';
-import { useState } from 'react';
-import { useTransaction } from '@/contexts/TransactionContext';
+import React, { useState } from 'react';
 import { DustTransactionsUtils } from '@/lib/dustTransactionsUtils';
 import { logger } from '@/lib/logger';
 import { LucidEvolution, UTxO } from '@lucid-evolution/lucid';
@@ -34,36 +33,37 @@ export default function Dashboard() {
     findRegistrationUtxo,
     generationStatus,
   } = useWalletContext();
-  const transaction = useTransaction();
 
+  const [dismissedTxHashes, setDismissedTxHashes] = useState<Set<string>>(new Set());
   const [removingTxHash, setRemovingTxHash] = useState<string | null>(null);
+  const isRemovingRef = React.useRef(false);
+
+  // Filter out already-dismissed replicates
+  const visibleReplicates = replicateUtxos.filter((u) => !dismissedTxHashes.has(`${u.txHash}:${u.outputIndex}`));
 
   const handleRemoveReplicate = async (utxo: UTxO) => {
     if (!cardano.lucid || !midnight.coinPublicKey) return;
+    if (isRemovingRef.current) return;
 
+    isRemovingRef.current = true;
     setRemovingTxHash(utxo.txHash);
     try {
-      const executor = DustTransactionsUtils.createUnregistrationExecutor(
+      // Build and sign the unregistration transaction
+      const completedTx = await DustTransactionsUtils.buildUnregistrationTransaction(
         cardano.lucid as LucidEvolution,
         midnight.coinPublicKey,
         utxo
       );
+      const signedTx = await completedTx.sign.withWallet().complete();
+      const txHash = await signedTx.submit();
+      logger.log('Replicate deregistration submitted:', txHash);
 
-      const result = await transaction.executeTransaction(
-        'unregister',
-        executor,
-        {},
-        cardano.lucid as LucidEvolution
-      );
-
-      if (result === 'success') {
-        transaction.resetTransaction();
-        await findRegistrationUtxo();
-      }
+      // Remove from list immediately after submission (don't wait for confirmation)
+      setDismissedTxHashes((prev) => new Set(prev).add(`${utxo.txHash}:${utxo.outputIndex}`));
     } catch (error) {
       logger.error('❌ Failed to remove replicate registration:', error);
-      transaction.resetTransaction();
     } finally {
+      isRemovingRef.current = false;
       setRemovingTxHash(null);
     }
   };
@@ -142,8 +142,8 @@ export default function Dashboard() {
 
       {/* Replicate Registration Banner - shows when multiple registration UTXOs exist for the same stake key */}
       <ReplicateRegistrationBanner
-        isVisible={replicateUtxos.length > 0}
-        replicateUtxos={replicateUtxos}
+        isVisible={visibleReplicates.length > 0}
+        replicateUtxos={visibleReplicates}
         onRemoveReplicate={handleRemoveReplicate}
         removingTxHash={removingTxHash}
       />
