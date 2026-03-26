@@ -5,14 +5,10 @@ import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/co
 import { Accordion, AccordionItem } from '@heroui/accordion';
 import { Tooltip } from '@heroui/tooltip';
 import Image from 'next/image';
-import React, { useState } from 'react';
-import { DustTransactionsUtils } from '@/lib/dustTransactionsUtils';
-import { logger } from '@/lib/logger';
-import { LucidEvolution, UTxO } from '@lucid-evolution/lucid';
+import { useState } from 'react';
 import CardanoWalletCard from './dashboard/CardanoWalletCard';
 import GenerationRateCard from './dashboard/GenerationRateCard';
 import IndexerSyncBanner from './dashboard/IndexerSyncBanner';
-import ReplicateRegistrationBanner from './dashboard/ReplicateRegistrationBanner';
 import MidnightWalletCard from './dashboard/MidnightWalletCard';
 import RegistrationUtxoCard from './dashboard/RegistrationUtxoCard';
 import LoadingBackdrop from './ui/LoadingBackdrop';
@@ -21,7 +17,6 @@ import WalletsModal from './wallet-connect/WalletsModal';
 export default function Dashboard() {
   const {
     cardano,
-    midnight,
     isAutoReconnecting,
     connectCardanoWallet,
     connectMidnightWallet,
@@ -29,44 +24,8 @@ export default function Dashboard() {
     getAvailableMidnightWallets,
     isLoadingRegistrationUtxo,
     registrationUtxo,
-    replicateUtxos,
-    findRegistrationUtxo,
     generationStatus,
   } = useWalletContext();
-
-  const [dismissedTxHashes, setDismissedTxHashes] = useState<Set<string>>(new Set());
-  const [removingTxHash, setRemovingTxHash] = useState<string | null>(null);
-  const isRemovingRef = React.useRef(false);
-
-  // Filter out already-dismissed replicates
-  const visibleReplicates = replicateUtxos.filter((u) => !dismissedTxHashes.has(`${u.txHash}:${u.outputIndex}`));
-
-  const handleRemoveReplicate = async (utxo: UTxO) => {
-    if (!cardano.lucid || !midnight.coinPublicKey) return;
-    if (isRemovingRef.current) return;
-
-    isRemovingRef.current = true;
-    setRemovingTxHash(utxo.txHash);
-    try {
-      // Build and sign the unregistration transaction
-      const completedTx = await DustTransactionsUtils.buildUnregistrationTransaction(
-        cardano.lucid as LucidEvolution,
-        midnight.coinPublicKey,
-        utxo
-      );
-      const signedTx = await completedTx.sign.withWallet().complete();
-      const txHash = await signedTx.submit();
-      logger.log('Replicate deregistration submitted:', txHash);
-
-      // Remove from list immediately after submission (don't wait for confirmation)
-      setDismissedTxHashes((prev) => new Set(prev).add(`${utxo.txHash}:${utxo.outputIndex}`));
-    } catch (error) {
-      logger.error('❌ Failed to remove replicate registration:', error);
-    } finally {
-      isRemovingRef.current = false;
-      setRemovingTxHash(null);
-    }
-  };
 
   // Show banner when registered on-chain (Blockfrost) but indexer hasn't synced yet
   const showIndexerSyncBanner = !!(registrationUtxo && generationStatus?.registered === false);
@@ -139,14 +98,6 @@ export default function Dashboard() {
 
       {/* Indexer Sync Banner - shows when on-chain registration exists but indexer hasn't synced */}
       <IndexerSyncBanner isVisible={!!showIndexerSyncBanner} />
-
-      {/* Replicate Registration Banner - shows when multiple registration UTXOs exist for the same stake key */}
-      <ReplicateRegistrationBanner
-        isVisible={visibleReplicates.length > 0}
-        replicateUtxos={visibleReplicates}
-        onRemoveReplicate={handleRemoveReplicate}
-        removingTxHash={removingTxHash}
-      />
 
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
         <CardanoWalletCard />
