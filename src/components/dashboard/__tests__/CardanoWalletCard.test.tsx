@@ -84,6 +84,7 @@ const mockWalletContext = {
   disconnectMidnightWallet: mockDisconnectMidnight,
   generationStatus: null,
   registrationUtxo: null,
+  replicateUtxos: [],
 };
 
 vi.mock('@/contexts/WalletContext', () => ({
