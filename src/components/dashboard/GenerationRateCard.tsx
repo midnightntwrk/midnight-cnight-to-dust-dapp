@@ -19,7 +19,7 @@ const GenerationRateCard = () => {
   // Get generation rate - use indexer data if synced, otherwise show syncing state
   const getGenerationRate = () => {
     if (isIndexerSynced && generationStatus?.generationRate) {
-      return specksToTDust(generationStatus.generationRate);
+      return Number(specksToTDust(generationStatus.generationRate)) * 3600;
     }
     if (isIndexerSyncing) {
       return '...';
@@ -29,7 +29,7 @@ const GenerationRateCard = () => {
 
   const getGenerationRateFull = () => {
     if (isIndexerSynced && generationStatus?.generationRate) {
-      return specksToTDustFull(generationStatus.generationRate);
+      return Number(specksToTDustFull(generationStatus.generationRate)) * 3600;
     }
     return null;
   };
@@ -83,7 +83,10 @@ const GenerationRateCard = () => {
               content: 'bg-gray-800 text-white text-sm px-2 py-1',
             }}
           >
-            <span className={`text-[24px] font-bold cursor-help ${isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}>
+            <span
+              data-testid="generation-rate-value"
+              className={`text-[24px] font-bold cursor-help ${isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}
+            >
               {getGenerationRate()}
             </span>
           </Tooltip>
@@ -111,7 +114,9 @@ const GenerationRateCard = () => {
               content: 'bg-gray-800 text-white text-sm px-2 py-1',
             }}
           >
-            <span className={`text-[24px] font-bold cursor-help ${isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}>
+            <span
+              className={`text-[24px] font-bold cursor-help ${isIndexerSyncing ? 'text-amber-400 animate-pulse' : ''}`}
+            >
               {getCapValue()}
             </span>
           </Tooltip>
