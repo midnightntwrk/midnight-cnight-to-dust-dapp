@@ -17,9 +17,11 @@ const GenerationRateCard = () => {
   const isIndexerSynced = generationStatus?.registered === true; // this doesn't mean it's synced...
 
   // Get generation rate - use indexer data if synced, otherwise show syncing state
+  // generationRate from the indexer is in specks/second; multiply by 3600 before formatting
   const getGenerationRate = () => {
     if (isIndexerSynced && generationStatus?.generationRate) {
-      return Number(specksToTDust(generationStatus.generationRate)) * 3600;
+      const specksPerHour = BigInt(generationStatus.generationRate) * 3600n;
+      return specksToTDust(specksPerHour.toString());
     }
     if (isIndexerSyncing) {
       return '...';
@@ -29,7 +31,8 @@ const GenerationRateCard = () => {
 
   const getGenerationRateFull = () => {
     if (isIndexerSynced && generationStatus?.generationRate) {
-      return Number(specksToTDustFull(generationStatus.generationRate)) * 3600;
+      const specksPerHour = BigInt(generationStatus.generationRate) * 3600n;
+      return specksToTDustFull(specksPerHour.toString());
     }
     return null;
   };
