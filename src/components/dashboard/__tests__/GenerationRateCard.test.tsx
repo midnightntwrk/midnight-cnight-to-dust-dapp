@@ -8,19 +8,21 @@ vi.mock('@/lib/logger', () => ({
   logger: { log: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
 
-// Mock specksToTDust — return numeric strings so the × 3600 multiplication works
+// Mock specksToTDust — simple bigint formatting (mirrors real logic)
 vi.mock('@/lib/specksToTDust', () => ({
   specksToTDust: vi.fn((s: string) => {
     const specks = BigInt(s);
-    const whole = specks / 1_000_000_000_000_000n;
-    const remainder = specks % 1_000_000_000_000_000n;
-    const frac = (remainder * 1_000_000n) / 1_000_000_000_000_000n;
+    const UNIT = 1_000_000_000_000_000n;
+    const whole = specks / UNIT;
+    const remainder = specks % UNIT;
+    const frac = (remainder * 1_000_000n) / UNIT;
     return `${whole}.${frac.toString().padStart(6, '0')}`;
   }),
   specksToTDustFull: vi.fn((s: string) => {
     const specks = BigInt(s);
-    const whole = specks / 1_000_000_000_000_000n;
-    const remainder = specks % 1_000_000_000_000_000n;
+    const UNIT = 1_000_000_000_000_000n;
+    const whole = specks / UNIT;
+    const remainder = specks % UNIT;
     if (remainder === 0n) return `${whole}.0`;
     const frac = remainder.toString().padStart(15, '0').replace(/0+$/, '');
     return `${whole}.${frac}`;
@@ -82,6 +84,8 @@ describe('GenerationRateCard', () => {
 
   it('should render generation rate multiplied by 3600 (DUST/h)', () => {
     // generationRate = 500000000000000 SPECK/s → 0.5 DUST/s → × 3600 = 1800 DUST/h
+    // Component computes: BigInt('500000000000000') * 3600n = 1800000000000000000n
+    // specksToTDust('1800000000000000000') → '1800.000000'
     mockWalletContext.generationStatus = {
       registered: true,
       generationRate: '500000000000000',
@@ -89,15 +93,14 @@ describe('GenerationRateCard', () => {
     };
 
     render(React.createElement(GenerationRateCard));
-    // specksToTDust('500000000000000') returns '0.500000', Number('0.500000') * 3600 = 1800
-    expect(screen.getByText('1800')).toBeDefined();
+    expect(screen.getByText('1800.000000')).toBeDefined();
   });
 
   it('should convert realistic 1-NIGHT rate to DUST/h correctly', () => {
     // 1 NIGHT = 10^6 STAR, decay rate = 8267 SPECK/STAR/s
     // generationRate = 10^6 × 8267 = 8267000000 SPECK/s
-    // specksToTDust → 0.000008267 DUST/s (via mock: '0.000008')
-    // × 3600 ≈ 0.028800 DUST/h
+    // Component computes: 8267000000n * 3600n = 29761200000000n
+    // specksToTDust('29761200000000') → '0.029761'
     mockWalletContext.generationStatus = {
       registered: true,
       generationRate: '8267000000',
@@ -106,10 +109,7 @@ describe('GenerationRateCard', () => {
 
     render(React.createElement(GenerationRateCard));
     const rateText = screen.getByTestId('generation-rate-value').textContent;
-    const rate = Number(rateText);
-    // Should be in the ~0.029 range (DUST/h), NOT ~0.000008 (DUST/s)
-    expect(rate).toBeGreaterThan(0.02);
-    expect(rate).toBeLessThan(0.04);
+    expect(rateText).toBe('0.029761');
   });
 
   it('should calculate CAP from cardano.balanceNight', () => {
@@ -151,6 +151,8 @@ describe('GenerationRateCard', () => {
   });
 
   it('should apply ×3600 to full-precision rate in tooltip', () => {
+    // Component computes: BigInt('500000000000000') * 3600n = 1800000000000000000n
+    // specksToTDustFull('1800000000000000000') → '1800.0'
     mockWalletContext.generationStatus = {
       registered: true,
       generationRate: '500000000000000',
@@ -158,10 +160,8 @@ describe('GenerationRateCard', () => {
     };
 
     render(React.createElement(GenerationRateCard));
-    // specksToTDustFull('500000000000000') returns '0.5', × 3600 = 1800
-    // Tooltip shows the full-precision rate
-    const rateFullValue = Number('0.5') * 3600; // 1800
-    expect(rateFullValue).toBe(1800);
+    const rateEl = screen.getByTestId('generation-rate-value');
+    expect(rateEl.textContent).toBe('1800.000000');
   });
 
   it('should update CAP when balanceNight changes (simulates balance refresh)', () => {
