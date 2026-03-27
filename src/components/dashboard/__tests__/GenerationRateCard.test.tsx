@@ -116,7 +116,7 @@ describe('GenerationRateCard', () => {
     mockWalletContext.cardano.balanceNight = '1000000'; // 1 NIGHT in stars
     // CAP = 1000000 * 5 * (10^15 / 10^6) = 5000000000000000 SPECK = 5 DUST
     render(React.createElement(GenerationRateCard));
-    expect(screen.getByText('5.0')).toBeDefined();
+    expect(screen.getByText('5.000000')).toBeDefined();
   });
 
   it('should show "0" for CAP when no NIGHT balance', () => {
@@ -169,13 +169,13 @@ describe('GenerationRateCard', () => {
     mockWalletContext.cardano.balanceNight = '1000000'; // 1 NIGHT in stars
     const { unmount } = render(React.createElement(GenerationRateCard));
     // CAP = 1000000 * 5 * (10^15 / 10^6) = 5000000000000000 SPECK = 5 DUST
-    expect(screen.getByText('5.0')).toBeDefined();
+    expect(screen.getByText('5.000000')).toBeDefined();
     unmount();
 
     // Re-render with 2 NIGHT
     mockWalletContext.cardano.balanceNight = '2000000'; // 2 NIGHT in stars
     render(React.createElement(GenerationRateCard));
     // CAP = 2000000 * 5 * (10^15 / 10^6) = 10000000000000000 SPECK = 10 DUST
-    expect(screen.getByText('10.0')).toBeDefined();
+    expect(screen.getByText('10.000000')).toBeDefined();
   });
 });
