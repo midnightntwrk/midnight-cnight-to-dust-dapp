@@ -1,6 +1,7 @@
 import * as Contracts from '@/config/contract_blueprint';
 import { getPolicyId, getValidatorAddress } from '@/lib/contractUtils';
 import { logger } from '@/lib/logger';
+import { CachedRegistration } from '@/lib/registration-cache';
 import { type Constr, UTxO } from '@lucid-evolution/lucid';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -129,7 +130,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
           throw new Error(`Registration API error: ${response.status} ${response.statusText}`);
         }
 
-        const { data: registrations } = await response.json();
+        const { data: registrations } = await response.json() as { data: CachedRegistration[] };
 
         if (!registrations || registrations.length === 0) {
           logger.log('[RegistrationUtxo]', 'No matching registration UTXO found');
@@ -142,7 +143,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
 
         // Filter by dustPKH if provided (server returns all registrations for the stake key)
         const filtered = dustPKH
-          ? registrations.filter((r: { dustPKH: string }) => r.dustPKH === dustPKH)
+          ? registrations.filter(r => r.dustPKH === dustPKH)
           : registrations;
 
         if (filtered.length === 0) {
@@ -152,13 +153,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
 
         // Map cached registrations to SearchResult shape
         const allMatches: SearchResult[] = filtered.map(
-          (r: {
-            txHash: string;
-            outputIndex: number;
-            dustPKH: string;
-            inlineDatum: string;
-            amount: Array<{ unit: string; quantity: string }>;
-          }) => {
+          r => {
             const assets: Record<string, bigint> = {};
             for (const a of r.amount) {
               assets[a.unit] = BigInt(a.quantity);
@@ -170,7 +165,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
                 address: dustGeneratorAddress,
                 assets,
                 datum: r.inlineDatum,
-              } as UTxO,
+              } satisfies UTxO,
               dustPKH: r.dustPKH,
             };
           }
