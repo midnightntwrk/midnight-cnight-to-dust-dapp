@@ -127,7 +127,8 @@ function removeEntry(txHash: string, outputIndex: number): void {
 
 // ── Cold start ─────────────────────────────────────────────────────────────────
 
-function toRegistration(utxo: BlockfrostUtxo, assetName: string): CachedRegistration | null {
+function toRegistration(utxo: BlockfrostUtxo, validatorAddress: string, assetName: string): CachedRegistration | null {
+  if (utxo.address !== validatorAddress) return null;
   if (!utxo.inline_datum) return null;
   const hasAuthToken = utxo.amount?.some((a) => a.unit === assetName && a.quantity === '1');
   if (!hasAuthToken) return null;
@@ -166,7 +167,7 @@ async function coldStart(): Promise<void> {
         break;
       }
 
-      const parsed = utxos.flatMap((u) => toRegistration(u, assetName) ?? []);
+      const parsed = utxos.flatMap((u) => toRegistration(u, validatorAddress, assetName) ?? []);
       registrations.push(...parsed);
 
       if (utxos.length < BLOCKFROST_PAGE_SIZE) {
@@ -264,25 +265,7 @@ async function warmRefresh(): Promise<void> {
 
     // Outputs = new UTxOs at the validator address (potential adds)
     if (txUtxos.outputs) {
-      for (const output of txUtxos.outputs) {
-        if (output.address !== validatorAddress) continue;
-        if (!output.inline_datum) continue;
-
-        const hasAuthToken = output.amount?.some((a) => a.unit === assetName && a.quantity === '1');
-        if (!hasAuthToken) continue;
-
-        const parsed = parseDustMappingDatum(output.inline_datum);
-        if (!parsed) continue;
-
-        adds.push({
-          txHash: txUtxos.hash,
-          outputIndex: output.output_index,
-          stakeKeyHash: parsed.stakeKeyHash,
-          dustPKH: parsed.dustPKH,
-          inlineDatum: output.inline_datum,
-          amount: output.amount || [],
-        });
-      }
+      adds.push(...txUtxos.outputs.flatMap((o) => toRegistration(o, validatorAddress, assetName) ?? []));
     }
   }
 
