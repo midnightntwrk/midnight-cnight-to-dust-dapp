@@ -57,45 +57,42 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
   const searchByTxHash = useCallback(
     async (txHash: string, signal?: AbortSignal): Promise<SearchResult | null> => {
       if (!cardanoAddress) return null;
-      try {
-        const response = await fetch(`/api/blockfrost/txs/${txHash}/utxos`, { signal });
-        if (!response.ok) return null;
-        const data: BlockfrostTxUtxosResponse = await response.json();
-        if (!data.outputs?.length) return null;
 
-        const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
-        const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
-        const dustNFTAssetName = getPolicyId(dustGenerator.Script) + '';
-        const { getAddressDetails } = await import('@lucid-evolution/lucid');
-        const stakeKeyHash = getAddressDetails(cardanoAddress)?.stakeCredential?.hash;
+      const response = await fetch(`/api/blockfrost/txs/${txHash}/utxos`, { signal });
+      if (!response.ok) return null;
+      const data: BlockfrostTxUtxosResponse = await response.json();
+      if (!data.outputs?.length) return null;
 
-        for (const output of data.outputs) {
-          if (output.address !== dustGeneratorAddress) continue;
-          const hasAuthToken = output.amount?.some((a) => a.unit === dustNFTAssetName && a.quantity === '1');
-          if (!hasAuthToken || !output.inline_datum) continue;
+      const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
+      const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
+      const dustNFTAssetName = getPolicyId(dustGenerator.Script) + '';
+      const { getAddressDetails } = await import('@lucid-evolution/lucid');
+      const stakeKeyHash = getAddressDetails(cardanoAddress)?.stakeCredential?.hash;
 
-          const parsed = parseDustMappingDatum(output.inline_datum);
-          if (!parsed) continue;
-          if (stakeKeyHash && parsed.stakeKeyHash !== stakeKeyHash) continue;
-          if (dustPKH && parsed.dustPKH !== dustPKH) continue;
+      for (const output of data.outputs) {
+        if (output.address !== dustGeneratorAddress) continue;
+        const hasAuthToken = output.amount?.some((a) => a.unit === dustNFTAssetName && a.quantity === '1');
+        if (!hasAuthToken || !output.inline_datum) continue;
 
-          const assets: Record<string, bigint> = {};
-          for (const a of output.amount || []) assets[a.unit] = BigInt(a.quantity);
-          return {
-            utxo: {
-              txHash: data.hash,
-              outputIndex: output.output_index,
-              address: dustGeneratorAddress,
-              assets,
-              datum: output.inline_datum,
-            },
-            dustPKH: parsed.dustPKH,
-          };
-        }
-        return null;
-      } catch {
-        return null;
+        const parsed = parseDustMappingDatum(output.inline_datum);
+        if (!parsed) continue;
+        if (stakeKeyHash && parsed.stakeKeyHash !== stakeKeyHash) continue;
+        if (dustPKH && parsed.dustPKH !== dustPKH) continue;
+
+        const assets: Record<string, bigint> = {};
+        for (const a of output.amount || []) assets[a.unit] = BigInt(a.quantity);
+        return {
+          utxo: {
+            txHash: data.hash,
+            outputIndex: output.output_index,
+            address: dustGeneratorAddress,
+            assets,
+            datum: output.inline_datum,
+          },
+          dustPKH: parsed.dustPKH,
+        };
       }
+      return null;
     },
     [cardanoAddress, dustPKH]
   );
