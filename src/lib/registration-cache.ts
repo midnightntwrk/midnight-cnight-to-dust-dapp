@@ -1,3 +1,9 @@
+/** Caching/Indexing system for Cardano-Dust registrations
+* Starts a full scan of all mapping-validator UTXOs on boot,
+* and stores them in a Map from StakeKey -> DustAddress for O(1) lookup.
+*
+* Updates the maps by polling for new transactions.
+* */
 import { dustGeneratorDetails, parseDustMappingDatum } from '@/lib/contractUtils';
 import { blockfrostFetch } from '@/lib/blockfrost-client';
 import { logger } from '@/lib/logger';
@@ -125,8 +131,6 @@ function removeEntry(txHash: string, outputIndex: number): void {
   }
 }
 
-// ── Cold start ─────────────────────────────────────────────────────────────────
-
 function toRegistration(utxo: BlockfrostUtxo, validatorAddress: string, assetName: string): CachedRegistration | null {
   if (utxo.address !== validatorAddress) return null;
   if (!utxo.inline_datum) return null;
@@ -144,6 +148,12 @@ function toRegistration(utxo: BlockfrostUtxo, validatorAddress: string, assetNam
   };
 }
 
+// ── Cold start ─────────────────────────────────────────────────────────────────
+
+// RegistrationCache cold start
+// Iterates through all the UTXOs for the dust mapping contract
+// Initializes the maps for each stake key
+// Uses: https://docs.blockfrost.io/#tag/cardano--addresses/GET/addresses/{address}/utxos/{asset}
 async function coldStart(): Promise<void> {
   const { validatorAddress, assetName } = dustGeneratorDetails;
   logger.log('[RegistrationCache]', 'Starting cold start...');
@@ -209,6 +219,10 @@ async function coldStart(): Promise<void> {
 
 // ── Warm refresh ───────────────────────────────────────────────────────────────
 
+// RegistrationCache Warm refresh
+// Iterates through all *new* transactions for the contract until it finds the last known txHash
+// Removes spend UTXOs, adds new UTXOs
+// Uses: https://docs.blockfrost.io/#tag/cardano--assets/GET/assets/{asset}/transactions
 async function warmRefresh(): Promise<void> {
   if (!state.initialized || !state.lastKnownTxHash) return;
 
