@@ -1,3 +1,4 @@
+import { Constr, Data } from '@lucid-evolution/lucid';
 import { getPolicyId, getValidatorAddress } from '@/lib/contractUtils';
 import { blockfrostFetch } from '@/lib/blockfrost-client';
 import { logger } from '@/lib/logger';
@@ -102,31 +103,17 @@ async function getContractDetails() {
   return contractDetailsCache;
 }
 
-// ── Datum parsing (pure JS via @harmoniclabs/cbor — no WASM) ───────────────────
 // Datum structure: Constr(0, [Constr(0, [stakeKeyHash]), dustPKH])
-// CBOR encoding:   tag 121 → Constr index 0, tag 122 → index 1, etc.
 
 function parseDatum(inlineDatum: string): { stakeKeyHash: string; dustPKH: string } | null {
   try {
-    const { Cbor } = require('@harmoniclabs/cbor') as typeof import('@harmoniclabs/cbor');
-    // CborObj is a union type; we validate the shape at runtime.
-    const parsed: any = Cbor.parse(Buffer.from(inlineDatum, 'hex'));
+    const datum = Data.from(inlineDatum);
+    if (!(datum instanceof Constr) || datum.index !== 0 || datum.fields.length !== 2) return null;
 
-    // Outer: Constr(0, [...]) → CBOR tag 121
-    if (parsed.tag !== 121n) return null;
-    const fields = parsed.data?.array;
-    if (!Array.isArray(fields) || fields.length !== 2) return null;
+    const [inner, dustPKH] = datum.fields as [Constr<string>, string];
+    if (!(inner instanceof Constr) || inner.index !== 0 || inner.fields.length !== 1) return null;
 
-    // Field 0: Constr(0, [stakeKeyHash]) → CBOR tag 121
-    const inner = fields[0];
-    if (inner.tag !== 121n) return null;
-    const innerFields = inner.data?.array;
-    if (!Array.isArray(innerFields) || innerFields.length !== 1) return null;
-
-    // Extract byte strings as hex
-    const stakeKeyHash = Buffer.from(innerFields[0].chunks ?? innerFields[0]).toString('hex');
-    const dustPKH = Buffer.from(fields[1].chunks ?? fields[1]).toString('hex');
-
+    const stakeKeyHash = inner.fields[0] as string;
     if (!stakeKeyHash || !dustPKH) return null;
 
     return { stakeKeyHash, dustPKH };
