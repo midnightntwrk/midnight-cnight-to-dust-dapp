@@ -19,11 +19,35 @@ vi.mock('@/config/contract_blueprint', () => ({
   },
 }));
 
-vi.mock('@/lib/contractUtils', () => ({
-  getValidatorAddress: () => 'addr_test1validator',
-  getPolicyId: () => 'abc123policyid',
-  NETWORKS: { MAINNET: 'Mainnet', PREPROD: 'Preprod', PREVIEW: 'Preview' },
-}));
+vi.mock('@/lib/contractUtils', async () => {
+  const { Data, Constr } = await import('@lucid-evolution/lucid');
+
+  function parseDustMappingDatum(inlineDatum: string): { stakeKeyHash: string; dustPKH: string } | null {
+    try {
+      const datum = Data.from(inlineDatum);
+      if (!(datum instanceof Constr) || datum.index !== 0 || datum.fields.length !== 2) return null;
+      const [inner, dustPKH] = datum.fields as [Constr<string>, string];
+      if (!(inner instanceof Constr) || inner.index !== 0 || inner.fields.length !== 1) return null;
+      const stakeKeyHash = inner.fields[0] as string;
+      if (!stakeKeyHash || !dustPKH) return null;
+      return { stakeKeyHash, dustPKH };
+    } catch {
+      return null;
+    }
+  }
+
+  return {
+    getValidatorAddress: () => 'addr_test1validator',
+    getPolicyId: () => 'abc123policyid',
+    NETWORKS: { MAINNET: 'Mainnet', PREPROD: 'Preprod', PREVIEW: 'Preview' },
+    dustGeneratorDetails: {
+      validatorAddress: 'addr_test1validator',
+      policyId: 'abc123policyid',
+      assetName: 'abc123policyid',
+    },
+    parseDustMappingDatum,
+  };
+});
 
 import {
   getRegistrationsForStakeKey,
