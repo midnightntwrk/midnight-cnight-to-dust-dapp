@@ -102,6 +102,16 @@ export function parseDustMappingDatum(inlineDatum: string): { stakeKeyHash: stri
   }
 }
 
+// Computed once at module load — the script hash is deterministic.
+const _dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
+const _dustGeneratorPolicyId = getPolicyId(_dustGenerator.Script);
+
+export const dustGeneratorDetails = {
+  validatorAddress: getValidatorAddress(_dustGenerator.Script),
+  policyId: _dustGeneratorPolicyId,
+  assetName: _dustGeneratorPolicyId + '', // policyId with empty token name
+} as const;
+
 export enum NETWORKS {
   MAINNET = 'Mainnet',
   PREPROD = 'Preprod',

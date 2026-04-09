@@ -1,4 +1,4 @@
-import { getPolicyId, getValidatorAddress, parseDustMappingDatum } from '@/lib/contractUtils';
+import { dustGeneratorDetails, parseDustMappingDatum } from '@/lib/contractUtils';
 import { blockfrostFetch } from '@/lib/blockfrost-client';
 import { logger } from '@/lib/logger';
 
@@ -85,24 +85,6 @@ const COLD_START_CONCURRENCY = 5;
 const BLOCKFROST_PAGE_SIZE = 100;
 const MAX_WARM_PAGES = 50;
 
-// ── Contract details (lazy, cached) ────────────────────────────────────────────
-
-let contractDetailsCache: { validatorAddress: string; policyId: string; assetName: string } | null = null;
-
-async function getContractDetails() {
-  if (contractDetailsCache) return contractDetailsCache;
-  const Contracts = await import('@/config/contract_blueprint');
-  const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
-  const policyId = getPolicyId(dustGenerator.Script);
-  contractDetailsCache = {
-    validatorAddress: getValidatorAddress(dustGenerator.Script),
-    policyId,
-    assetName: policyId + '', // policyId with empty token name
-  };
-  return contractDetailsCache;
-}
-
-
 // ── Map mutations (synchronous — no awaits) ────────────────────────────────────
 
 function refMapKey(txHash: string, outputIndex: number) {
@@ -146,7 +128,7 @@ function removeEntry(txHash: string, outputIndex: number): void {
 // ── Cold start ─────────────────────────────────────────────────────────────────
 
 async function coldStart(): Promise<void> {
-  const { validatorAddress, assetName } = await getContractDetails();
+  const { validatorAddress, assetName } = dustGeneratorDetails;
   logger.log('[RegistrationCache]', 'Starting cold start...');
 
   const registrations: CachedRegistration[] = [];
@@ -229,7 +211,7 @@ async function coldStart(): Promise<void> {
 async function warmRefresh(): Promise<void> {
   if (!state.initialized || !state.lastKnownTxHash) return;
 
-  const { validatorAddress, assetName } = await getContractDetails();
+  const { validatorAddress, assetName } = dustGeneratorDetails;
 
   // Phase 1: discover new transactions (async)
   const newTxHashes: string[] = [];

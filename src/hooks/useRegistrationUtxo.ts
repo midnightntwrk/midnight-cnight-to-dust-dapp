@@ -1,5 +1,4 @@
-import * as Contracts from '@/config/contract_blueprint';
-import { getPolicyId, getValidatorAddress, parseDustMappingDatum } from '@/lib/contractUtils';
+import { dustGeneratorDetails, parseDustMappingDatum } from '@/lib/contractUtils';
 import { logger } from '@/lib/logger';
 import { CachedRegistration } from '@/lib/registration-cache';
 import { UTxO } from '@lucid-evolution/lucid';
@@ -63,15 +62,13 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
       const data: BlockfrostTxUtxosResponse = await response.json();
       if (!data.outputs?.length) return null;
 
-      const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
-      const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
-      const dustNFTAssetName = getPolicyId(dustGenerator.Script) + '';
+      const { validatorAddress, assetName } = dustGeneratorDetails;
       const { getAddressDetails } = await import('@lucid-evolution/lucid');
       const stakeKeyHash = getAddressDetails(cardanoAddress)?.stakeCredential?.hash;
 
       for (const output of data.outputs) {
-        if (output.address !== dustGeneratorAddress) continue;
-        const hasAuthToken = output.amount?.some((a) => a.unit === dustNFTAssetName && a.quantity === '1');
+        if (output.address !== validatorAddress) continue;
+        const hasAuthToken = output.amount?.some((a) => a.unit === assetName && a.quantity === '1');
         if (!hasAuthToken || !output.inline_datum) continue;
 
         const parsed = parseDustMappingDatum(output.inline_datum);
@@ -85,7 +82,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
           utxo: {
             txHash: data.hash,
             outputIndex: output.output_index,
-            address: dustGeneratorAddress,
+            address: validatorAddress,
             assets,
             datum: output.inline_datum,
           },
@@ -126,9 +123,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
           return null;
         }
 
-        // Get validator address for UTxO construction
-        const dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
-        const dustGeneratorAddress = getValidatorAddress(dustGenerator.Script);
+        const { validatorAddress } = dustGeneratorDetails;
 
         // Filter by dustPKH if provided (server returns all registrations for the stake key)
         const filtered = dustPKH
@@ -151,7 +146,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
               utxo: {
                 txHash: r.txHash,
                 outputIndex: r.outputIndex,
-                address: dustGeneratorAddress,
+                address: validatorAddress,
                 assets,
                 datum: r.inlineDatum,
               } satisfies UTxO,
