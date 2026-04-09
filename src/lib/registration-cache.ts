@@ -1,5 +1,4 @@
-import { Constr, Data } from '@lucid-evolution/lucid';
-import { getPolicyId, getValidatorAddress } from '@/lib/contractUtils';
+import { getPolicyId, getValidatorAddress, parseDustMappingDatum } from '@/lib/contractUtils';
 import { blockfrostFetch } from '@/lib/blockfrost-client';
 import { logger } from '@/lib/logger';
 
@@ -103,26 +102,12 @@ async function getContractDetails() {
   return contractDetailsCache;
 }
 
-// Datum structure: Constr(0, [Constr(0, [stakeKeyHash]), dustPKH])
-
-function parseDatum(inlineDatum: string): { stakeKeyHash: string; dustPKH: string } | null {
-  try {
-    const datum = Data.from(inlineDatum);
-    if (!(datum instanceof Constr) || datum.index !== 0 || datum.fields.length !== 2) return null;
-
-    const [inner, dustPKH] = datum.fields as [Constr<string>, string];
-    if (!(inner instanceof Constr) || inner.index !== 0 || inner.fields.length !== 1) return null;
-
-    const stakeKeyHash = inner.fields[0] as string;
-    if (!stakeKeyHash || !dustPKH) return null;
-
-    return { stakeKeyHash, dustPKH };
-  } catch {
-    return null;
-  }
-}
 
 // ── Map mutations (synchronous — no awaits) ────────────────────────────────────
+
+function refMapKey(txHash: string, outputIndex: number) {
+  return `${txHash}:${outputIndex}`
+}
 
 function addEntry(registration: CachedRegistration): void {
   if (state.utxoRefMap.size >= MAX_CACHE_ENTRIES) {
@@ -130,7 +115,7 @@ function addEntry(registration: CachedRegistration): void {
     return;
   }
 
-  const ref = `${registration.txHash}:${registration.outputIndex}`;
+  const ref = refMapKey(registration.txHash, registration.outputIndex)
   if (state.utxoRefMap.has(ref)) return; // already tracked
 
   state.utxoRefMap.set(ref, registration.stakeKeyHash);
@@ -144,7 +129,7 @@ function addEntry(registration: CachedRegistration): void {
 }
 
 function removeEntry(txHash: string, outputIndex: number): void {
-  const ref = `${txHash}:${outputIndex}`;
+  const ref = refMapKey(txHash, outputIndex)
   const stakeKeyHash = state.utxoRefMap.get(ref);
   if (!stakeKeyHash) return;
 
@@ -189,7 +174,7 @@ async function coldStart(): Promise<void> {
         const hasAuthToken = utxo.amount?.some((a) => a.unit === assetName && a.quantity === '1');
         if (!hasAuthToken) continue;
 
-        const parsed = parseDatum(utxo.inline_datum);
+        const parsed = parseDustMappingDatum(utxo.inline_datum);
         if (!parsed) continue;
 
         registrations.push({
@@ -304,7 +289,7 @@ async function warmRefresh(): Promise<void> {
         const hasAuthToken = output.amount?.some((a) => a.unit === assetName && a.quantity === '1');
         if (!hasAuthToken) continue;
 
-        const parsed = parseDatum(output.inline_datum);
+        const parsed = parseDustMappingDatum(output.inline_datum);
         if (!parsed) continue;
 
         adds.push({

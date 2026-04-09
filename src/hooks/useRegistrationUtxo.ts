@@ -1,8 +1,8 @@
 import * as Contracts from '@/config/contract_blueprint';
-import { getPolicyId, getValidatorAddress } from '@/lib/contractUtils';
+import { getPolicyId, getValidatorAddress, parseDustMappingDatum } from '@/lib/contractUtils';
 import { logger } from '@/lib/logger';
 import { CachedRegistration } from '@/lib/registration-cache';
-import { type Constr, UTxO } from '@lucid-evolution/lucid';
+import { UTxO } from '@lucid-evolution/lucid';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 // Blockfrost UTXO response type
@@ -68,37 +68,29 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
         const dustNFTAssetName = getPolicyId(dustGenerator.Script) + '';
         const { getAddressDetails } = await import('@lucid-evolution/lucid');
         const stakeKeyHash = getAddressDetails(cardanoAddress)?.stakeCredential?.hash;
-        const { Data, Constr } = await import('@lucid-evolution/lucid');
 
         for (const output of data.outputs) {
           if (output.address !== dustGeneratorAddress) continue;
           const hasAuthToken = output.amount?.some((a) => a.unit === dustNFTAssetName && a.quantity === '1');
           if (!hasAuthToken || !output.inline_datum) continue;
-          try {
-            const datumData = Data.from(output.inline_datum);
-            if (!(datumData instanceof Constr) || datumData.index !== 0 || !datumData.fields?.length) continue;
-            const [datumCardanoPKHConstr, dustPKHFromDatum] = datumData.fields as [Constr<string>, string];
-            const datumCardanoPKH =
-              datumCardanoPKHConstr instanceof Constr && datumCardanoPKHConstr.fields?.length
-                ? datumCardanoPKHConstr.fields[0]
-                : null;
-            if (!datumCardanoPKH || (stakeKeyHash && datumCardanoPKH !== stakeKeyHash)) continue;
-            if (dustPKH && typeof dustPKHFromDatum === 'string' && dustPKHFromDatum !== dustPKH) continue;
-            const assets: Record<string, bigint> = {};
-            for (const a of output.amount || []) assets[a.unit] = BigInt(a.quantity);
-            return {
-              utxo: {
-                txHash: data.hash,
-                outputIndex: output.output_index,
-                address: dustGeneratorAddress,
-                assets,
-                datum: output.inline_datum,
-              },
-              dustPKH: typeof dustPKHFromDatum === 'string' ? dustPKHFromDatum : '',
-            };
-          } catch {
-            continue;
-          }
+
+          const parsed = parseDustMappingDatum(output.inline_datum);
+          if (!parsed) continue;
+          if (stakeKeyHash && parsed.stakeKeyHash !== stakeKeyHash) continue;
+          if (dustPKH && parsed.dustPKH !== dustPKH) continue;
+
+          const assets: Record<string, bigint> = {};
+          for (const a of output.amount || []) assets[a.unit] = BigInt(a.quantity);
+          return {
+            utxo: {
+              txHash: data.hash,
+              outputIndex: output.output_index,
+              address: dustGeneratorAddress,
+              assets,
+              datum: output.inline_datum,
+            },
+            dustPKH: parsed.dustPKH,
+          };
         }
         return null;
       } catch {
