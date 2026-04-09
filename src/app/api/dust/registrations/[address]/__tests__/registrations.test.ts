@@ -128,7 +128,7 @@ describe('Registrations API (/api/dust/registrations/[address])', () => {
       const response = await GET(makeRequest(), makeParams('not_a_valid_address'));
       const body = await response.json();
       expect(response.status).toBe(400);
-      expect(body.error).toContain('stake key');
+      expect(body.error).toContain('Failed to parse address');
     });
 
     it('should call addCorsHeaders with valid origin', async () => {

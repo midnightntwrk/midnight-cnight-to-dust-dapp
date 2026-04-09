@@ -1,34 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { bech32 } from 'bech32';
+import { getAddressDetails } from '@lucid-evolution/lucid';
 import { logger } from '@/lib/logger';
 import { validateOrigin, addCorsHeaders, addSecurityHeaders } from '@/lib/cors';
 import { checkRateLimit, addRateLimitHeaders, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { getRegistrationsForStakeKey, isReady } from '@/lib/registration-cache';
-
-export const runtime = 'nodejs';
-
-/**
- * Extract stake key hash from a Cardano base address (types 0-3).
- * Pure bech32 decode — no WASM dependencies.
- */
-function extractStakeKeyHash(address: string): string | null {
-  try {
-    const decoded = bech32.decode(address, 256);
-    const bytes = Buffer.from(bech32.fromWords(decoded.words));
-    const addressType = (bytes[0] >> 4) & 0x0f;
-    // Base addresses (types 0-3) have 1-byte header + 28-byte payment hash + 28-byte stake hash
-    if (addressType <= 3 && bytes.length === 57) {
-      return bytes.slice(29, 57).toString('hex');
-    }
-    // Reward/stake addresses (types 14-15) have 1-byte header + 28-byte stake hash
-    if ((addressType === 14 || addressType === 15) && bytes.length === 29) {
-      return bytes.slice(1, 29).toString('hex');
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ address: string }> }) {
   // Validate origin
@@ -69,7 +44,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Address is required' }, { status: 400, headers: responseHeaders });
     }
 
-    const stakeKeyHash = extractStakeKeyHash(address);
+    let stakeKeyHash: string | undefined;
+    try {
+      stakeKeyHash = getAddressDetails(address)?.stakeCredential?.hash;
+    } catch {
+      return NextResponse.json(
+        { error: 'Failed to parse address' },
+        { status: 400, headers: responseHeaders }
+      );
+    }
 
     if (!stakeKeyHash) {
       logger.warn('[API:Registrations]', 'Could not extract stake key from address');

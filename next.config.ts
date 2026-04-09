@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   reactStrictMode: true,
   poweredByHeader: false,
+  serverExternalPackages: ['@lucid-evolution/lucid'],
   webpack: (config) => {
     config.experiments = {
       ...config.experiments,
