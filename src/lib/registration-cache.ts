@@ -127,6 +127,22 @@ function removeEntry(txHash: string, outputIndex: number): void {
 
 // ── Cold start ─────────────────────────────────────────────────────────────────
 
+function toRegistration(utxo: BlockfrostUtxo, assetName: string): CachedRegistration | null {
+  if (!utxo.inline_datum) return null;
+  const hasAuthToken = utxo.amount?.some((a) => a.unit === assetName && a.quantity === '1');
+  if (!hasAuthToken) return null;
+  const parsed = parseDustMappingDatum(utxo.inline_datum);
+  if (!parsed) return null;
+  return {
+    txHash: utxo.tx_hash,
+    outputIndex: utxo.output_index,
+    stakeKeyHash: parsed.stakeKeyHash,
+    dustPKH: parsed.dustPKH,
+    inlineDatum: utxo.inline_datum,
+    amount: utxo.amount,
+  };
+}
+
 async function coldStart(): Promise<void> {
   const { validatorAddress, assetName } = dustGeneratorDetails;
   logger.log('[RegistrationCache]', 'Starting cold start...');
@@ -150,24 +166,8 @@ async function coldStart(): Promise<void> {
         break;
       }
 
-      for (const utxo of utxos) {
-        if (!utxo.inline_datum) continue;
-
-        const hasAuthToken = utxo.amount?.some((a) => a.unit === assetName && a.quantity === '1');
-        if (!hasAuthToken) continue;
-
-        const parsed = parseDustMappingDatum(utxo.inline_datum);
-        if (!parsed) continue;
-
-        registrations.push({
-          txHash: utxo.tx_hash,
-          outputIndex: utxo.output_index,
-          stakeKeyHash: parsed.stakeKeyHash,
-          dustPKH: parsed.dustPKH,
-          inlineDatum: utxo.inline_datum,
-          amount: utxo.amount || [],
-        });
-      }
+      const parsed = utxos.flatMap((u) => toRegistration(u, assetName) ?? []);
+      registrations.push(...parsed);
 
       if (utxos.length < BLOCKFROST_PAGE_SIZE) {
         hasMore = false;
@@ -376,7 +376,6 @@ export function _resetForTesting(): void {
     clearInterval(state.refreshInterval);
     state.refreshInterval = null;
   }
-  contractDetailsCache = null;
 }
 
 export { ensureFresh as _ensureFresh };

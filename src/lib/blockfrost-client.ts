@@ -19,10 +19,6 @@ export async function blockfrostFetch<T>(path: string, retries = DEFAULT_MAX_RET
       continue;
     }
 
-    if (response.status === 404) {
-      return [] as unknown as T;
-    }
-
     if (!response.ok) {
       throw new Error(`Blockfrost error: ${response.status} ${response.statusText}`);
     }
