@@ -1,5 +1,5 @@
-import { getServerRuntimeConfig } from '@/config/runtime-config';
-import { getPolicyId, getValidatorAddress, NETWORKS } from '@/lib/contractUtils';
+import { getPolicyId, getValidatorAddress } from '@/lib/contractUtils';
+import { blockfrostFetch } from '@/lib/blockfrost-client';
 import { logger } from '@/lib/logger';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -42,7 +42,7 @@ interface BlockfrostAssetTransaction {
   block_time: number;
 }
 
-// ── Cache state (survives Next.js dev hot-reloads via globalThis) ──────────────
+// ── Cache state ──────────────────────────────────────────────────────────────────
 
 interface CacheState {
   stakeKeyMap: Map<string, CachedRegistration[]>;
@@ -84,60 +84,6 @@ const REFRESH_INTERVAL_MS = 30_000;
 const COLD_START_CONCURRENCY = 5;
 const BLOCKFROST_PAGE_SIZE = 100;
 const MAX_WARM_PAGES = 50;
-const MAX_RETRIES = 5;
-
-// ── Blockfrost helpers ─────────────────────────────────────────────────────────
-
-function getBlockfrostConfig(): { baseUrl: string; apiKey: string } {
-  const config = getServerRuntimeConfig();
-  const network = config.CARDANO_NET;
-
-  const baseUrl =
-    network === NETWORKS.MAINNET
-      ? config.BLOCKFROST_URL_MAINNET
-      : network === NETWORKS.PREPROD
-        ? config.BLOCKFROST_URL_PREPROD
-        : config.BLOCKFROST_URL_PREVIEW;
-
-  const apiKey =
-    network === NETWORKS.MAINNET
-      ? (process.env.BLOCKFROST_KEY_MAINNET ?? '')
-      : network === NETWORKS.PREPROD
-        ? (process.env.BLOCKFROST_KEY_PREPROD ?? '')
-        : (process.env.BLOCKFROST_KEY_PREVIEW ?? '');
-
-  return { baseUrl, apiKey };
-}
-
-async function blockfrostFetch<T>(path: string, retries = MAX_RETRIES): Promise<T> {
-  const { baseUrl, apiKey } = getBlockfrostConfig();
-
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    const response = await fetch(`${baseUrl}${path}`, {
-      headers: { project_id: apiKey },
-    });
-
-    if (response.status === 429) {
-      const retryAfter = response.headers.get('Retry-After');
-      const delay = retryAfter ? parseInt(retryAfter, 10) * 1000 : Math.pow(2, attempt) * 1000;
-      logger.warn('[RegistrationCache]', `Rate limited, retrying in ${delay}ms (attempt ${attempt + 1}/${retries})`);
-      await new Promise((r) => setTimeout(r, delay));
-      continue;
-    }
-
-    if (response.status === 404) {
-      return [] as unknown as T;
-    }
-
-    if (!response.ok) {
-      throw new Error(`Blockfrost error: ${response.status} ${response.statusText}`);
-    }
-
-    return response.json();
-  }
-
-  throw new Error(`Blockfrost request failed after ${retries} retries`);
-}
 
 // ── Contract details (lazy, cached) ────────────────────────────────────────────
 

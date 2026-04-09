@@ -3,6 +3,7 @@ import { getIndexerEndpoint, getRuntimeConfig } from '@/config/runtime-config';
 import { addressFromValidator, Script as BlazeScript, CredentialType, PolicyId, RewardAddress } from '@blaze-cardano/core';
 import { serialize } from '@blaze-cardano/data';
 import { Script as LucidScript } from '@lucid-evolution/lucid';
+import { getBlockfrostConfig } from '@/lib/blockfrost-config';
 import { logger } from './logger';
 
 // Helper to get network ID from runtime config
@@ -94,12 +95,7 @@ export function logContractAddresses(): void {
   const config = getRuntimeConfig();
   const networkId = getNetworkId();
 
-  // Get network-specific values
-  const blockfrostUrl = config.CARDANO_NET === NETWORKS.MAINNET
-    ? config.BLOCKFROST_URL_MAINNET
-    : config.CARDANO_NET === NETWORKS.PREPROD
-    ? config.BLOCKFROST_URL_PREPROD
-    : config.BLOCKFROST_URL_PREVIEW;
+  const { baseUrl: blockfrostUrl } = getBlockfrostConfig();
 
   const explorerUrl = config.CARDANO_NET === NETWORKS.MAINNET
     ? config.BLOCKCHAIN_EXPLORER_URL_MAINNET
