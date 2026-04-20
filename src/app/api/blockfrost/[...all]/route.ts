@@ -1,7 +1,13 @@
 import { NextRequest } from 'next/server';
 import { logger } from '@/lib/logger';
 import { getBlockfrostConfig, getBlockfrostEnvKeyName } from '@/lib/blockfrost-config';
-import { addSecurityHeaders } from '@/lib/cors';
+import { addCorsHeaders, addSecurityHeaders, validateOrigin, type CorsOptions } from '@/lib/cors';
+
+const BLOCKFROST_CORS_OPTS: CorsOptions = {
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400,
+};
 
 function validateBlockfrostEnv() {
   const keyVar = getBlockfrostEnvKeyName();
@@ -59,75 +65,12 @@ setInterval(() => {
   }
 }, CLEANUP_INTERVAL_MS);
 
-// SECURITY: Origin validation and CORS configuration
-const ALLOWED_ORIGINS = [
-  process.env.NEXT_PUBLIC_REACT_SERVER_URL || 'http://localhost:3000',
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'https://dust.preview.midnight.network',
-  'https://dust.preprod.midnight.network',
-  'https://dust.midnight.network',
-  'https://dust.mainnet.midnight.network',
-  process.env.NEXT_PUBLIC_PRODUCTION_URL,
-].filter((origin): origin is string => Boolean(origin));
-
-/**
- * Validates that the request comes from an allowed origin
- * Checks both Origin and Referer headers
- */
-function validateOrigin(request: NextRequest): boolean {
-  const origin = request.headers.get('origin');
-  const referer = request.headers.get('referer');
-
-  // Allow requests without origin/referer during development
-  const isDevelopment = process.env.NODE_ENV === 'development';
-
-  // Check origin header first (most reliable)
-  if (origin) {
-    const isAllowed = ALLOWED_ORIGINS.some((allowed) => origin.startsWith(allowed));
-    if (isAllowed) {
-      logger.debug('[BlockfrostSecurity]', `Valid origin: ${origin}`);
-      return true;
-    }
-  }
-
-  // Fallback to referer header
-  if (referer) {
-    const isAllowed = ALLOWED_ORIGINS.some((allowed) => referer.startsWith(allowed));
-    if (isAllowed) {
-      logger.debug('[BlockfrostSecurity]', `Valid referer: ${referer}`);
-      return true;
-    }
-  }
-
-  // In development, allow requests without origin/referer (for testing tools)
-  if (isDevelopment && !origin && !referer) {
-    logger.debug('[BlockfrostSecurity]', 'Development mode: allowing request without origin/referer');
-    return true;
-  }
-
-  logger.warn('[BlockfrostSecurity]', `Blocked request - Invalid origin: ${origin}, referer: ${referer}`);
-  return false;
-}
-
-/**
- * Adds CORS headers to a response
- */
-function addCorsHeaders(headers: Headers, origin: string | null): void {
-  // Allow specific origin or fallback to first allowed origin
-  const allowedOrigin = origin && ALLOWED_ORIGINS.some((allowed) => origin.startsWith(allowed)) ? origin : ALLOWED_ORIGINS[0];
-
-  headers.set('Access-Control-Allow-Origin', allowedOrigin);
-  headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  headers.set('Access-Control-Max-Age', '86400'); // 24 hours
-}
 
 // Handle OPTIONS preflight requests
 export async function OPTIONS(request: NextRequest) {
-  const origin = request.headers.get('origin');
   const headers = new Headers();
-  addCorsHeaders(headers, origin);
+  addCorsHeaders(headers, request.headers.get('origin'), BLOCKFROST_CORS_OPTS);
+  addSecurityHeaders(headers);
 
   return new Response(null, {
     status: 204,
@@ -158,15 +101,10 @@ export async function PATCH(request: NextRequest) {
 async function handleRequest(request: NextRequest) {
   validateBlockfrostEnv();
   const startTime = Date.now();
-  const origin = request.headers.get('origin');
 
-  // SECURITY: Validate origin/referer before processing
-  if (!validateOrigin(request)) {
-    const headers = new Headers();
-    addCorsHeaders(headers, origin);
-    addSecurityHeaders(headers);
-
-    return Response.json({ error: 'Forbidden - Invalid origin' }, { status: 403, headers });
+  const validOrigin = validateOrigin(request);
+  if (!validOrigin) {
+    return Response.json({ error: 'Forbidden - Invalid origin' }, { status: 403 });
   }
 
   const { baseUrl: target, projectId: PROJECT_ID } = getBlockfrostConfig();
@@ -217,7 +155,7 @@ async function handleRequest(request: NextRequest) {
         responseHeaders.set('X-Cache-Age', `${Math.floor((now - (cachedEntry.expiresAt - CACHE_TTL_MS)) / 1000)}s`);
 
         // Add CORS and security headers
-        addCorsHeaders(responseHeaders, origin);
+        addCorsHeaders(responseHeaders, validOrigin, BLOCKFROST_CORS_OPTS);
         addSecurityHeaders(responseHeaders);
 
         return new Response(cachedEntry.responseBody, {
@@ -271,7 +209,7 @@ async function handleRequest(request: NextRequest) {
     responseHeaders.set('X-Cache', isCacheable ? 'MISS' : 'BYPASS');
 
     // Add CORS and security headers
-    addCorsHeaders(responseHeaders, origin);
+    addCorsHeaders(responseHeaders, validOrigin, BLOCKFROST_CORS_OPTS);
     addSecurityHeaders(responseHeaders);
 
     // CACHE OPTIMIZATION: Store successful cacheable responses in cache
@@ -333,7 +271,7 @@ async function handleRequest(request: NextRequest) {
 
     // Add CORS and security headers to error response
     const errorHeaders = new Headers();
-    addCorsHeaders(errorHeaders, origin);
+    addCorsHeaders(errorHeaders, validOrigin, BLOCKFROST_CORS_OPTS);
     addSecurityHeaders(errorHeaders);
 
     return Response.json(

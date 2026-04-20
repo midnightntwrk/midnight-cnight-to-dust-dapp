@@ -98,14 +98,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
  * Handle CORS preflight requests
  */
 export async function OPTIONS(request: NextRequest) {
-  const validOrigin = validateOrigin(request);
-
-  if (!validOrigin) {
-    return new Response(null, { status: 403 });
-  }
-
   const headers = new Headers();
-  addCorsHeaders(headers, validOrigin);
+  addCorsHeaders(headers, request.headers.get('origin'));
   addSecurityHeaders(headers);
 
   return new Response(null, { status: 204, headers });

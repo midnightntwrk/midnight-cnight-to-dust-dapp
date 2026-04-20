@@ -123,10 +123,10 @@ describe('Generation Status API (/api/dust/generation-status)', () => {
       expect(response.status).toBe(204);
     });
 
-    it('should return 403 for invalid origin', async () => {
+    it('should return 204 for invalid origin (preflight is permissive)', async () => {
       mockValidateOrigin.mockReturnValueOnce(null);
       const response = await OPTIONS(makeRequest());
-      expect(response.status).toBe(403);
+      expect(response.status).toBe(204);
     });
   });
 
