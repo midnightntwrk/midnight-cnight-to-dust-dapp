@@ -10,7 +10,8 @@
     "lodash": "4.18.1",
     "diff": "5.2.2",
     "minimatch": "10.2.3",
-    "picomatch": "^4.0.4"
+    "picomatch": "^4.0.4",
+    "effect": "^3.20.0"
   },
   "scripts": {
     "dev": "next dev --webpack",
