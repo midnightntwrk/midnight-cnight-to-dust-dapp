@@ -23,7 +23,7 @@
     "test:watch": "vitest --watch"
   },
   "dependencies": {
-    "@blaze-cardano/core": "^0.7.0",
+    "@blaze-cardano/core": "^0.8.0",
     "@blaze-cardano/data": "^0.6.6",
     "@blaze-cardano/uplc": "^0.4.3",
     "@harmoniclabs/bytestring": "^1.0.0",
@@ -41,7 +41,7 @@
     "buffer": "^6.0.3",
     "chart.js": "^4.5.1",
     "chartjs-plugin-annotation": "^3.1.0",
-    "framer-motion": "^12.34.3",
+    "framer-motion": "^12.35.0",
     "graphql": "^16.11.0",
     "graphql-request": "^7.2.0",
     "libsodium-wrappers-sumo": "^0.8.2",
