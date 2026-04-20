@@ -19,8 +19,7 @@
 ## Links
 
 <!--
-- Link any relevant Confluence or additional Jira tickets if need be
-- If your PR closes some of the existing issues, please add links to them here.
-  Mentioned issues will be automatically closed.
+- If your PR closes an existing issue, link it here. Mentioned issues will be
+  automatically closed on merge.
   Usage: "Closes #<issue number>", or "Closes (paste link of issue)"
 -->
