@@ -1,6 +1,8 @@
 'use client';
 import { logger } from '@/lib/logger';
+import { useRouter } from 'next/navigation';
 import { useTransaction } from '@/contexts/TransactionContext';
+import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 import { SupportedMidnightWallet, SupportedWallet, useWalletContext } from '@/contexts/WalletContext';
 import { DustTransactionsUtils } from '@/lib/dustTransactionsUtils';
 import type { LucidEvolution } from '@lucid-evolution/lucid';
@@ -13,6 +15,8 @@ import ToastContainer from './ui/ToastContainer';
 import { useToast } from '@/hooks/useToast';
 
 export default function Onboard() {
+  const router = useRouter();
+  const { isLoading: isConfigLoading } = useRuntimeConfig();
   const {
     cardano,
     midnight,
@@ -72,12 +76,15 @@ export default function Onboard() {
 
       const transactionState = await transaction.executeTransaction('register', registrationExecutor, {}, cardano.lucid as LucidEvolution);
 
-      // Only open success modal if transaction actually succeeded
+      // Only proceed if transaction actually succeeded
       if (transactionState === 'success') {
+        const txHash = transaction.txHash ?? undefined;
         transaction.resetTransaction();
         refetchGenerationStatus();
-        // Poll until registration UTXO is found (Blockfrost might take a few seconds to index)
-        await pollRegistrationUtxo();
+        // Redirect to dashboard immediately - user sees "Loading registration UTXO..." while we poll.
+        // On mainnet, Blockfrost address index can lag; txs/{hash}/utxos is faster when txHash is known.
+        router.push('/dashboard');
+        pollRegistrationUtxo(txHash);
       } else {
         logger.error('transactionState:', transactionState);
         throw new Error('transactionState:' + transactionState);
@@ -120,7 +127,8 @@ export default function Onboard() {
             disconnectCardanoWallet();
             // setCurrentStep(1);
           }}
-          isLoading={cardano.isLoading}
+          isLoading={cardano.isLoading || isConfigLoading}
+          isConnectDisabled={isConfigLoading}
           error={cardano.error}
           walletName={cardano.walletName || ''}
           balanceNight={cardano.balanceNight || ''}

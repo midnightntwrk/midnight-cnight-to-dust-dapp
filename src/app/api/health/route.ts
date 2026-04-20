@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { addSecurityHeaders } from '@/lib/cors';
 
 /**
  * Health check endpoint for Kubernetes liveness and readiness probes
@@ -20,11 +21,14 @@ import { NextResponse } from 'next/server';
  * ```
  */
 export async function GET() {
+  const headers = new Headers();
+  addSecurityHeaders(headers);
+
   return NextResponse.json(
     {
       status: 'ok',
       timestamp: new Date().toISOString(),
     },
-    { status: 200 }
+    { status: 200, headers }
   );
 }

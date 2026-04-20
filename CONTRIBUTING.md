@@ -28,7 +28,7 @@ Ensure the title is a clear summary of the requirement and provides enough conte
   prefixed with a short name moniker (e.g. `jill-my-feature`).
 - **Follow Coding Standards:** Adhere to the coding style guides specified in our documentation.
 - **Write Tests:** Include unit tests and integration tests to cover your changes.
-- **Commit Messages:** Write clear and concise commit messages.
+- **Commit Messages:** This project uses [Conventional Commits](https://www.conventionalcommits.org/) to drive automated releases. Prefix your commit messages accordingly (e.g., `fix:`, `feat:`, `chore:`). See the [Commit Convention](./README.md#commit-convention) section in the README for the full list of prefixes and their effect on versioning.
 - **Submit Pull Request:** Submit your pull request to the appropriate branch in the main repository.
 - **Please do not `--force` pushes** - doing so means that reviewers will have to re-review all
   commits in the PR rather than commits since last review.

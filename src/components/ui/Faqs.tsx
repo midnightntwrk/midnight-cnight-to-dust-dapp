@@ -2,8 +2,12 @@
 
 import React from 'react';
 import { Accordion, AccordionItem } from '@heroui/accordion';
+import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 
 export default function Faqs() {
+  const { isPreview } = useRuntimeConfig();
+  const dustGenerationDuration = isPreview ? '2.5 hours' : '12 hours';
+
   const faqData = [
     {
       key: '1',
@@ -26,8 +30,7 @@ export default function Faqs() {
     {
       key: '4',
       title: 'How long does it take for the DUST generation to start?',
-      content:
-        'It takes up to 12 hours for DUST generation to start on Midnight once a registration is successful on Cardano.',
+      content: `It takes at least ${dustGenerationDuration} for DUST generation to start on Midnight once a registration is successful on Cardano.`,
     },
     {
       key: '5',

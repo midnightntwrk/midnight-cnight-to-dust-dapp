@@ -6,6 +6,7 @@ import InfoIcon from '@/assets/icons/info.svg';
 import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
 import { Tooltip } from '@heroui/tooltip';
+import { starsToNight } from '@/lib/specksToTDust';
 import pkg from '../../../package.json';
 import Image from 'next/image';
 
@@ -15,6 +16,7 @@ interface ConnectCardanoCardProps {
   onConnect: () => void;
   onDisconnect: () => void;
   isLoading?: boolean;
+  isConnectDisabled?: boolean; // e.g. while runtime config is loading
   error?: string | null;
 
   // Wallet info (when connected)
@@ -35,6 +37,7 @@ export default function ConnectCardanoCard({
   onConnect,
   onDisconnect,
   isLoading = false,
+  isConnectDisabled = false,
   error,
   walletName,
   balanceNight,
@@ -69,11 +72,12 @@ export default function ConnectCardanoCard({
                 <Button
                   onPress={onConnect}
                   isLoading={isLoading}
+                  isDisabled={isConnectDisabled}
                   className="bg-brand-primary hover:bg-brand-primary-hover text-white font-medium w-full py-3 text-sm md:text-base"
                   size="lg"
                   radius="md"
                 >
-                  {isLoading ? 'CONNECTING...' : 'CONNECT CARDANO WALLET'}
+                  {isConnectDisabled ? 'Loading...' : isLoading ? 'CONNECTING...' : 'CONNECT CARDANO WALLET'}
                 </Button>
 
                 {/* Error Message */}
@@ -104,7 +108,7 @@ export default function ConnectCardanoCard({
 
                 {/* Balance Info */}
                 <div className="text-gray-400 text-sm">
-                  Balance: <span className="text-white font-medium">{balanceNight} NIGHT</span>
+                  Balance: <span className="text-white font-medium">{balanceNight ? starsToNight(balanceNight) : '0'} NIGHT</span>
                 </div>
 
                 {/* Wallet Info */}

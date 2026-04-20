@@ -15,7 +15,7 @@ function safeCompare(a: string, b: string): boolean {
  * Optional HTTP Basic Auth. Enabled only when BASIC_AUTH_PASSWORD is set.
  * Remove or leave unset to disable. Use any username; only the password is checked.
  */
-export function proxy(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const password = process.env.BASIC_AUTH_PASSWORD;
   const GTM_INLINE_SCRIPT_HASH = 'zjP2BXYgSCCnXNMXI2IL1yRydoQdsGR/uCCr6kyKsD0=';
   const nonce = randomBytes(16).toString('base64');
@@ -51,10 +51,15 @@ export function proxy(request: NextRequest) {
     'upgrade-insecure-requests',
   ].join('; ');
 
-  /** Helper: build a NextResponse with CSP + nonce headers applied. */
-  const withCsp = (res: NextResponse): NextResponse => {
+  /** Helper: build a NextResponse with security headers applied. */
+  const withSecurityHeaders = (res: NextResponse): NextResponse => {
     res.headers.set('Content-Security-Policy', cspHeader);
-    res.headers.set('x-nonce', nonce);
+    res.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+    res.headers.set('X-Content-Type-Options', 'nosniff');
+    res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), browsing-topics=()');
+    res.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+    res.headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
     return res;
   };
 
@@ -62,7 +67,7 @@ export function proxy(request: NextRequest) {
   if (!password) {
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set('x-nonce', nonce);
-    return withCsp(NextResponse.next({ request: { headers: requestHeaders } }));
+    return withSecurityHeaders(NextResponse.next({ request: { headers: requestHeaders } }));
   }
 
   // Basic Auth check
@@ -85,7 +90,7 @@ export function proxy(request: NextRequest) {
     if (safeCompare(givenPassword ?? '', password)) {
       const requestHeaders = new Headers(request.headers);
       requestHeaders.set('x-nonce', nonce);
-      return withCsp(NextResponse.next({ request: { headers: requestHeaders } }));
+      return withSecurityHeaders(NextResponse.next({ request: { headers: requestHeaders } }));
     }
   } catch (err) {
     logger.warn('[proxy] Malformed Basic Auth header:', err);
