@@ -325,12 +325,27 @@ yarn lint     # Run ESLint
 
 ### Commit Convention
 
-- `feat:` New features
-- `fix:` Bug fixes
-- `docs:` Documentation updates
-- `style:` Code style changes
-- `refactor:` Code refactoring
-- `test:` Test additions or updates
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) to drive automatic versioning and changelog generation via [semantic-release](https://github.com/semantic-release/semantic-release).
+
+| Prefix | Version Bump | Example |
+|--------|-------------|---------|
+| `fix:` | Patch (1.0.x) | `fix: resolve wallet timeout` |
+| `feat:` | Minor (1.x.0) | `feat: add staking dashboard` |
+| `feat!:` or `BREAKING CHANGE:` | Major (x.0.0) | `feat!: change wallet API` |
+| `chore:`, `docs:`, `ci:`, `style:`, `refactor:`, `test:` | No release | `chore: update deps` |
+
+Non-conventional commits produce no release.
+
+### Releases
+
+Releases are fully automated. When a PR merges to `main`:
+
+1. CI runs and, on success, triggers the Release workflow
+2. [semantic-release](https://github.com/semantic-release/semantic-release) analyzes commits since the last release
+3. If a releasable commit is found, it creates a Git tag and publishes a GitHub Release with auto-generated release notes
+4. The Docker build picks up the new version tag and produces semver-tagged images
+
+No manual version bumping or release PRs are needed.
 
 ## Additional Documentation
 

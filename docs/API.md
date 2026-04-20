@@ -129,6 +129,8 @@ Queries the Midnight Indexer for DUST generation status of a specific Cardano st
     }
   ]
 }
+
+> **Note:** The `maxCapacity` (CAP) field is no longer fetched from the indexer. CAP is now calculated client-side as `nightBalance * 5 * (SPECKS_PER_TDUST / STARS_PER_NIGHT)` using the Cardano wallet's NIGHT token balance.
 ```
 
 **Not Found (404)**:

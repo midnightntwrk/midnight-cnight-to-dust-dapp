@@ -13,7 +13,7 @@ export default function WalletsModal({
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const walletInfo = {
+  const cardanoWalletInfo: Record<string, { name: string; icon: string }> = {
     nami: { name: 'Nami', icon: '🦎' },
     eternl: { name: 'Eternl', icon: '♾️' },
     lace: { name: 'Lace', icon: '🎭' },
@@ -22,7 +22,21 @@ export default function WalletsModal({
     nufi: { name: 'NuFi', icon: '💎' },
     gero: { name: 'GeroWallet', icon: '⚡' },
     ccvault: { name: 'CCVault', icon: '🛡️' },
-    mnLace: { name: 'Lace (Midnight)', icon: '🌙' },
+  };
+
+  const getWalletDisplay = (wallet: SupportedWallet | SupportedMidnightWallet) => {
+    if (typeof wallet === 'string') {
+      // Cardano wallet (string key)
+      const info = cardanoWalletInfo[wallet];
+      return { name: info?.name || wallet, icon: info?.icon || '' };
+    }
+    // Midnight wallet (structured object)
+    return { name: wallet.name, icon: wallet.icon || '🌙' };
+  };
+
+  const getWalletKey = (wallet: SupportedWallet | SupportedMidnightWallet, index: number) => {
+    if (typeof wallet === 'string') return wallet;
+    return wallet.rdns || index.toString();
   };
 
   return (
@@ -31,18 +45,27 @@ export default function WalletsModal({
         {(onClose) => (
           <>
             <ModalHeader className="flex flex-col gap-1">Connect your wallet</ModalHeader>
-            {wallets.length > 0 ? (
+            {wallets?.length > 0 ? (
               <ModalBody>
-                {wallets.map((wallet, index) => (
-                  <Button
-                    key={index}
-                    className="bg-brand-primary hover:bg-brand-primary-hover text-white font-medium"
-                    onPress={() => handleWalletSelect(wallet)}
-                    startContent={<span className="text-2xl">{walletInfo[wallet as SupportedWallet]?.icon}</span>}
-                  >
-                    {walletInfo[wallet as SupportedWallet]?.name?.toUpperCase()}
-                  </Button>
-                ))}
+                {wallets.map((wallet, index) => {
+                  const display = getWalletDisplay(wallet);
+                  return (
+                    <Button
+                      key={getWalletKey(wallet, index)}
+                      className="bg-brand-primary hover:bg-brand-primary-hover text-white font-medium"
+                      onPress={() => handleWalletSelect(wallet)}
+                      startContent={
+                        display.icon.startsWith('data:') || display.icon.startsWith('http') ? (
+                          <img src={display.icon} alt={display.name} className="w-6 h-6" />
+                        ) : (
+                          <span className="text-2xl">{display.icon}</span>
+                        )
+                      }
+                    >
+                      {display.name.toUpperCase()}
+                    </Button>
+                  );
+                })}
               </ModalBody>
             ) : (
               <ModalBody>

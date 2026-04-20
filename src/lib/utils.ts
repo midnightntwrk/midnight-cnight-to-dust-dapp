@@ -88,6 +88,26 @@ export const extractCoinPublicKeyFromMidnightAddress = (address: string): string
   }
 };
 
+/**
+ * Convert Dust address bytes (hex) back to a bech32m Dust address string.
+ * This is the inverse of getDustAddressBytes.
+ *
+ * @param hexString - Dust address bytes as hex string (from registration datum)
+ * @param networkId - The Midnight network ID ('mainnet' or 'preview')
+ * @returns bech32m-encoded Dust address string, or null if conversion fails
+ */
+export const getDustAddressFromBytes = (hexString: string, networkId: NetworkId): string | null => {
+  try {
+    const buffer = Buffer.from(hexString, 'hex');
+    const dustAddress = DustAddress.codec.dataFromBytes(buffer);
+    const encoded = MidnightBech32m.encode(networkId, dustAddress);
+    return encoded.asString();
+  } catch (error) {
+    logger.error('[Utils]', 'Failed to convert Dust bytes to address', error);
+    return null;
+  }
+};
+
 export function splitTokenLucidKey(key: string): [string, string] {
   // Assuming the key is formed by concatenating CS and TN_Hex for non-ADA tokens
   // You need to provide a way to split the key back into CS and TN_Hex

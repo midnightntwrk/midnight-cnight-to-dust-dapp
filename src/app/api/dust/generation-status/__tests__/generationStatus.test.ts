@@ -15,9 +15,11 @@ vi.mock('@/config/runtime-config', () => ({
 // Mock cors
 const mockValidateOrigin = vi.fn((): string | null => 'http://localhost:3000');
 const mockAddCorsHeaders = vi.fn();
+const mockAddSecurityHeaders = vi.fn();
 vi.mock('@/lib/cors', () => ({
   validateOrigin: (...args: unknown[]) => mockValidateOrigin(...args),
   addCorsHeaders: (...args: unknown[]) => mockAddCorsHeaders(...args),
+  addSecurityHeaders: (...args: unknown[]) => mockAddSecurityHeaders(...args),
 }));
 
 // Mock rate-limit

@@ -11,6 +11,7 @@ import InfoIcon from '@/assets/icons/info.svg';
 import { useTransaction } from '@/contexts/TransactionContext';
 import { hasMinimumBalance, MIN_ADA_FOR_REGISTRATION } from '@/config/transactionConstants';
 import { useToast } from '@/hooks/useToast';
+import { starsToNight } from '@/lib/specksToTDust';
 import ToastContainer from '../ui/ToastContainer';
 
 interface MatchAddressesCardProps {
@@ -105,7 +106,7 @@ export default function MatchAddressesCard({
             </div>
 
             <div className="text-gray-400 text-sm">
-              Balance: <span className="text-white font-medium">{cardanoBalanceNight} NIGHT</span>
+              Balance: <span className="text-white font-medium">{cardanoBalanceNight ? starsToNight(cardanoBalanceNight) : '0'} NIGHT</span>
             </div>
 
             <div className="text-gray-400 text-sm">

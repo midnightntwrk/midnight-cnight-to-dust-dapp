@@ -2,6 +2,25 @@ import { NextRequest } from 'next/server';
 import { logger } from '@/lib/logger';
 import { getServerRuntimeConfig } from '@/config/runtime-config';
 import { NETWORKS } from '@/lib/contractUtils';
+import { addSecurityHeaders } from '@/lib/cors';
+
+// Validate Blockfrost env vars at request time (not module load, where env may not be ready)
+function validateBlockfrostEnv() {
+  const config = getServerRuntimeConfig();
+  const network = config.CARDANO_NET;
+  const keyVar =
+    network === 'Mainnet'
+      ? 'BLOCKFROST_KEY_MAINNET'
+      : network === 'Preprod'
+        ? 'BLOCKFROST_KEY_PREPROD'
+        : 'BLOCKFROST_KEY_PREVIEW';
+
+  if (!process.env[keyVar]) {
+    const msg = `[BlockfrostProxy] Missing required environment variable: ${keyVar} (CARDANO_NET=${network})`;
+    logger.error(msg);
+    throw new Error(msg);
+  }
+}
 
 // OPTIMIZATION: In-memory cache for Blockfrost API responses
 // This reduces duplicate API calls by caching responses for a short period
@@ -58,6 +77,7 @@ const ALLOWED_ORIGINS = [
   'https://dust.preview.midnight.network',
   'https://dust.preprod.midnight.network',
   'https://dust.midnight.network',
+  'https://dust.mainnet.midnight.network',
   process.env.NEXT_PUBLIC_PRODUCTION_URL,
 ].filter((origin): origin is string => Boolean(origin));
 
@@ -146,6 +166,7 @@ export async function PATCH(request: NextRequest) {
 }
 
 async function handleRequest(request: NextRequest) {
+  validateBlockfrostEnv();
   const startTime = Date.now();
   const origin = request.headers.get('origin');
 
@@ -153,6 +174,7 @@ async function handleRequest(request: NextRequest) {
   if (!validateOrigin(request)) {
     const headers = new Headers();
     addCorsHeaders(headers, origin);
+    addSecurityHeaders(headers);
 
     return Response.json({ error: 'Forbidden - Invalid origin' }, { status: 403, headers });
   }
@@ -195,12 +217,15 @@ async function handleRequest(request: NextRequest) {
     // Standard proxy to Blockfrost using native fetch
     const targetUrl = `${target}${blockfrostPath}${search}`;
 
-    // CACHE OPTIMIZATION: Only cache GET requests
+    // CACHE OPTIMIZATION: Only cache GET requests, skip UTxO endpoints
+    // UTxO queries must always be fresh for registration polling (pollUntilFound)
     const isGetRequest = request.method === 'GET';
+    const isUtxoQuery = /\/(utxos|txs\/[a-f0-9]+\/utxos)/.test(blockfrostPath);
+    const isCacheable = isGetRequest && !isUtxoQuery;
     const cacheKey = `${request.method}:${targetUrl}`;
 
-    // Check cache for GET requests
-    if (isGetRequest) {
+    // Check cache for cacheable requests
+    if (isCacheable) {
       const now = Date.now();
       const cachedEntry = cache.get(cacheKey);
 
@@ -219,8 +244,9 @@ async function handleRequest(request: NextRequest) {
         responseHeaders.set('X-Cache', 'HIT');
         responseHeaders.set('X-Cache-Age', `${Math.floor((now - (cachedEntry.expiresAt - CACHE_TTL_MS)) / 1000)}s`);
 
-        // Add CORS headers
+        // Add CORS and security headers
         addCorsHeaders(responseHeaders, origin);
+        addSecurityHeaders(responseHeaders);
 
         return new Response(cachedEntry.responseBody, {
           status: cachedEntry.status,
@@ -270,13 +296,14 @@ async function handleRequest(request: NextRequest) {
     });
 
     // Add cache status header
-    responseHeaders.set('X-Cache', isGetRequest ? 'MISS' : 'BYPASS');
+    responseHeaders.set('X-Cache', isCacheable ? 'MISS' : 'BYPASS');
 
-    // Add CORS headers
+    // Add CORS and security headers
     addCorsHeaders(responseHeaders, origin);
+    addSecurityHeaders(responseHeaders);
 
-    // CACHE OPTIMIZATION: Store successful GET responses in cache
-    if (isGetRequest && fetchResponse.ok) {
+    // CACHE OPTIMIZATION: Store successful cacheable responses in cache
+    if (isCacheable && fetchResponse.ok) {
       // Clone response to read body without consuming the original stream
       const responseClone = fetchResponse.clone();
       const responseBody = await responseClone.arrayBuffer();
@@ -332,9 +359,10 @@ async function handleRequest(request: NextRequest) {
     // In production, return generic error message to prevent information leakage
     const errorMessage = isDevelopment && error instanceof Error ? error.message : 'An error occurred while processing your request. Please try again later.';
 
-    // Add CORS headers to error response
+    // Add CORS and security headers to error response
     const errorHeaders = new Headers();
     addCorsHeaders(errorHeaders, origin);
+    addSecurityHeaders(errorHeaders);
 
     return Response.json(
       {
