@@ -247,8 +247,6 @@ async function handleRequest(request: NextRequest) {
     if (userAgent) {
       headers.set('User-Agent', userAgent);
     }
-    console.log('GETTING HERE::::');
-    logger.warn('fetching in a second', targetUrl, request);
     // Make the request to Blockfrost
     const fetchResponse = await fetch(targetUrl, {
       method: request.method,

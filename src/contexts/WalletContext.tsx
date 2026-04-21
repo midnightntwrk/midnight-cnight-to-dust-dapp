@@ -29,18 +29,20 @@ async function initializeLucidWithBlockfrost(network: CardanoNetwork, apiServerU
     let presetProtocolParameters = await provider.getProtocolParameters();
 
     const response = await fetch('/api/blockfrost/epochs/latest/parameters');
-    let costModelsRaw = (await response.json())["cost_models_raw"];
+    let costModelsRaw = (await response.json())['cost_models_raw'];
 
     for (const plutusKey of Object.keys(presetProtocolParameters.costModels)) {
-      const costModelKeys = Object.keys(presetProtocolParameters.costModels[plutusKey as PlutusVersion] as unknown as CostModel)
+      const costModelKeys = Object.keys(
+        presetProtocolParameters.costModels[plutusKey as PlutusVersion] as unknown as CostModel
+      );
       for (const [i, element] of costModelsRaw[plutusKey].entries()) {
         if (!costModelKeys[i]) {
-          presetProtocolParameters.costModels[plutusKey as PlutusVersion][`_${i}`] = element
+          presetProtocolParameters.costModels[plutusKey as PlutusVersion][`_${i}`] = element;
         }
       }
     }
 
-    let ppStr = JSON.stringify(presetProtocolParameters, (_, v) => typeof v === 'bigint' ? v.toString() : v)
+    let ppStr = JSON.stringify(presetProtocolParameters, (_, v) => (typeof v === 'bigint' ? v.toString() : v));
     logger.warn('[ProtocolParams]', ppStr);
     const lucid = await Lucid(provider, network as Network, { presetProtocolParameters });
     return lucid;
@@ -276,11 +278,9 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       try {
         const rewardAddress = await lucid.wallet().rewardAddress();
         stakeAddressBech32 = rewardAddress || null;
-        console.log('stake key hash!', stakeAddressBech32);
       } catch {
         stakeAddressBech32 = null;
       }
-      console.log('stake key hash!', stakeAddressBech32);
 
       logger.warn('[Wallet]', 'CARDANO WALLET CONNECTED', {
         address,

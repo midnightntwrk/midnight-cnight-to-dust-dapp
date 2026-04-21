@@ -29,9 +29,13 @@ vi.mock('@/lib/rate-limit', () => ({
 // Mock registration cache
 const mockGetRegistrationsForStakeKey = vi.fn(() => []);
 const mockIsReady = vi.fn(() => true);
+const mockGetCacheStats = vi.fn(() => ({ total: 0, lastRefresh: 0 }));
+const mockDebugStakeKeySample = vi.fn(() => []);
 vi.mock('@/lib/registration-cache', () => ({
   getRegistrationsForStakeKey: (...args: unknown[]) => mockGetRegistrationsForStakeKey(...args),
   isReady: () => mockIsReady(),
+  getCacheStats: () => mockGetCacheStats(),
+  _debugStakeKeySample: (...args: unknown[]) => mockDebugStakeKeySample(...args),
 }));
 
 import { GET, OPTIONS } from '../route';
