@@ -12,8 +12,8 @@ const RegistrationUtxoCard = () => {
   const { toasts, showToast, removeToast } = useToast();
   const { registrationUtxo } = useWalletContext();
 
-  const handleFormatHash = (hash: string) => {
-    return hash.slice(0, 8) + '...' + hash.slice(-8);
+  const handleFormatHash = (hash: string | undefined) => {
+    return hash?.slice(0, 8) + '...' + hash?.slice(-8);
   };
 
   const handleFormatAddress = (address: string) => {
@@ -47,7 +47,9 @@ const RegistrationUtxoCard = () => {
     <>
       <div className="w-full flex flex-col gap-4 relative">
         <div className="flex flex-row gap-2 z-10 relative items-center">
-          <span className="text-[16px] font-normal text-gray-400">On-chain proof of your Cardano-Midnight address registration</span>
+          <span className="text-[16px] font-normal text-gray-400">
+            On-chain proof of your Cardano-Midnight address registration
+          </span>
           <Tooltip
             content="This UTXO contains your registration data on the Cardano blockchain"
             placement="top"
@@ -86,7 +88,14 @@ const RegistrationUtxoCard = () => {
           <div className="flex flex-row gap-2 items-center z-10">
             <Image src={CheckIcon} alt="check" width={18} height={18} />
             <span className="text-sm font-mono">{handleFormatAddress(registrationUtxo.address)}</span>
-            <Image src={CopyIcon} alt="copy" width={18} height={18} className="cursor-pointer hover:opacity-70" onClick={() => handleCopy(registrationUtxo.address, 'Address')} />
+            <Image
+              src={CopyIcon}
+              alt="copy"
+              width={18}
+              height={18}
+              className="cursor-pointer hover:opacity-70"
+              onClick={() => handleCopy(registrationUtxo.address, 'Address')}
+            />
           </div>
         </div>
 

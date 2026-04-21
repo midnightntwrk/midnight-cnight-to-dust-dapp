@@ -2,8 +2,8 @@ import { logger } from '@/lib/logger';
 import { validateEnvOrThrow } from './env';
 
 import { toJson } from '@/lib/utils';
-import { Network, ProtocolParameters } from '@lucid-evolution/lucid';
-import { protocolParametersForLucid } from './protocolParameters';
+import { Network, PlutusVersion } from '@lucid-evolution/lucid';
+import { CostModel } from '@blaze-cardano/core';
 
 // Validate environment variables at module load time (server-side only)
 // Skip validation during build time (Next.js build process)
@@ -134,29 +134,6 @@ const getLucidNetwork = (): Network => {
   return network as Network;
 };
 
-const initializeLucidWithBlockfrostClientSide = async () => {
-  logger.log('[Network]', `initializeLucidWithBlockfrostClientSide`);
-  try {
-    //-----------------
-    const protocolParameters = protocolParametersForLucid[
-      CARDANO_NET! as keyof typeof protocolParametersForLucid
-    ] as ProtocolParameters;
-    //-----------------
-    // Dynamic import to avoid SSR issues
-    const { Lucid, Blockfrost } = await import('@lucid-evolution/lucid');
-
-    const apiServerUrl = process.env.NEXT_PUBLIC_REACT_SERVER_API_URL || '';
-
-    const lucid = await Lucid(new Blockfrost(apiServerUrl + '/blockfrost', 'xxxx'), getLucidNetwork(), {
-      presetProtocolParameters: protocolParameters,
-    });
-    return lucid;
-  } catch (error) {
-    logger.log('[Network]', `initializeLucidWithBlockfrostClientSide - Error: ${error}`);
-    throw error;
-  }
-};
-
 //---------------------------------------------------
 
 // During build, provide a default value if not set
@@ -217,7 +194,6 @@ export {
   getCurrentNetwork,
   getCurrentNetworkConfig,
   getLucidNetwork,
-  initializeLucidWithBlockfrostClientSide,
   networkConfigs,
 };
 //---------------------------------------------------

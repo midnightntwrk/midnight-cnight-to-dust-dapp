@@ -2,7 +2,6 @@
 'use client';
 import { logger } from '@/lib/logger';
 
-import { protocolParametersForLucid } from '@/config/protocolParameters';
 import { CardanoNetwork } from '@/config/runtime-config';
 import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 import { useGenerationStatus } from '@/hooks/useGenerationStatus';
@@ -13,9 +12,10 @@ import {
   getDustAddressFromBytes,
   validateDustAddress,
 } from '@/lib/utils';
-import { Network, ProtocolParameters, UTxO } from '@lucid-evolution/lucid';
+import { Network, PlutusVersion, UTxO } from '@lucid-evolution/lucid';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { createContext, ReactNode, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
+import { CostModel } from '@blaze-cardano/core';
 
 /**
  * Initialize Lucid with Blockfrost provider (client-side only)
@@ -24,14 +24,27 @@ import React, { createContext, ReactNode, useContext, useEffect, useRef, useStat
 async function initializeLucidWithBlockfrost(network: CardanoNetwork, apiServerUrl: string) {
   logger.log('[Network]', `initializeLucidWithBlockfrost for ${network}`);
   try {
-    const protocolParameters = protocolParametersForLucid[
-      network as keyof typeof protocolParametersForLucid
-    ] as ProtocolParameters;
     const { Lucid, Blockfrost } = await import('@lucid-evolution/lucid');
+    const provider = new Blockfrost(apiServerUrl + '/api/blockfrost', 'xxxx');
+    let presetProtocolParameters = await provider.getProtocolParameters();
 
-    const lucid = await Lucid(new Blockfrost(apiServerUrl + '/api/blockfrost', 'xxxx'), network as Network, {
-      presetProtocolParameters: protocolParameters,
-    });
+    const response = await fetch('/api/blockfrost/epochs/latest/parameters');
+    let costModelsRaw = (await response.json())['cost_models_raw'];
+
+    for (const plutusKey of Object.keys(presetProtocolParameters.costModels)) {
+      const costModelKeys = Object.keys(
+        presetProtocolParameters.costModels[plutusKey as PlutusVersion] as unknown as CostModel
+      );
+      for (const [i, element] of costModelsRaw[plutusKey].entries()) {
+        if (!costModelKeys[i]) {
+          presetProtocolParameters.costModels[plutusKey as PlutusVersion][`_${i}`] = element;
+        }
+      }
+    }
+
+    let ppStr = JSON.stringify(presetProtocolParameters, (_, v) => (typeof v === 'bigint' ? v.toString() : v));
+    logger.warn('[ProtocolParams]', ppStr);
+    const lucid = await Lucid(provider, network as Network, { presetProtocolParameters });
     return lucid;
   } catch (error) {
     logger.log('[Network]', `initializeLucidWithBlockfrost - Error: ${error}`);
@@ -260,7 +273,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
       const cardanoPaymentCredentialHash = cardanoAddressDetails?.paymentCredential?.hash;
       const cardanoStakeKeyHash = cardanoAddressDetails?.stakeCredential?.hash;
-
       // Get reward address using lucid
       let stakeAddressBech32: string | null = null;
       try {
@@ -270,12 +282,12 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         stakeAddressBech32 = null;
       }
 
-      logger.log('[Wallet]', '🔑 ========== CARDANO WALLET CONNECTED ==========');
-      logger.log('[Wallet]', `📍 Address (bech32): ${address}`);
-      logger.log('[Wallet]', `📍 Payment Credential (hash): ${cardanoPaymentCredentialHash}`);
-      logger.log('[Wallet]', `🎯 Stake Key (hash): ${cardanoStakeKeyHash}`);
-      logger.log('[Wallet]', `🎯 Stake Address (bech32): ${stakeAddressBech32}`);
-      logger.log('[Wallet]', '🔑 ================================================');
+      logger.warn('[Wallet]', 'CARDANO WALLET CONNECTED', {
+        address,
+        paymentCredentialHash: cardanoPaymentCredentialHash,
+        stakeKeyHash: cardanoStakeKeyHash,
+        stakeAddressBech32,
+      });
 
       // Fetch initial balances
       const utxos = await lucid.wallet().getUtxos();
@@ -881,7 +893,6 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     findRegistrationUtxo,
     pollRegistrationUtxo,
   };
-
 
   return <WalletContext.Provider value={contextValue}>{children}</WalletContext.Provider>;
 };

@@ -1,22 +1,12 @@
 import { NextRequest } from 'next/server';
 import { logger } from '@/lib/logger';
-import { getServerRuntimeConfig } from '@/config/runtime-config';
-import { NETWORKS } from '@/lib/contractUtils';
+import { getBlockfrostConfig, getBlockfrostEnvKeyName } from '@/lib/blockfrost-config';
 import { addSecurityHeaders } from '@/lib/cors';
 
-// Validate Blockfrost env vars at request time (not module load, where env may not be ready)
 function validateBlockfrostEnv() {
-  const config = getServerRuntimeConfig();
-  const network = config.CARDANO_NET;
-  const keyVar =
-    network === 'Mainnet'
-      ? 'BLOCKFROST_KEY_MAINNET'
-      : network === 'Preprod'
-        ? 'BLOCKFROST_KEY_PREPROD'
-        : 'BLOCKFROST_KEY_PREVIEW';
-
+  const keyVar = getBlockfrostEnvKeyName();
   if (!process.env[keyVar]) {
-    const msg = `[BlockfrostProxy] Missing required environment variable: ${keyVar} (CARDANO_NET=${network})`;
+    const msg = `[BlockfrostProxy] Missing required environment variable: ${keyVar}`;
     logger.error(msg);
     throw new Error(msg);
   }
@@ -125,7 +115,8 @@ function validateOrigin(request: NextRequest): boolean {
  */
 function addCorsHeaders(headers: Headers, origin: string | null): void {
   // Allow specific origin or fallback to first allowed origin
-  const allowedOrigin = origin && ALLOWED_ORIGINS.some((allowed) => origin.startsWith(allowed)) ? origin : ALLOWED_ORIGINS[0];
+  const allowedOrigin =
+    origin && ALLOWED_ORIGINS.some((allowed) => origin.startsWith(allowed)) ? origin : ALLOWED_ORIGINS[0];
 
   headers.set('Access-Control-Allow-Origin', allowedOrigin);
   headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
@@ -179,25 +170,7 @@ async function handleRequest(request: NextRequest) {
     return Response.json({ error: 'Forbidden - Invalid origin' }, { status: 403, headers });
   }
 
-  // Get runtime config (server-side reads from process.env)
-  const config = getServerRuntimeConfig();
-  const network = config.CARDANO_NET;
-
-  // Get network-specific values
-  const target =
-    network === NETWORKS.MAINNET
-      ? config.BLOCKFROST_URL_MAINNET
-      : network === NETWORKS.PREPROD
-        ? config.BLOCKFROST_URL_PREPROD
-        : config.BLOCKFROST_URL_PREVIEW;
-
-  // Get Blockfrost API key from environment (server-side only)
-  const PROJECT_ID =
-    network === NETWORKS.MAINNET
-      ? process.env.BLOCKFROST_KEY_MAINNET
-      : network === NETWORKS.PREPROD
-        ? process.env.BLOCKFROST_KEY_PREPROD
-        : process.env.BLOCKFROST_KEY_PREVIEW;
+  const { baseUrl: target, projectId: PROJECT_ID } = getBlockfrostConfig();
 
   // Declare variables needed in the catch block
   const url = request.nextUrl.clone();
@@ -274,13 +247,25 @@ async function handleRequest(request: NextRequest) {
     if (userAgent) {
       headers.set('User-Agent', userAgent);
     }
-
     // Make the request to Blockfrost
     const fetchResponse = await fetch(targetUrl, {
       method: request.method,
       headers,
       body: request.method !== 'GET' ? request.body : undefined,
+      // @ts-expect-error duplex is required when sending a ReadableStream body in Node fetch
+      duplex: request.method !== 'GET' ? 'half' : undefined,
     });
+
+    // Log non-OK POST responses (submit / unsign failures) with full body
+    if (!fetchResponse.ok && request.method !== 'GET') {
+      const cloned = fetchResponse.clone();
+      const body = await cloned.text().catch(() => '<unreadable>');
+      logger.error('[BlockfrostProxy]', 'Upstream error response', {
+        status: fetchResponse.status,
+        path: blockfrostPath,
+        body,
+      });
+    }
 
     // Create the response while preserving important headers
     const responseHeaders = new Headers();
@@ -357,7 +342,10 @@ async function handleRequest(request: NextRequest) {
     });
 
     // In production, return generic error message to prevent information leakage
-    const errorMessage = isDevelopment && error instanceof Error ? error.message : 'An error occurred while processing your request. Please try again later.';
+    const errorMessage =
+      isDevelopment && error instanceof Error
+        ? error.message
+        : 'An error occurred while processing your request. Please try again later.';
 
     // Add CORS and security headers to error response
     const errorHeaders = new Headers();

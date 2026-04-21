@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { addCorsHeaders, addSecurityHeaders } from '@/lib/cors';
 
 interface RateLimitEntry {
   count: number;
@@ -116,10 +117,15 @@ export const addRateLimitHeaders = (headers: Headers, result: RateLimitResult): 
 /**
  * Create a rate limit exceeded response
  */
-export const rateLimitExceededResponse = (result: RateLimitResult): NextResponse => {
+export const rateLimitExceededResponse = (
+  result: RateLimitResult,
+  origin?: string | null
+): NextResponse => {
   const headers = new Headers();
   addRateLimitHeaders(headers, result);
   headers.set('Retry-After', String(Math.ceil((result.resetTime - Date.now()) / 1000)));
+  if (origin) addCorsHeaders(headers, origin);
+  addSecurityHeaders(headers);
 
   return NextResponse.json({ error: 'Too many requests' }, { status: 429, headers });
 };

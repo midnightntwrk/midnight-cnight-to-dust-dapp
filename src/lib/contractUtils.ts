@@ -2,7 +2,8 @@ import * as Contracts from '@/config/contract_blueprint';
 import { getIndexerEndpoint, getRuntimeConfig } from '@/config/runtime-config';
 import { addressFromValidator, Script as BlazeScript, CredentialType, PolicyId, RewardAddress } from '@blaze-cardano/core';
 import { serialize } from '@blaze-cardano/data';
-import { Script as LucidScript } from '@lucid-evolution/lucid';
+import { Constr, Data, Script as LucidScript } from '@lucid-evolution/lucid';
+import { getBlockfrostConfig } from '@/lib/blockfrost-config';
 import { logger } from './logger';
 
 // Helper to get network ID from runtime config
@@ -81,6 +82,36 @@ export function serializeToCbor(type: any, data: any): string {
   return serialize(type, data).toCbor();
 }
 
+/**
+ * Parse a DustMappingDatum inline datum: Constr(0, [Constr(0, [stakeKeyHash]), dustPKH])
+ */
+export function parseDustMappingDatum(inlineDatum: string): { stakeKeyHash: string; dustPKH: string } | null {
+  try {
+    const datum = Data.from(inlineDatum);
+    if (!(datum instanceof Constr) || datum.index !== 0 || datum.fields.length !== 2) return null;
+
+    const [inner, dustPKH] = datum.fields as [Constr<string>, string];
+    if (!(inner instanceof Constr) || inner.index !== 0 || inner.fields.length !== 1) return null;
+
+    const stakeKeyHash = inner.fields[0] as string;
+    if (!stakeKeyHash || !dustPKH) return null;
+
+    return { stakeKeyHash, dustPKH };
+  } catch {
+    return null;
+  }
+}
+
+// Computed once at module load — the script hash is deterministic.
+const _dustGenerator = new Contracts.CnightGeneratesDustCnightGeneratesDustElse();
+const _dustGeneratorPolicyId = getPolicyId(_dustGenerator.Script);
+
+export const dustGeneratorDetails = {
+  validatorAddress: getValidatorAddress(_dustGenerator.Script),
+  policyId: _dustGeneratorPolicyId,
+  assetName: _dustGeneratorPolicyId + '', // policyId with empty token name
+} as const;
+
 export enum NETWORKS {
   MAINNET = 'Mainnet',
   PREPROD = 'Preprod',
@@ -94,12 +125,7 @@ export function logContractAddresses(): void {
   const config = getRuntimeConfig();
   const networkId = getNetworkId();
 
-  // Get network-specific values
-  const blockfrostUrl = config.CARDANO_NET === NETWORKS.MAINNET
-    ? config.BLOCKFROST_URL_MAINNET
-    : config.CARDANO_NET === NETWORKS.PREPROD
-    ? config.BLOCKFROST_URL_PREPROD
-    : config.BLOCKFROST_URL_PREVIEW;
+  const { baseUrl: blockfrostUrl } = getBlockfrostConfig();
 
   const explorerUrl = config.CARDANO_NET === NETWORKS.MAINNET
     ? config.BLOCKCHAIN_EXPLORER_URL_MAINNET

@@ -56,6 +56,15 @@ const sanitizeValue = (key: string, value: unknown): unknown => {
 const sanitizeObject = (obj: unknown): unknown => {
   if (obj === null || obj === undefined) return obj;
 
+  if (obj instanceof Error) {
+    return {
+      name: obj.name,
+      message: obj.message,
+      stack: obj.stack,
+      ...(obj.cause !== undefined ? { cause: sanitizeObject(obj.cause) } : {}),
+    };
+  }
+
   if (Array.isArray(obj)) {
     return obj.map((item) => sanitizeObject(item));
   }

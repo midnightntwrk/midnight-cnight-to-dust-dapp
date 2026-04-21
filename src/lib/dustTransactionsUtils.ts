@@ -189,7 +189,19 @@ export class DustTransactionsUtils {
 
       onProgress?.('Submitting registration transaction...', 60);
       logger.log('[DustTransactions]', '📤 Submitting registration transaction...');
-      const txHash = await signedTx.submit();
+      let txHash: string;
+      try {
+        txHash = await signedTx.submit();
+      } catch (err) {
+        const e = err as { cause?: unknown; response?: unknown; message?: string; _tag?: string };
+        logger.error('[DustTransactions]', 'Submit failed', {
+          tag: e._tag,
+          message: e.message,
+          cause: e.cause,
+          response: e.response,
+        });
+        throw err;
+      }
 
       logger.log('[DustTransactions]', '🎯 Registration transaction submitted successfully:', txHash);
       return txHash;
