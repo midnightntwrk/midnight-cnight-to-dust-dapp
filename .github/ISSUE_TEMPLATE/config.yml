@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Discord
+    url: https://discord.gg/midnightnetwork
+    about: Ask questions and discuss with the community on Discord.
+  - name: Security Vulnerabilities
+    url: https://github.com/midnightntwrk/midnight-cnight-to-dust-dapp/security/advisories/new
+    about: Report security vulnerabilities privately via GitHub's security advisory feature.
