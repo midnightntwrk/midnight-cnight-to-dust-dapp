@@ -115,7 +115,8 @@ function validateOrigin(request: NextRequest): boolean {
  */
 function addCorsHeaders(headers: Headers, origin: string | null): void {
   // Allow specific origin or fallback to first allowed origin
-  const allowedOrigin = origin && ALLOWED_ORIGINS.some((allowed) => origin.startsWith(allowed)) ? origin : ALLOWED_ORIGINS[0];
+  const allowedOrigin =
+    origin && ALLOWED_ORIGINS.some((allowed) => origin.startsWith(allowed)) ? origin : ALLOWED_ORIGINS[0];
 
   headers.set('Access-Control-Allow-Origin', allowedOrigin);
   headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
@@ -246,13 +247,27 @@ async function handleRequest(request: NextRequest) {
     if (userAgent) {
       headers.set('User-Agent', userAgent);
     }
-
+    console.log('GETTING HERE::::');
+    logger.warn('fetching in a second', targetUrl, request);
     // Make the request to Blockfrost
     const fetchResponse = await fetch(targetUrl, {
       method: request.method,
       headers,
       body: request.method !== 'GET' ? request.body : undefined,
+      // @ts-expect-error duplex is required when sending a ReadableStream body in Node fetch
+      duplex: request.method !== 'GET' ? 'half' : undefined,
     });
+
+    // Log non-OK POST responses (submit / unsign failures) with full body
+    if (!fetchResponse.ok && request.method !== 'GET') {
+      const cloned = fetchResponse.clone();
+      const body = await cloned.text().catch(() => '<unreadable>');
+      logger.error('[BlockfrostProxy]', 'Upstream error response', {
+        status: fetchResponse.status,
+        path: blockfrostPath,
+        body,
+      });
+    }
 
     // Create the response while preserving important headers
     const responseHeaders = new Headers();
@@ -329,7 +344,10 @@ async function handleRequest(request: NextRequest) {
     });
 
     // In production, return generic error message to prevent information leakage
-    const errorMessage = isDevelopment && error instanceof Error ? error.message : 'An error occurred while processing your request. Please try again later.';
+    const errorMessage =
+      isDevelopment && error instanceof Error
+        ? error.message
+        : 'An error occurred while processing your request. Please try again later.';
 
     // Add CORS and security headers to error response
     const errorHeaders = new Headers();
