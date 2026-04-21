@@ -134,39 +134,6 @@ const getLucidNetwork = (): Network => {
   return network as Network;
 };
 
-const initializeLucidWithBlockfrostClientSide = async () => {
-  logger.log('[Network]', `initializeLucidWithBlockfrostClientSide`);
-  try {
-    // Dynamic import to avoid SSR issues
-    const { Lucid, Blockfrost } = await import('@lucid-evolution/lucid');
-
-    const apiServerUrl = process.env.NEXT_PUBLIC_REACT_SERVER_API_URL || '';
-    const provider = new Blockfrost(apiServerUrl + '/api/blockfrost', 'xxxx');
-    let presetProtocolParameters = await provider.getProtocolParameters();
-
-    const response = await fetch('/api/blockfrost/epochs/latest/parameters');
-    let costModelsRaw = (await response.json())["cost_models_raw"];
-
-    for (const plutusKey of Object.keys(presetProtocolParameters.costModels)) {
-      const costModelKeys = Object.keys(presetProtocolParameters.costModels[plutusKey as PlutusVersion] as unknown as CostModel)
-      for (const [i, element] of costModelsRaw[plutusKey].entries()) {
-        if (!costModelKeys[i]) {
-          presetProtocolParameters.costModels[plutusKey as PlutusVersion][`_${i}`] = element
-        }
-      }
-    }
-
-    let ppStr = JSON.stringify(presetProtocolParameters, (_, v) => typeof v === 'bigint' ? v.toString() : v)
-    logger.warn('[ProtocolParams]', ppStr);
-
-    const lucid = await Lucid(provider, getLucidNetwork(), { presetProtocolParameters });
-    return lucid;
-  } catch (error) {
-    logger.log('[Network]', `initializeLucidWithBlockfrostClientSide - Error: ${error}`);
-    throw error;
-  }
-};
-
 //---------------------------------------------------
 
 // During build, provide a default value if not set
@@ -227,7 +194,6 @@ export {
   getCurrentNetwork,
   getCurrentNetworkConfig,
   getLucidNetwork,
-  initializeLucidWithBlockfrostClientSide,
   networkConfigs,
 };
 //---------------------------------------------------

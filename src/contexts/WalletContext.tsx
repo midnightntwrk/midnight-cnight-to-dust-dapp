@@ -14,7 +14,7 @@ import {
 } from '@/lib/utils';
 import { Network, PlutusVersion, UTxO } from '@lucid-evolution/lucid';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { createContext, ReactNode, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { CostModel } from '@blaze-cardano/core';
 
 /**
