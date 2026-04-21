@@ -21,9 +21,11 @@ export const validateOrigin = (request: NextRequest): string | null => {
     return origin;
   }
 
-  // Dev mode: allow requests without origin for testing tools only
-  // This does NOT allow arbitrary origins - only missing origin header
-  if (process.env.NODE_ENV === 'development' && !origin) {
+  // No Origin header → browser same-origin request (browsers omit Origin on
+  // same-origin GETs) or a non-browser client (curl, server-to-server).
+  // Safe to allow for this read-only API; cross-origin browser requests
+  // always include Origin and are checked against the whitelist above.
+  if (!origin) {
     return ALLOWED_ORIGINS[0] || 'http://localhost:3000';
   }
 

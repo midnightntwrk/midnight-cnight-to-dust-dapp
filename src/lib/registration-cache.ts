@@ -377,6 +377,10 @@ export function _resetForTesting(): void {
 
 export { ensureFresh as _ensureFresh };
 
+export function _debugStakeKeySample(n: number = 5): string[] {
+  return Array.from(state.stakeKeyMap.keys()).slice(0, n);
+}
+
 // ── Warm-on-startup ────────────────────────────────────────────────────────────
 // Skip during tests, next build (no API keys available), and duplicate module evaluations.
 
