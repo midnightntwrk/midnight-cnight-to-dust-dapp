@@ -38,6 +38,79 @@ export default function Faqs() {
       content:
         'Registering, re-registering, or de-registering your Cardano-held NIGHT through this app is free. However, each such action involves executing a Cardano transaction, and will thus incur a network transaction fee. In addition to NIGHT, your generating wallet must have a small amount of ADA to cover the transaction fees.',
     },
+    {
+      key: '6',
+      title: 'What is the DUST Generator?',
+      content:
+        'The DUST Generator is a tool that allows you to map your Midnight address to a Cardano address through a mapping validator on mainnet. It facilitates the creation and distribution of DUST through the address mapping process.',
+    },
+    {
+      key: '7',
+      title: 'Do I need a Cardano wallet to use this?',
+      content:
+        'Yes. You need a compatible Cardano wallet to complete the address mapping. The dApp connects to your wallet to verify ownership and sign the mapping transaction.',
+    },
+    {
+      key: '8',
+      title: 'Do I need a Midnight wallet to use this?',
+      content:
+        'Yes. You need a compatible Midnight wallet to complete the address mapping. The dApp connects to your wallet to verify ownership and to designate the generated DUST to the DUST address.',
+    },
+    {
+      key: '9',
+      title: 'Which wallets are supported?',
+      content:
+        'The dApp supports wallets compatible with the Cardano and Midnight network. Check the Midnight documentation at docs.midnight.network for the most current list.',
+    },
+    {
+      key: '10',
+      title: 'My wallet won\'t connect, what should I do?',
+      content:
+        'Try refreshing the page, ensuring your wallet extension is up to date and that you\'re not running conflicting browser extensions.',
+    },
+    {
+      key: '11',
+      title: 'Can I designate DUST to multiple wallets?',
+      content:
+        'No. The NIGHT balance in your wallet can only be designated to a single DUST address.',
+    },
+    {
+      key: '12',
+      title: 'Can I change the DUST designation wallet?',
+      content: 'Yes. You may change your DUST designation at any time.',
+    },
+    {
+      key: '13',
+      title: 'When will I see DUST in my wallet?',
+      content:
+        'DUST starts accumulating as soon as the DUST registration is successful. However, it may take up to 12 hours for the DUST to show up in your Midnight wallet.',
+    },
+    {
+      key: '14',
+      title: 'What happens if I move my NIGHT from the designated wallet?',
+      content:
+        'Each NIGHT you hold generates a maximum of 5 DUST. If you move your NIGHT to another wallet, the corresponding DUST will decay over a period of time down to the maximum allocated to the new NIGHT balance.',
+    },
+    {
+      key: '15',
+      title: 'Can I stop generating DUST?',
+      content:
+        'Yes. You can stop generating DUST for your NIGHT. When you do, the DUST will decay over a period of time down to zero.',
+    },
+    {
+      key: '16',
+      title: 'Have Questions?',
+      content: (
+        <a
+          href="https://midnightfoundation.notion.site/3334057b9f2380cdb50fdfb5183600bb?pvs=105"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-400 hover:text-blue-300 underline"
+        >
+          Submit a ticket here.
+        </a>
+      ),
+    },
   ];
 
   return (
