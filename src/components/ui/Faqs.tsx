@@ -42,7 +42,7 @@ export default function Faqs() {
       key: '6',
       title: 'What is the DUST Generator?',
       content:
-        'The DUST Generator is a tool that allows you to map your Midnight address to a Cardano address through a mapping validator on mainnet. It facilitates the creation and distribution of DUST through the address mapping process.',
+        'The DUST Generator links the Cardano wallet that holds your NIGHT to a DUST address on the Midnight network. Once linked, the NIGHT in your Cardano wallet automatically generates DUST at the Midnight address you specified.',
     },
     {
       key: '7',
@@ -83,13 +83,13 @@ export default function Faqs() {
       key: '13',
       title: 'When will I see DUST in my wallet?',
       content:
-        'DUST starts accumulating as soon as the DUST registration is successful. However, it may take up to 12 hours for the DUST to show up in your Midnight wallet.',
+        `DUST starts accumulating as soon as the DUST registration is successful. However, it will take at least ${dustGenerationDuration} for the DUST to show up in your Midnight wallet.`,
     },
     {
       key: '14',
       title: 'What happens if I move my NIGHT from the designated wallet?',
       content:
-        'Each NIGHT you hold generates a maximum of 5 DUST. If you move your NIGHT to another wallet, the corresponding DUST will decay over a period of time down to the maximum allocated to the new NIGHT balance.',
+        'Each NIGHT you hold generates DUST up to a cap of 5 DUST per NIGHT. If you move your NIGHT to another wallet, the corresponding DUST will decay over time down to the cap of however much NIGHT remains in the original wallet.',
     },
     {
       key: '15',
