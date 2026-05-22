@@ -13,6 +13,7 @@ import { logger } from '@/lib/logger';
 export interface CachedRegistration {
   txHash: string;
   outputIndex: number;
+  validatorAddress: string;
   stakeKeyHash: string;
   dustPKH: string;
   inlineDatum: string;
@@ -141,6 +142,7 @@ function toRegistration(utxo: BlockfrostUtxo, validatorAddress: string, assetNam
   return {
     txHash: utxo.tx_hash,
     outputIndex: utxo.output_index,
+    validatorAddress,
     stakeKeyHash: parsed.stakeKeyHash,
     dustPKH: parsed.dustPKH,
     inlineDatum: utxo.inline_datum,

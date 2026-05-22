@@ -160,15 +160,28 @@ export default function Footer() {
 
         {/* Legal Links */}
         <div className="pt-8 border-t border-gray-800">
+          <p className="text-gray-400 text-xs leading-6 mb-6 text-center max-w-5xl mx-auto">
+            This application is a non-custodial, browser-based interface that allows users to connect compatible
+            wallets and generate DUST using cNIGHT on Cardano mapped to a designated DUST address on the Midnight
+            Network. By accessing or using this application, you agree to Midnight&apos;s Global Terms. You are
+            responsible for verifying all wallet connections, addresses, transactions and mappings before approving any
+            action. Midnight does not custody or control your wallet, private keys, tokens, DUST or transactions, and
+            cannot reverse or recover blockchain transactions or address mappings.
+          </p>
           <div className="flex flex-wrap justify-center gap-6">
-            <Link href="#" className="text-gray-400 hover:text-white text-xs uppercase tracking-wider">
+            <Link
+              href="https://midnight.network/website-portal-privacy-policy"
+              target="_blank"
+              className="text-gray-400 hover:text-white text-xs uppercase tracking-wider"
+            >
               PRIVACY POLICY
             </Link>
-            <Link href="#" className="text-gray-400 hover:text-white text-xs uppercase tracking-wider">
+            <Link
+              href="https://midnight.network/website-terms-of-use"
+              target="_blank"
+              className="text-gray-400 hover:text-white text-xs uppercase tracking-wider"
+            >
               TERMS & CONDITIONS
-            </Link>
-            <Link href="#" className="text-gray-400 hover:text-white text-xs uppercase tracking-wider">
-              COOKIES POLICY
             </Link>
           </div>
         </div>
