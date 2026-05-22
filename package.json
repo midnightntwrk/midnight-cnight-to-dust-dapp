@@ -43,7 +43,7 @@
     "buffer": "^6.0.3",
     "chart.js": "^4.5.1",
     "chartjs-plugin-annotation": "^3.1.0",
-    "framer-motion": "^12.35.0",
+    "framer-motion": "^12.38.0",
     "graphql": "^16.13.2",
     "graphql-request": "^7.2.0",
     "libsodium-wrappers-sumo": "^0.8.4",
@@ -73,7 +73,7 @@
     "happy-dom": "^20.8.3",
     "prettier": "^3.8.3",
     "tailwindcss": "^4.2.2",
-    "typescript": "^5",
+    "typescript": "^6",
     "vitest": "^4.1.4"
   },
   "packageManager": "yarn@4.12.0"

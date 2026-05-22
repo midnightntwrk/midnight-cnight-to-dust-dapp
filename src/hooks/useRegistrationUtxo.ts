@@ -123,8 +123,6 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
           return null;
         }
 
-        const { validatorAddress } = dustGeneratorDetails;
-
         // Filter by dustPKH if provided (server returns all registrations for the stake key)
         const filtered = dustPKH
           ? registrations.filter(r => r.dustPKH === dustPKH)
@@ -146,7 +144,7 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
               utxo: {
                 txHash: r.txHash,
                 outputIndex: r.outputIndex,
-                address: validatorAddress,
+                address: r.validatorAddress,
                 assets,
                 datum: r.inlineDatum,
               } satisfies UTxO,
