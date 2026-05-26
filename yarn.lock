@@ -854,14 +854,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@harmoniclabs/cbor@npm:^1.6.6":
-  version: 1.6.6
-  resolution: "@harmoniclabs/cbor@npm:1.6.6"
+"@harmoniclabs/cbor@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@harmoniclabs/cbor@npm:2.0.1"
   dependencies:
-    "@harmoniclabs/bytestring": "npm:^1.0.0"
     "@harmoniclabs/obj-utils": "npm:^1.0.0"
-    "@harmoniclabs/uint8array-utils": "npm:^1.0.3"
-  checksum: 10c0/6b909b2513ed61e3eaa304ffdb7cdaec4adfa76a06661bbfb297032115bfa28343a70be9ef4d15448edbc371297d70add3774dda32ffcbb87398767fd5dde7c8
+    "@harmoniclabs/uint8array-utils": "npm:^1.0.4"
+  checksum: 10c0/dc5096b06429e9f962ac51eefccd00881c21e3a35c838486d59ad18ad9e62896e3b409b1bd99bcba8c464c75b06c3ad044a09db95f419e9cf4fdd6a485d726f7
   languageName: node
   linkType: hard
 
@@ -903,14 +902,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@harmoniclabs/uint8array-utils@npm:^1.0.0, @harmoniclabs/uint8array-utils@npm:^1.0.3":
+"@harmoniclabs/uint8array-utils@npm:^1.0.0, @harmoniclabs/uint8array-utils@npm:^1.0.3, @harmoniclabs/uint8array-utils@npm:^1.0.4":
   version: 1.0.4
   resolution: "@harmoniclabs/uint8array-utils@npm:1.0.4"
   checksum: 10c0/fd111d581e78dc34954a47145f7c4faba8da6cbcc0d57556b6425b115682ad94dc6ac8d6cc4280d6dcd9ee7c4f68d15f3d74de3e294a8883818cf9c91ac768f3
   languageName: node
   linkType: hard
 
-"@harmoniclabs/uplc@npm:^1.2.4, @harmoniclabs/uplc@npm:^1.4.1":
+"@harmoniclabs/uplc@npm:^1.2.4":
   version: 1.4.1
   resolution: "@harmoniclabs/uplc@npm:1.4.1"
   dependencies:
@@ -923,6 +922,20 @@ __metadata:
     "@harmoniclabs/pair": ^1.0.0
     "@harmoniclabs/plutus-data": ^1.2.4
   checksum: 10c0/b2288a36746d997423bb9506a7c6abb20e709a77e7b551d90037b86bc86cde555b19353c368d4d66ad6135a4cff161fbe65d3a7cb64c5865f3f00be8075fd22e
+  languageName: node
+  linkType: hard
+
+"@harmoniclabs/uplc@npm:^2.0.6":
+  version: 2.0.6
+  resolution: "@harmoniclabs/uplc@npm:2.0.6"
+  dependencies:
+    "@harmoniclabs/bigint-utils": "npm:^1.0.0"
+    "@harmoniclabs/uint8array-utils": "npm:^1.0.4"
+  peerDependencies:
+    "@harmoniclabs/cbor": ^2.0.1
+    "@harmoniclabs/crypto": ^0.3.0
+    "@harmoniclabs/plutus-data": ^2.0.1
+  checksum: 10c0/fe4ee1af4f1e1c1aca6152e40eb1b37253791adf98b622e8540b81a33dda50af69be5bb1c3e584c1430570c5f8d180fe83237456427cf7249037ffd61aca3602
   languageName: node
   linkType: hard
 
@@ -9746,10 +9759,10 @@ __metadata:
     "@blaze-cardano/uplc": "npm:^0.4.3"
     "@eslint/eslintrc": "npm:^3"
     "@harmoniclabs/bytestring": "npm:^1.0.0"
-    "@harmoniclabs/cbor": "npm:^1.6.6"
+    "@harmoniclabs/cbor": "npm:^2.0.1"
     "@harmoniclabs/pair": "npm:^1.0.0"
     "@harmoniclabs/plutus-data": "npm:^1.2.6"
-    "@harmoniclabs/uplc": "npm:^1.4.1"
+    "@harmoniclabs/uplc": "npm:^2.0.6"
     "@heroui/react": "npm:^2.8.2"
     "@lucid-evolution/lucid": "npm:^0.4.29"
     "@midnight-ntwrk/dapp-connector-api": "npm:^4.0.0"
