@@ -938,7 +938,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@harmoniclabs/uplc@npm:^1.2.4, @harmoniclabs/uplc@npm:^1.4.1":
+"@harmoniclabs/uplc@npm:^1.2.4":
   version: 1.4.1
   resolution: "@harmoniclabs/uplc@npm:1.4.1"
   dependencies:
@@ -951,6 +951,20 @@ __metadata:
     "@harmoniclabs/pair": ^1.0.0
     "@harmoniclabs/plutus-data": ^1.2.4
   checksum: 10c0/b2288a36746d997423bb9506a7c6abb20e709a77e7b551d90037b86bc86cde555b19353c368d4d66ad6135a4cff161fbe65d3a7cb64c5865f3f00be8075fd22e
+  languageName: node
+  linkType: hard
+
+"@harmoniclabs/uplc@npm:^2.0.6":
+  version: 2.0.6
+  resolution: "@harmoniclabs/uplc@npm:2.0.6"
+  dependencies:
+    "@harmoniclabs/bigint-utils": "npm:^1.0.0"
+    "@harmoniclabs/uint8array-utils": "npm:^1.0.4"
+  peerDependencies:
+    "@harmoniclabs/cbor": ^2.0.1
+    "@harmoniclabs/crypto": ^0.3.0
+    "@harmoniclabs/plutus-data": ^2.0.1
+  checksum: 10c0/fe4ee1af4f1e1c1aca6152e40eb1b37253791adf98b622e8540b81a33dda50af69be5bb1c3e584c1430570c5f8d180fe83237456427cf7249037ffd61aca3602
   languageName: node
   linkType: hard
 
@@ -9816,7 +9830,7 @@ __metadata:
     "@harmoniclabs/cbor": "npm:^2.0.1"
     "@harmoniclabs/pair": "npm:^1.0.0"
     "@harmoniclabs/plutus-data": "npm:^1.2.6"
-    "@harmoniclabs/uplc": "npm:^1.4.1"
+    "@harmoniclabs/uplc": "npm:^2.0.6"
     "@heroui/react": "npm:^2.8.2"
     "@lucid-evolution/lucid": "npm:^0.4.29"
     "@midnight-ntwrk/dapp-connector-api": "npm:^4.0.0"

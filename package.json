@@ -32,7 +32,7 @@
     "@harmoniclabs/cbor": "^2.0.1",
     "@harmoniclabs/pair": "^1.0.0",
     "@harmoniclabs/plutus-data": "^1.2.6",
-    "@harmoniclabs/uplc": "^1.4.1",
+    "@harmoniclabs/uplc": "^2.0.6",
     "@heroui/react": "^2.8.2",
     "@lucid-evolution/lucid": "^0.4.29",
     "@midnight-ntwrk/dapp-connector-api": "^4.0.0",
