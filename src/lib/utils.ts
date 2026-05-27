@@ -2,8 +2,12 @@ import { UTxO } from '@lucid-evolution/lucid';
 import { bech32m } from 'bech32';
 import { logger } from './logger';
 import { MidnightBech32m, DustAddress } from '@midnight-ntwrk/wallet-sdk-address-format';
-import type { NetworkId } from '@midnight-ntwrk/wallet-sdk-address-format';
+import type { FormatContext } from '@midnight-ntwrk/wallet-sdk-address-format';
 import { getRuntimeConfig } from '@/config/runtime-config';
+
+// NetworkId is no longer exported by wallet-sdk-address-format (>= 3.1.0);
+// recover the same type from the still-exported FormatContext.
+type NetworkId = FormatContext['networkId'];
 
 // Helper function to convert to JSON for logging
 export const toJson = (obj: object): string => {
