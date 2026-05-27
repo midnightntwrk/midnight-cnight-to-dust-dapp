@@ -37,7 +37,7 @@ async function initializeLucidWithBlockfrost(network: CardanoNetwork, apiServerU
       );
       for (const [i, element] of costModelsRaw[plutusKey].entries()) {
         if (!costModelKeys[i]) {
-          presetProtocolParameters.costModels[plutusKey as PlutusVersion][`_${i}`] = element;
+          presetProtocolParameters.costModels[plutusKey as PlutusVersion][i] = element;
         }
       }
     }
