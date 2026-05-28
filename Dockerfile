@@ -73,7 +73,7 @@ COPY --from=builder /app/package.json ./package.json
 
 # Copy only the specific packages with WASM files needed at runtime
 # Midnight network packages
-COPY --from=deps /app/node_modules/@midnight-ntwrk/ledger-v7 ./node_modules/@midnight-ntwrk/ledger-v7
+COPY --from=deps /app/node_modules/@midnight-ntwrk/ledger-v8 ./node_modules/@midnight-ntwrk/ledger-v8
 COPY --from=deps /app/node_modules/@midnight-ntwrk/zswap ./node_modules/@midnight-ntwrk/zswap
 
 # Cardano packages with WASM
