@@ -132,15 +132,22 @@ function removeEntry(txHash: string, outputIndex: number): void {
   }
 }
 
-function toRegistration(utxo: BlockfrostUtxo, validatorAddress: string, assetName: string): CachedRegistration | null {
+function toRegistration(
+  utxo: BlockfrostUtxo,
+  validatorAddress: string,
+  assetName: string,
+  txHashOverride?: string
+): CachedRegistration | null {
   if (utxo.address !== validatorAddress) return null;
   if (!utxo.inline_datum) return null;
   const hasAuthToken = utxo.amount?.some((a) => a.unit === assetName && a.quantity === '1');
   if (!hasAuthToken) return null;
   const parsed = parseDustMappingDatum(utxo.inline_datum);
   if (!parsed) return null;
+  const txHash = utxo.tx_hash || txHashOverride;
+  if (!txHash) return null;
   return {
-    txHash: utxo.tx_hash,
+    txHash,
     outputIndex: utxo.output_index,
     validatorAddress,
     stakeKeyHash: parsed.stakeKeyHash,
@@ -281,7 +288,7 @@ async function warmRefresh(): Promise<void> {
 
     // Outputs = new UTxOs at the validator address (potential adds)
     if (txUtxos.outputs) {
-      adds.push(...txUtxos.outputs.flatMap((o) => toRegistration(o, validatorAddress, assetName) ?? []));
+      adds.push(...txUtxos.outputs.flatMap((o) => toRegistration(o, validatorAddress, assetName, txHash) ?? []));
     }
   }
 

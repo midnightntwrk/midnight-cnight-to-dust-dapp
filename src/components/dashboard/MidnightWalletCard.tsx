@@ -23,10 +23,14 @@ import { SupportedMidnightWallet, SupportedWallet } from '@/contexts/WalletConte
 import LoadingBackdrop from '../ui/LoadingBackdrop';
 import { useRouter } from 'next/navigation';
 import { specksToTDust, specksToTDustFull } from '@/lib/specksToTDust';
+import { parseDustMappingDatum } from '@/lib/contractUtils';
+import { getDustAddressFromBytes } from '@/lib/utils';
+import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 
 const MidnightWalletCard = () => {
   const { toasts, showToast, removeToast } = useToast();
   const router = useRouter();
+  const { currentNetwork } = useRuntimeConfig();
 
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isStopModalOpen, setIsStopModalOpen] = useState(false);
@@ -82,12 +86,26 @@ const MidnightWalletCard = () => {
 
   // Get DUST address - prefer wallet data if connected, otherwise use indexer or manual address
   const getDustAddress = () => {
-    // If connected with Midnight wallet, use wallet's dust address
+    // Source of truth: on-chain registration datum (registration UTXO).
+    if (registrationUtxo?.datum) {
+      const parsed = parseDustMappingDatum(registrationUtxo.datum);
+      if (parsed?.dustPKH) {
+        const networkId = currentNetwork === 'Mainnet' ? 'mainnet' : currentNetwork.toLowerCase();
+        const reconstructed = getDustAddressFromBytes(parsed.dustPKH, networkId);
+        if (reconstructed) {
+          return reconstructed;
+        }
+      }
+    }
+
+    // Fallbacks when registration datum is not available yet.
     if (isWalletConnected && midnight.dustAddress) {
       return midnight.dustAddress;
     }
-    // Otherwise, use indexer data or manual address
-    return generationStatus?.dustAddress || midnight.address || '';
+    if (midnight.address) {
+      return midnight.address;
+    }
+    return generationStatus?.dustAddress || '';
   };
 
   const [isDisconnecting, setIsDisconnecting] = useState(false);
@@ -227,7 +245,6 @@ const MidnightWalletCard = () => {
         // Update Midnight wallet state with new address
         // This changes coinPublicKey, which triggers useRegistrationUtxo's useEffect automatically
         updateMidnightAddress(newAddress, newCoinPublicKey);
-
         transaction.resetTransaction();
         refetchGenerationStatus();
       } else {

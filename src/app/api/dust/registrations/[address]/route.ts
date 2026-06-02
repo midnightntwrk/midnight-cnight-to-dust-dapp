@@ -3,7 +3,13 @@ import { getAddressDetails } from '@lucid-evolution/lucid';
 import { logger } from '@/lib/logger';
 import { validateOrigin, addCorsHeaders, addSecurityHeaders } from '@/lib/cors';
 import { checkRateLimit, addRateLimitHeaders, rateLimitExceededResponse } from '@/lib/rate-limit';
-import { getRegistrationsForStakeKey, isReady, getCacheStats, _debugStakeKeySample } from '@/lib/registration-cache';
+import {
+  _ensureFresh,
+  getRegistrationsForStakeKey,
+  isReady,
+  getCacheStats,
+  _debugStakeKeySample,
+} from '@/lib/registration-cache';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ address: string }> }) {
   let validOrigin: string | null = null;
@@ -27,6 +33,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     addCorsHeaders(responseHeaders, validOrigin);
     addRateLimitHeaders(responseHeaders, rateLimitResult);
     addSecurityHeaders(responseHeaders);
+
+    await _ensureFresh();
 
     if (!isReady()) {
       responseHeaders.set('Retry-After', '10');

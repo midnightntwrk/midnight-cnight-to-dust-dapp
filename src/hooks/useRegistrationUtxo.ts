@@ -133,8 +133,11 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
           return null;
         }
 
+        // Guard against malformed cached entries (e.g. missing txHash)
+        const validRegistrations = filtered.filter((r) => typeof r.txHash === 'string' && r.txHash.length > 0);
+
         // Map cached registrations to SearchResult shape
-        const allMatches: SearchResult[] = filtered.map(
+        const allMatches: SearchResult[] = validRegistrations.map(
           r => {
             const assets: Record<string, bigint> = {};
             for (const a of r.amount) {
@@ -152,6 +155,11 @@ export function useRegistrationUtxo(cardanoAddress: string | null, dustPKH: stri
             };
           }
         );
+
+        if (allMatches.length === 0) {
+          logger.warn('[RegistrationUtxo]', 'Found registrations in cache, but all were missing txHash');
+          return null;
+        }
 
         const primary = allMatches[0];
         const replicates = allMatches.slice(1).map((m) => m.utxo);
