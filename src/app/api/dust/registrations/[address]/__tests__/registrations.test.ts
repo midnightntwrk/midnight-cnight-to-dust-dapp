@@ -27,11 +27,13 @@ vi.mock('@/lib/rate-limit', () => ({
 }));
 
 // Mock registration cache
+const mockEnsureFresh = vi.fn(() => Promise.resolve());
 const mockGetRegistrationsForStakeKey = vi.fn(() => []);
 const mockIsReady = vi.fn(() => true);
 const mockGetCacheStats = vi.fn(() => ({ total: 0, lastRefresh: 0 }));
 const mockDebugStakeKeySample = vi.fn(() => []);
 vi.mock('@/lib/registration-cache', () => ({
+  _ensureFresh: () => mockEnsureFresh(),
   getRegistrationsForStakeKey: (...args: unknown[]) => mockGetRegistrationsForStakeKey(...args),
   isReady: () => mockIsReady(),
   getCacheStats: () => mockGetCacheStats(),
@@ -96,6 +98,11 @@ describe('Registrations API (/api/dust/registrations/[address])', () => {
       const body = await response.json();
       expect(response.status).toBe(400);
       expect(body.error).toContain('stake key');
+    });
+
+    it('should call _ensureFresh before serving registrations', async () => {
+      await GET(makeRequest(), makeParams());
+      expect(mockEnsureFresh).toHaveBeenCalled();
     });
 
     it('should return registrations on success', async () => {
