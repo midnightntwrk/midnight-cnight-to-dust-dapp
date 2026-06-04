@@ -69,10 +69,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@anastasia-labs/cardano-multiplatform-lib-browser@npm:6.0.2-3":
-  version: 6.0.2-3
-  resolution: "@anastasia-labs/cardano-multiplatform-lib-browser@npm:6.0.2-3"
-  checksum: 10c0/f23f3dd51cf1e7ed158f35ba187355851585bed52c79c5ffd855d03df2088552624886c91dd9d18ca6149b757b700d87771c27696fa8a2e0fce593f4b3c4d4f6
+"@anastasia-labs/cardano-multiplatform-lib-browser@npm:6.2.0-1":
+  version: 6.2.0-1
+  resolution: "@anastasia-labs/cardano-multiplatform-lib-browser@npm:6.2.0-1"
+  checksum: 10c0/e3878dad7de086c88c79eb2528ca75152de0b1760dbc5bc425f2a03f2773867a6868fec81c6a669c62d1c30c931129e2fe508e088de753eedba470bc3afaef62
   languageName: node
   linkType: hard
 
@@ -83,10 +83,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@anastasia-labs/cardano-multiplatform-lib-nodejs@npm:6.0.2-3":
-  version: 6.0.2-3
-  resolution: "@anastasia-labs/cardano-multiplatform-lib-nodejs@npm:6.0.2-3"
-  checksum: 10c0/311c1e7c0512e9d81e270d0446e33cf8b5e3375e9f37dd29bce96c7c808985747b1a246dd4f57f7af54dbf46c9dfbf4738e5b903f7820c387b26024f0f6ee05e
+"@anastasia-labs/cardano-multiplatform-lib-nodejs@npm:6.2.0-1":
+  version: 6.2.0-1
+  resolution: "@anastasia-labs/cardano-multiplatform-lib-nodejs@npm:6.2.0-1"
+  checksum: 10c0/95ab3d821e7ad9d8d39d463946c7077497a39e96f46137a4cf8f8eac2c60db65ed6309a0904540b3a79733d59672c20d5bba97c71c1413dda3e749da617a5e87
   languageName: node
   linkType: hard
 
@@ -2752,13 +2752,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lucid-evolution/core-types@npm:0.1.24":
-  version: 0.1.24
-  resolution: "@lucid-evolution/core-types@npm:0.1.24"
+"@lucid-evolution/core-types@npm:0.2.0":
+  version: 0.2.0
+  resolution: "@lucid-evolution/core-types@npm:0.2.0"
   dependencies:
-    "@anastasia-labs/cardano-multiplatform-lib-browser": "npm:6.0.2-3"
-    "@anastasia-labs/cardano-multiplatform-lib-nodejs": "npm:6.0.2-3"
-  checksum: 10c0/672cf902197f4c30da1f7cf24f49ae7638282b2f5bddf8276ef72e15f32df5753d8dc139a0da4dd17c9b45b6f07df870bf38ed30010077e03c3ac9bc215ebd94
+    "@anastasia-labs/cardano-multiplatform-lib-browser": "npm:6.2.0-1"
+    "@anastasia-labs/cardano-multiplatform-lib-nodejs": "npm:6.2.0-1"
+  checksum: 10c0/74adbdf20b579b0e6ca916fcc68729720326ebba2966b1cde0748cf493c71ec99a777d2d97bfbe011f3ae92b230b0b63747ab051e4633c3cac5dbe4eb6be1cab
   languageName: node
   linkType: hard
 
@@ -2779,68 +2779,82 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lucid-evolution/lucid@npm:^0.4.34":
-  version: 0.4.34
-  resolution: "@lucid-evolution/lucid@npm:0.4.34"
+"@lucid-evolution/lucid@npm:^0.5.2":
+  version: 0.5.2
+  resolution: "@lucid-evolution/lucid@npm:0.5.2"
   dependencies:
-    "@anastasia-labs/cardano-multiplatform-lib-browser": "npm:6.0.2-3"
-    "@anastasia-labs/cardano-multiplatform-lib-nodejs": "npm:6.0.2-3"
+    "@anastasia-labs/cardano-multiplatform-lib-browser": "npm:6.2.0-1"
+    "@anastasia-labs/cardano-multiplatform-lib-nodejs": "npm:6.2.0-1"
     "@effect/schema": "npm:^0.66.16"
     "@emurgo/cardano-message-signing-nodejs": "npm:^1.1.0"
-    "@lucid-evolution/core-types": "npm:0.1.24"
+    "@lucid-evolution/core-types": "npm:0.2.0"
     "@lucid-evolution/core-utils": "npm:0.1.16"
-    "@lucid-evolution/plutus": "npm:0.1.31"
-    "@lucid-evolution/provider": "npm:0.1.94"
-    "@lucid-evolution/sign_data": "npm:0.1.27"
+    "@lucid-evolution/plutus": "npm:0.1.32"
+    "@lucid-evolution/provider": "npm:0.1.95"
+    "@lucid-evolution/sign_data": "npm:0.1.28"
+    "@lucid-evolution/tx-graph": "npm:0.0.1"
     "@lucid-evolution/uplc": "npm:0.2.21"
-    "@lucid-evolution/utils": "npm:0.1.68"
-    "@lucid-evolution/wallet": "npm:0.1.74"
+    "@lucid-evolution/utils": "npm:0.1.69"
+    "@lucid-evolution/wallet": "npm:0.1.75"
     effect: "npm:^3.12.7"
-  checksum: 10c0/d83bc08da1e7cc1fe080c70995ebb13ae6d7a3a817fac69f662491fa0bd072af576c8fcf9519351782bd898dc7eb2d31c2a325622ed88bf9bd876537c736e045
+  checksum: 10c0/87fc44beaa76c1b713ae0695f4a97dfa74da8826b853934d6e91d5dbb3619dcc61448882aef9b6fe07aaf7cf20978fdb4cdc38a72042a6a3140a5a84fa8c8e39
   languageName: node
   linkType: hard
 
-"@lucid-evolution/plutus@npm:0.1.31":
-  version: 0.1.31
-  resolution: "@lucid-evolution/plutus@npm:0.1.31"
+"@lucid-evolution/plutus@npm:0.1.32":
+  version: 0.1.32
+  resolution: "@lucid-evolution/plutus@npm:0.1.32"
   dependencies:
-    "@anastasia-labs/cardano-multiplatform-lib-browser": "npm:6.0.2-3"
-    "@anastasia-labs/cardano-multiplatform-lib-nodejs": "npm:6.0.2-3"
-    "@lucid-evolution/core-types": "npm:0.1.24"
+    "@anastasia-labs/cardano-multiplatform-lib-browser": "npm:6.2.0-1"
+    "@anastasia-labs/cardano-multiplatform-lib-nodejs": "npm:6.2.0-1"
+    "@lucid-evolution/core-types": "npm:0.2.0"
     "@lucid-evolution/core-utils": "npm:0.1.16"
     "@sinclair/typebox": "npm:^0.32.28"
-  checksum: 10c0/1a72005fe7af9459e56cc2c4e04003d7be1327dedc445c830e1699ce2e9f6d0a67eafa371bc0214bd4ada64785a6eeae0be49e55792852a62c10ec7a94005e3a
+  checksum: 10c0/f8480dbd535318c79c16f3c9b00981ec6e4d28c404ccc39d6013c3b52046c7e40827e161f07f8c4827aa67125e4a91bd7f6b3c4ed6ffcdc2772fe1c7b6854d06
   languageName: node
   linkType: hard
 
-"@lucid-evolution/provider@npm:0.1.94":
-  version: 0.1.94
-  resolution: "@lucid-evolution/provider@npm:0.1.94"
+"@lucid-evolution/provider@npm:0.1.95":
+  version: 0.1.95
+  resolution: "@lucid-evolution/provider@npm:0.1.95"
   dependencies:
-    "@anastasia-labs/cardano-multiplatform-lib-browser": "npm:6.0.2-3"
-    "@anastasia-labs/cardano-multiplatform-lib-nodejs": "npm:6.0.2-3"
+    "@anastasia-labs/cardano-multiplatform-lib-browser": "npm:6.2.0-1"
+    "@anastasia-labs/cardano-multiplatform-lib-nodejs": "npm:6.2.0-1"
     "@effect/platform": "npm:^0.71.3"
     "@effect/schema": "npm:^0.68.26"
-    "@lucid-evolution/core-types": "npm:0.1.24"
+    "@lucid-evolution/core-types": "npm:0.2.0"
     "@lucid-evolution/core-utils": "npm:0.1.16"
-    "@lucid-evolution/utils": "npm:0.1.68"
-    "@lucid-evolution/wallet": "npm:0.1.74"
+    "@lucid-evolution/utils": "npm:0.1.69"
+    "@lucid-evolution/wallet": "npm:0.1.75"
     effect: "npm:^3.11.7"
-  checksum: 10c0/4c75cfda6716ff473c608717d140fa0099fb95dbe55dd0d10c55d97cfeb9dd027ca218d8cfe3f0c6ffd8d56a000a4a7b68c1f8bd6427341eb0d6d868d2210f03
+  checksum: 10c0/a486957bef12e74438341977291191050ff7d158726561285f84796e649e81e84144ca997b8d33ad1f72e70456cca3d658814fb88e7933eb443ff55c82f67f97
   languageName: node
   linkType: hard
 
-"@lucid-evolution/sign_data@npm:0.1.27":
-  version: 0.1.27
-  resolution: "@lucid-evolution/sign_data@npm:0.1.27"
+"@lucid-evolution/sign_data@npm:0.1.28":
+  version: 0.1.28
+  resolution: "@lucid-evolution/sign_data@npm:0.1.28"
   dependencies:
-    "@anastasia-labs/cardano-multiplatform-lib-browser": "npm:6.0.2-3"
-    "@anastasia-labs/cardano-multiplatform-lib-nodejs": "npm:6.0.2-3"
+    "@anastasia-labs/cardano-multiplatform-lib-browser": "npm:6.2.0-1"
+    "@anastasia-labs/cardano-multiplatform-lib-nodejs": "npm:6.2.0-1"
     "@emurgo/cardano-message-signing-browser": "npm:^1.0.1"
     "@emurgo/cardano-message-signing-nodejs": "npm:^1.0.1"
-    "@lucid-evolution/core-types": "npm:0.1.24"
+    "@lucid-evolution/core-types": "npm:0.2.0"
     "@lucid-evolution/core-utils": "npm:0.1.16"
-  checksum: 10c0/c6f139cea196fff3eb4096379864b79c41aa64e9eb9d38feffe2896cbb1d0b34556e38b6a02761ec7b4b2b176616910fb69cf6abea610647b19df60493d8cd8d
+  checksum: 10c0/a3728037e5e0caa8f114a236d2499c1412561ef35480f9eb6effaedb5e73ed671ed839b497bdacba69d0d89e0b4c31e3106f9eb012ce7706ec66294593bbc582
+  languageName: node
+  linkType: hard
+
+"@lucid-evolution/tx-graph@npm:0.0.1":
+  version: 0.0.1
+  resolution: "@lucid-evolution/tx-graph@npm:0.0.1"
+  dependencies:
+    "@anastasia-labs/cardano-multiplatform-lib-browser": "npm:6.2.0-1"
+    "@anastasia-labs/cardano-multiplatform-lib-nodejs": "npm:6.2.0-1"
+    "@lucid-evolution/core-types": "npm:0.2.0"
+    "@lucid-evolution/core-utils": "npm:0.1.16"
+    "@lucid-evolution/utils": "npm:0.1.69"
+  checksum: 10c0/ab325f03eb502a80131653831641e32bf58755ee78b97dd0742e3729051f2e1d195249a994b6ebffc61f0e86bbc8ae71a58533303ccf7e4b52b0fd23a37174ef
   languageName: node
   linkType: hard
 
@@ -2851,40 +2865,40 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lucid-evolution/utils@npm:0.1.68":
-  version: 0.1.68
-  resolution: "@lucid-evolution/utils@npm:0.1.68"
+"@lucid-evolution/utils@npm:0.1.69":
+  version: 0.1.69
+  resolution: "@lucid-evolution/utils@npm:0.1.69"
   dependencies:
-    "@anastasia-labs/cardano-multiplatform-lib-browser": "npm:6.0.2-3"
-    "@anastasia-labs/cardano-multiplatform-lib-nodejs": "npm:6.0.2-3"
+    "@anastasia-labs/cardano-multiplatform-lib-browser": "npm:6.2.0-1"
+    "@anastasia-labs/cardano-multiplatform-lib-nodejs": "npm:6.2.0-1"
     "@cardano-sdk/core": "npm:^0.46.10"
     "@effect/schema": "npm:^0.68.16"
     "@harmoniclabs/plutus-data": "npm:^1.2.4"
     "@harmoniclabs/uplc": "npm:^1.2.4"
-    "@lucid-evolution/core-types": "npm:0.1.24"
+    "@lucid-evolution/core-types": "npm:0.2.0"
     "@lucid-evolution/core-utils": "npm:0.1.16"
     "@lucid-evolution/crc8": "npm:0.1.8"
-    "@lucid-evolution/plutus": "npm:0.1.31"
+    "@lucid-evolution/plutus": "npm:0.1.32"
     "@lucid-evolution/uplc": "npm:0.2.21"
     bip39: "npm:^3.1.0"
     cbor-x: "npm:^1.6.0"
     effect: "npm:^3.10.4"
-  checksum: 10c0/66348bd1edf0cf6b5325a582e60104a5ed293cdb99531a54ade505f05683d3c42673b14888aa1e644416d23277f71dd1948210554e579737f7802111fe3bf4e0
+  checksum: 10c0/06a939934ed449bf57902e1a9ab964efa39329eed352f311d72f7ff80b72d32f0ce874beb765e00b6b089bc867525595d35b63242e8ea18280ec74d8da2a635d
   languageName: node
   linkType: hard
 
-"@lucid-evolution/wallet@npm:0.1.74":
-  version: 0.1.74
-  resolution: "@lucid-evolution/wallet@npm:0.1.74"
+"@lucid-evolution/wallet@npm:0.1.75":
+  version: 0.1.75
+  resolution: "@lucid-evolution/wallet@npm:0.1.75"
   dependencies:
-    "@anastasia-labs/cardano-multiplatform-lib-browser": "npm:6.0.2-3"
-    "@anastasia-labs/cardano-multiplatform-lib-nodejs": "npm:6.0.2-3"
-    "@lucid-evolution/core-types": "npm:0.1.24"
+    "@anastasia-labs/cardano-multiplatform-lib-browser": "npm:6.2.0-1"
+    "@anastasia-labs/cardano-multiplatform-lib-nodejs": "npm:6.2.0-1"
+    "@lucid-evolution/core-types": "npm:0.2.0"
     "@lucid-evolution/core-utils": "npm:0.1.16"
-    "@lucid-evolution/sign_data": "npm:0.1.27"
-    "@lucid-evolution/utils": "npm:0.1.68"
+    "@lucid-evolution/sign_data": "npm:0.1.28"
+    "@lucid-evolution/utils": "npm:0.1.69"
     bip39: "npm:^3.1.0"
-  checksum: 10c0/80e89d6c427c59b5c632e4312bbf414fc87bcfb31ba11983d98c5ec7a9a10be9c4146d856e0def142293b93c0e11ecc0ff5c2b2441f8be04b232f917a8d057ef
+  checksum: 10c0/dbb65a10b795be66aae6fd33c23be896c842fd6292a04a82ef158dcf2dbffc608d9e6829e90eee3bc38ae92d9f59638c52561e3d6b15d4fe037c2e9613965118
   languageName: node
   linkType: hard
 
@@ -9438,7 +9452,7 @@ __metadata:
     "@harmoniclabs/plutus-data": "npm:^1.2.6"
     "@harmoniclabs/uplc": "npm:^2.0.6"
     "@heroui/react": "npm:^2.8.10"
-    "@lucid-evolution/lucid": "npm:^0.4.34"
+    "@lucid-evolution/lucid": "npm:^0.5.2"
     "@midnight-ntwrk/dapp-connector-api": "npm:^4.0.0"
     "@midnight-ntwrk/wallet": "npm:^5.0.0"
     "@midnight-ntwrk/wallet-api": "npm:^5.0.0"
