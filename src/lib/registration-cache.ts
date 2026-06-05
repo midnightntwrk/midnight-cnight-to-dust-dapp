@@ -89,6 +89,12 @@ const state = getOrCreateState();
 const MAX_CACHE_ENTRIES = 500_000;
 const REFRESH_INTERVAL_MS = 30_000;
 const COLD_START_CONCURRENCY = 5;
+/** Minimum wall-clock time a refresh must occupy before releasing the lock.
+ *  Callers that arrive while a refresh is in-flight all await the same promise,
+ *  so this acts as a rate-limit: no matter how fast the network round-trips are,
+ *  a new refresh cannot start until at least this many ms have elapsed since the
+ *  previous one began — preventing Blockfrost quota exhaustion under burst load. */
+const MIN_REFRESH_DURATION_MS = 1_000;
 const BLOCKFROST_PAGE_SIZE = 100;
 const MAX_WARM_PAGES = 50;
 
@@ -319,6 +325,7 @@ async function ensureFresh(): Promise<void> {
   if (state.refreshInProgress) return state.refreshInProgress;
 
   state.refreshInProgress = (async () => {
+    const startedAt = Date.now();
     try {
       if (!state.initialized) {
         await coldStart();
@@ -332,6 +339,10 @@ async function ensureFresh(): Promise<void> {
         error instanceof Error ? { message: error.message, stack: error.stack } : error
       );
     } finally {
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < MIN_REFRESH_DURATION_MS) {
+        await new Promise<void>((resolve) => setTimeout(resolve, MIN_REFRESH_DURATION_MS - elapsed));
+      }
       state.refreshInProgress = null;
     }
   })();
