@@ -37,7 +37,7 @@
     "@harmoniclabs/bytestring": "^1.0.0",
     "@harmoniclabs/cbor": "^2.0.1",
     "@harmoniclabs/pair": "^1.0.0",
-    "@harmoniclabs/plutus-data": "^1.2.6",
+    "@harmoniclabs/plutus-data": "^2.0.1",
     "@harmoniclabs/uplc": "^2.0.6",
     "@heroui/react": "^2.8.10",
     "@lucid-evolution/lucid": "^0.4.34",

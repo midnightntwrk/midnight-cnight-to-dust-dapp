@@ -835,6 +835,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@harmoniclabs/crypto@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@harmoniclabs/crypto@npm:0.3.0"
+  dependencies:
+    "@harmoniclabs/bitstream": "npm:^1.0.0"
+    "@harmoniclabs/uint8array-utils": "npm:^1.0.3"
+  checksum: 10c0/b3b46e0005b89f9eb50c45bcd95ed3002a94eb4704c5eb1e48ecbb63ca533ab3858032fdbb953ce8ca08cb520b74661889aae4e219ff7f83e435804f1c3b8876
+  languageName: node
+  linkType: hard
+
 "@harmoniclabs/obj-utils@npm:^1.0.0":
   version: 1.0.0
   resolution: "@harmoniclabs/obj-utils@npm:1.0.0"
@@ -849,7 +859,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@harmoniclabs/plutus-data@npm:^1.2.4, @harmoniclabs/plutus-data@npm:^1.2.6":
+"@harmoniclabs/plutus-data@npm:^1.2.4":
   version: 1.2.6
   resolution: "@harmoniclabs/plutus-data@npm:1.2.6"
   dependencies:
@@ -860,6 +870,19 @@ __metadata:
     "@harmoniclabs/bytestring": ^1.0.0
     "@harmoniclabs/cbor": ^1.3.0
   checksum: 10c0/df627153326c32335b1386b190ecd9619c14b7ae6854473eb2ae398ede4f249d2a2e6f3250fb8a9f3c777f1bfd8906e9efd16127d8425c1f2316c24028e48caa
+  languageName: node
+  linkType: hard
+
+"@harmoniclabs/plutus-data@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@harmoniclabs/plutus-data@npm:2.0.1"
+  dependencies:
+    "@harmoniclabs/crypto": "npm:^0.3.0"
+    "@harmoniclabs/obj-utils": "npm:^1.0.0"
+    "@harmoniclabs/uint8array-utils": "npm:^1.0.4"
+  peerDependencies:
+    "@harmoniclabs/cbor": ^2.0.1
+  checksum: 10c0/e0dc464f2d51d9779a0db388364067a8aff0259d09ccc9bb35357ec3cd905c133df92323eef1b02b6b939780d8e8e649d3a78d886f987a18a40b8ed83bcc071e
   languageName: node
   linkType: hard
 
@@ -9435,7 +9458,7 @@ __metadata:
     "@harmoniclabs/bytestring": "npm:^1.0.0"
     "@harmoniclabs/cbor": "npm:^2.0.1"
     "@harmoniclabs/pair": "npm:^1.0.0"
-    "@harmoniclabs/plutus-data": "npm:^1.2.6"
+    "@harmoniclabs/plutus-data": "npm:^2.0.1"
     "@harmoniclabs/uplc": "npm:^2.0.6"
     "@heroui/react": "npm:^2.8.10"
     "@lucid-evolution/lucid": "npm:^0.4.34"
