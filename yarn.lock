@@ -361,13 +361,39 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@blaze-cardano/data@npm:0.6.6, @blaze-cardano/data@npm:^0.6.6":
+"@blaze-cardano/core@npm:^0.9.0":
+  version: 0.9.1
+  resolution: "@blaze-cardano/core@npm:0.9.1"
+  dependencies:
+    "@cardano-sdk/core": "npm:^0.46.15"
+    "@cardano-sdk/crypto": "npm:^0.4.7"
+    "@cardano-sdk/util": "npm:^0.17.2"
+    "@noble/curves": "npm:^1.8.1"
+    "@noble/ed25519": "npm:^2.2.3"
+    "@noble/hashes": "npm:^1.7.1"
+    "@scure/bip39": "npm:^1.5.4"
+    blakejs: "npm:^1.2.1"
+  checksum: 10c0/b07e0156c0cd615f5588138667d25c5a9c121827313972d9c1ee947326d8146178748b76f17cf7751e9f9fa0c086e0595cecc735ad110a8b20c73ef1d8c32305
+  languageName: node
+  linkType: hard
+
+"@blaze-cardano/data@npm:0.6.6":
   version: 0.6.6
   resolution: "@blaze-cardano/data@npm:0.6.6"
   dependencies:
     "@blaze-cardano/core": "npm:0.8.0"
     "@sinclair/typebox": "npm:^0.34.28"
   checksum: 10c0/0d997f4c08a774a6de3c4361657e7e06465f0682e5f6d1655a80101d82477bd51301620b161674d13261e911e279c2f00df07c931724b4202598982ccb0250f8
+  languageName: node
+  linkType: hard
+
+"@blaze-cardano/data@npm:^0.6.8":
+  version: 0.6.8
+  resolution: "@blaze-cardano/data@npm:0.6.8"
+  dependencies:
+    "@blaze-cardano/core": "npm:^0.9.0"
+    "@sinclair/typebox": "npm:^0.34.28"
+  checksum: 10c0/ff8f14390c865a99fb4a3d134521d0c8b8bdc0a303b066fd3d2aca846853c1c836ee4be5e578741bc419b2549f472d6f93760295ad947b2b81d1599e98b8985f
   languageName: node
   linkType: hard
 
@@ -433,6 +459,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cardano-sdk/core@npm:^0.46.15":
+  version: 0.46.15
+  resolution: "@cardano-sdk/core@npm:0.46.15"
+  dependencies:
+    "@biglup/is-cid": "npm:^1.0.3"
+    "@cardano-sdk/crypto": "npm:~0.4.7"
+    "@cardano-sdk/util": "npm:~0.17.2"
+    "@foxglove/crc": "npm:^0.0.3"
+    "@scure/base": "npm:^1.1.1"
+    fraction.js: "npm:4.0.1"
+    ip-address: "npm:^10.2.0"
+    lodash: "npm:^4.17.21"
+    ts-custom-error: "npm:^3.2.0"
+    ts-log: "npm:^2.2.4"
+    web-encoding: "npm:^1.1.5"
+  checksum: 10c0/5997fb72762dcdc80ba37ec71aa13957dcb6cbecf5b2813fe5f55eb1172d2f8f1d9df71e4057b5c37f9672caf5dc807ea382a391b34986728c88e628c6d9ff85
+  languageName: node
+  linkType: hard
+
 "@cardano-sdk/crypto@npm:^0.4, @cardano-sdk/crypto@npm:~0.4.5":
   version: 0.4.5
   resolution: "@cardano-sdk/crypto@npm:0.4.5"
@@ -460,6 +505,33 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cardano-sdk/crypto@npm:^0.4.7, @cardano-sdk/crypto@npm:~0.4.7":
+  version: 0.4.7
+  resolution: "@cardano-sdk/crypto@npm:0.4.7"
+  dependencies:
+    "@cardano-sdk/util": "npm:~0.17.2"
+    blake2b: "npm:^2.1.4"
+    i: "npm:^0.3.7"
+    libsodium-wrappers-sumo: "npm:0.8.4"
+    lodash: "npm:^4.17.21"
+    pbkdf2: "npm:^3.1.3"
+    ts-custom-error: "npm:^3.2.0"
+    ts-log: "npm:^2.2.4"
+  peerDependencies:
+    "@dcspark/cardano-multiplatform-lib-asmjs": ^3.1.1
+    "@dcspark/cardano-multiplatform-lib-browser": ^3.1.1
+    "@dcspark/cardano-multiplatform-lib-nodejs": ^3.1.1
+  peerDependenciesMeta:
+    "@dcspark/cardano-multiplatform-lib-asmjs":
+      optional: true
+    "@dcspark/cardano-multiplatform-lib-browser":
+      optional: true
+    "@dcspark/cardano-multiplatform-lib-nodejs":
+      optional: true
+  checksum: 10c0/a3958f6f4b464172386e1d85ccffbe1434272df5193c833f2995a65b07cb89a986f41ff7ecf5543139329bd67a8a2aa2cd8588c31e58d66874d05c06bafb164c
+  languageName: node
+  linkType: hard
+
 "@cardano-sdk/util@npm:^0.17, @cardano-sdk/util@npm:~0.17.1":
   version: 0.17.1
   resolution: "@cardano-sdk/util@npm:0.17.1"
@@ -470,6 +542,19 @@ __metadata:
     ts-custom-error: "npm:^3.2.0"
     ts-log: "npm:^2.2.4"
   checksum: 10c0/c96be4e61b1bf3f2a3f785f72e8ac382a71f0daf51076565fcbf3f37cc24331a3f06a4cb5a0eb038173567313bc20927eb6bb2463e9921b18f13713160e5efee
+  languageName: node
+  linkType: hard
+
+"@cardano-sdk/util@npm:^0.17.2, @cardano-sdk/util@npm:~0.17.2":
+  version: 0.17.2
+  resolution: "@cardano-sdk/util@npm:0.17.2"
+  dependencies:
+    bech32: "npm:^2.0.0"
+    lodash: "npm:^4.17.21"
+    serialize-error: "npm:^8"
+    ts-custom-error: "npm:^3.2.0"
+    ts-log: "npm:^2.2.4"
+  checksum: 10c0/e94b1dac1c005b98831feaa58ffa3e9dd0325c6c322acda5dcdd8d216bef723ac4c8d5f8a78eb63d07c47196aaedc8bfa26c8db01ccdefc6993ab170c1a8cbe3
   languageName: node
   linkType: hard
 
@@ -851,13 +936,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@harmoniclabs/cbor@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "@harmoniclabs/cbor@npm:2.0.1"
+"@harmoniclabs/cbor@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "@harmoniclabs/cbor@npm:2.0.2"
   dependencies:
     "@harmoniclabs/obj-utils": "npm:^1.0.0"
     "@harmoniclabs/uint8array-utils": "npm:^1.0.4"
-  checksum: 10c0/dc5096b06429e9f962ac51eefccd00881c21e3a35c838486d59ad18ad9e62896e3b409b1bd99bcba8c464c75b06c3ad044a09db95f419e9cf4fdd6a485d726f7
+  checksum: 10c0/d8013b20e5e81e90105602467b4e57a0f70d29916d0db295aa035f2ed55aafe0380f59b8608eab814c4cc0c201e23b208b30c6930e3eab0bb375efe329303445
   languageName: node
   linkType: hard
 
@@ -922,17 +1007,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@harmoniclabs/uplc@npm:^2.0.6":
-  version: 2.0.6
-  resolution: "@harmoniclabs/uplc@npm:2.0.6"
+"@harmoniclabs/uplc@npm:^2.0.7":
+  version: 2.0.7
+  resolution: "@harmoniclabs/uplc@npm:2.0.7"
   dependencies:
     "@harmoniclabs/bigint-utils": "npm:^1.0.0"
     "@harmoniclabs/uint8array-utils": "npm:^1.0.4"
   peerDependencies:
-    "@harmoniclabs/cbor": ^2.0.1
-    "@harmoniclabs/crypto": ^0.3.0
+    "@harmoniclabs/cbor": ^2.0.2
+    "@harmoniclabs/crypto": ^0.3.1
     "@harmoniclabs/plutus-data": ^2.0.1
-  checksum: 10c0/fe4ee1af4f1e1c1aca6152e40eb1b37253791adf98b622e8540b81a33dda50af69be5bb1c3e584c1430570c5f8d180fe83237456427cf7249037ffd61aca3602
+  checksum: 10c0/1ce7cd96db8912ab3f9b05a9fc2461ff3c542eda02a464422da910661be2136ab6bc29a78313d070d5b6a5d9c53a0888e1ea629ace124c2f47cbcb3678344e64
   languageName: node
   linkType: hard
 
@@ -6147,21 +6232,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:19.2.3":
-  version: 19.2.3
-  resolution: "@types/react-dom@npm:19.2.3"
+"@types/react-dom@npm:19.2.4":
+  version: 19.2.4
+  resolution: "@types/react-dom@npm:19.2.4"
   peerDependencies:
     "@types/react": ^19.2.0
-  checksum: 10c0/b486ebe0f4e2fb35e2e108df1d8fc0927ca5d6002d5771e8a739de11239fe62d0e207c50886185253c99eb9dedfeeb956ea7429e5ba17f6693c7acb4c02f8cd1
+  checksum: 10c0/b7d854ce17bb51a3a067168268a90f0123d10dc490f63f1ff5409f07ac715febeb8f5b7b473404a9d437106571e0312fc2937a945634d590abfc9aa46a14b01b
   languageName: node
   linkType: hard
 
-"@types/react@npm:19.2.16":
-  version: 19.2.16
-  resolution: "@types/react@npm:19.2.16"
+"@types/react@npm:19.2.18":
+  version: 19.2.18
+  resolution: "@types/react@npm:19.2.18"
   dependencies:
     csstype: "npm:^3.2.2"
-  checksum: 10c0/96f2850b67c5aa4a695bc32eb06c7609acdda1c0c597ace21ad24a5b9e2ccbccd97c0643253579fd629789a422a3694b4bbcb26e5fc6aec5f0357820bf0ee81c
+  checksum: 10c0/d04216172b4b4362b310017c210dfbe019fb4f4e7dffd0313e70b3acb3051d5c3e76e7e84e3cf4c6a3c824993ffadfe3949e589a6398a09d4200e7670e2962de
   languageName: node
   linkType: hard
 
@@ -8662,6 +8747,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ip-address@npm:^10.2.0":
+  version: 10.5.0
+  resolution: "ip-address@npm:10.5.0"
+  checksum: 10c0/c6616bc99c90b552dad2beb850ca697c1ea3e2b89662d652a4439cd72a549b0c9af100a54be0d25be86599e2b089db87ef5303157d142e5b4c21bd2a1301dfa7
+  languageName: node
+  linkType: hard
+
 "ip-address@npm:^9.0.5":
   version: 9.0.5
   resolution: "ip-address@npm:9.0.5"
@@ -9567,14 +9659,14 @@ __metadata:
   resolution: "midnight-cnight-to-dust-dapp@workspace:."
   dependencies:
     "@blaze-cardano/core": "npm:^0.8.0"
-    "@blaze-cardano/data": "npm:^0.6.6"
+    "@blaze-cardano/data": "npm:^0.6.8"
     "@blaze-cardano/uplc": "npm:^0.4.3"
     "@eslint/eslintrc": "npm:^3"
     "@harmoniclabs/bytestring": "npm:^1.0.0"
-    "@harmoniclabs/cbor": "npm:^2.0.1"
+    "@harmoniclabs/cbor": "npm:^2.0.2"
     "@harmoniclabs/pair": "npm:^1.0.0"
     "@harmoniclabs/plutus-data": "npm:^1.2.6"
-    "@harmoniclabs/uplc": "npm:^2.0.6"
+    "@harmoniclabs/uplc": "npm:^2.0.7"
     "@heroui/react": "npm:^2.8.10"
     "@lucid-evolution/lucid": "npm:^0.4.34"
     "@midnight-ntwrk/dapp-connector-api": "npm:^4.0.0"
@@ -9587,8 +9679,8 @@ __metadata:
     "@testing-library/react": "npm:^16.3.2"
     "@types/http-proxy": "npm:^1.17.16"
     "@types/node": "npm:^25"
-    "@types/react": "npm:19.2.16"
-    "@types/react-dom": "npm:19.2.3"
+    "@types/react": "npm:19.2.18"
+    "@types/react-dom": "npm:19.2.4"
     "@vitejs/plugin-react": "npm:^6.0.2"
     "@vitest/coverage-v8": "npm:^4.1.8"
     "@vitest/ui": "npm:^4.1.8"
@@ -9606,11 +9698,11 @@ __metadata:
     libsodium-wrappers-sumo: "npm:^0.8.4"
     next: "npm:^16.2.11"
     next-themes: "npm:^0.4.6"
-    postcss: "npm:^8.5.23"
+    postcss: "npm:^8.5.26"
     prettier: "npm:^3.8.3"
-    react: "npm:^19.2.7"
+    react: "npm:^19.2.8"
     react-chartjs-2: "npm:^5.3.0"
-    react-dom: "npm:^19.2.7"
+    react-dom: "npm:^19.2.8"
     tailwindcss: "npm:^4.3.0"
     typescript: "npm:^6"
     vitest: "npm:^4.1.8"
@@ -9767,7 +9859,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:^3.1.31, nanoid@npm:^3.3.11, nanoid@npm:^3.3.16, nanoid@npm:^3.3.17, nanoid@npm:^3.3.6":
+"nanoid@npm:^3.1.31, nanoid@npm:^3.3.11, nanoid@npm:^3.3.17, nanoid@npm:^3.3.6":
   version: 3.3.18
   resolution: "nanoid@npm:3.3.18"
   bin:
@@ -10231,18 +10323,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.5.23":
-  version: 8.5.23
-  resolution: "postcss@npm:8.5.23"
-  dependencies:
-    nanoid: "npm:^3.3.16"
-    picocolors: "npm:^1.1.1"
-    source-map-js: "npm:^1.2.1"
-  checksum: 10c0/ed714e635b330bb42666ecdd0c0b4f30224ded15b0b0052d6bc2b92832f2cf17d1c1141359453f96f0a84f8fbf4c405a74df187f559163b8f31131b2535455aa
-  languageName: node
-  linkType: hard
-
-"postcss@npm:^8.5.25":
+"postcss@npm:^8.5.25, postcss@npm:^8.5.26":
   version: 8.5.26
   resolution: "postcss@npm:8.5.26"
   dependencies:
@@ -10380,14 +10461,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^19.2.7":
-  version: 19.2.7
-  resolution: "react-dom@npm:19.2.7"
+"react-dom@npm:^19.2.8":
+  version: 19.2.8
+  resolution: "react-dom@npm:19.2.8"
   dependencies:
     scheduler: "npm:^0.27.0"
   peerDependencies:
-    react: ^19.2.7
-  checksum: 10c0/970ff600f6e80d47d39e2f226f12f226173b3cba3382efc97c5f0cd663de9af38c7a4c11c213fb936094faeac83060d660247accaa96b752180d5b951b9cfecb
+    react: ^19.2.8
+  checksum: 10c0/41ba2247b76f687fcfe5bbc99f514d6b851d8c8041c2f5ded36ed05bd7fdc5208cacbac9de51e3e6633e77f96f44cec9f0d4a5a55184dba4e00738f224439134
   languageName: node
   linkType: hard
 
@@ -10449,10 +10530,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^19.2.7":
-  version: 19.2.7
-  resolution: "react@npm:19.2.7"
-  checksum: 10c0/0bd0e2f1bbd4ba97561c6597bf8a5fec05e6476fe61e165c1065598d16668efc6715205599c94d3ddd49d36cb0f21cbf1b9bcc18ee840b805ce222c3e8d558ac
+"react@npm:^19.2.8":
+  version: 19.2.8
+  resolution: "react@npm:19.2.8"
+  checksum: 10c0/5f86bdb56426652fd6d989d30a6f2e603c057272c47c9ca3a3fbe190a3a39ee9ccce937d63cfc039717abed1b8891d6a499134bc35311acc07eafdacd86537cd
   languageName: node
   linkType: hard
 
