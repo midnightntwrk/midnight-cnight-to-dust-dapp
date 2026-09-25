@@ -64,6 +64,7 @@ const ALLOWED_ORIGINS = [
   process.env.NEXT_PUBLIC_REACT_SERVER_URL || 'http://localhost:3000',
   'http://localhost:3000',
   'http://localhost:3001',
+  'https://dust.devnet.midnight.network',
   'https://dust.preview.midnight.network',
   'https://dust.preprod.midnight.network',
   'https://dust.midnight.network',
