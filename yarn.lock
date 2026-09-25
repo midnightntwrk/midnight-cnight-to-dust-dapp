@@ -345,7 +345,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@blaze-cardano/core@npm:0.8.0, @blaze-cardano/core@npm:^0.8.0":
+"@blaze-cardano/core@npm:^0.8.0":
   version: 0.8.0
   resolution: "@blaze-cardano/core@npm:0.8.0"
   dependencies:
@@ -377,16 +377,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@blaze-cardano/data@npm:0.6.6":
-  version: 0.6.6
-  resolution: "@blaze-cardano/data@npm:0.6.6"
-  dependencies:
-    "@blaze-cardano/core": "npm:0.8.0"
-    "@sinclair/typebox": "npm:^0.34.28"
-  checksum: 10c0/0d997f4c08a774a6de3c4361657e7e06465f0682e5f6d1655a80101d82477bd51301620b161674d13261e911e279c2f00df07c931724b4202598982ccb0250f8
-  languageName: node
-  linkType: hard
-
 "@blaze-cardano/data@npm:^0.6.8":
   version: 0.6.8
   resolution: "@blaze-cardano/data@npm:0.6.8"
@@ -397,14 +387,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@blaze-cardano/uplc@npm:^0.4.3":
-  version: 0.4.3
-  resolution: "@blaze-cardano/uplc@npm:0.4.3"
+"@blaze-cardano/uplc@npm:^0.5.1":
+  version: 0.5.1
+  resolution: "@blaze-cardano/uplc@npm:0.5.1"
   dependencies:
-    "@blaze-cardano/core": "npm:0.8.0"
-    "@blaze-cardano/data": "npm:0.6.6"
+    "@blaze-cardano/core": "npm:^0.9.0"
+    "@blaze-cardano/data": "npm:^0.6.8"
     hex-encoding: "npm:^2.0.2"
-  checksum: 10c0/74b993d609173086546d08ed496a12f6999de0745c444d943345fffcfbba7e3d9cf342c8de6c0b3b10c78b8192b919a54d318a80c8dbcc8fdfb20fe35d30e53e
+  checksum: 10c0/77b9e2423689437c9289200d72f994e0d9e36fe60c74cc29857c82ae418f39229b4b4a48ba8146b0c5f764c469debc15587db548a7b4052380b39db268ade222
   languageName: node
   linkType: hard
 
@@ -9660,7 +9650,7 @@ __metadata:
   dependencies:
     "@blaze-cardano/core": "npm:^0.8.0"
     "@blaze-cardano/data": "npm:^0.6.8"
-    "@blaze-cardano/uplc": "npm:^0.4.3"
+    "@blaze-cardano/uplc": "npm:^0.5.1"
     "@eslint/eslintrc": "npm:^3"
     "@harmoniclabs/bytestring": "npm:^1.0.0"
     "@harmoniclabs/cbor": "npm:^2.0.2"
