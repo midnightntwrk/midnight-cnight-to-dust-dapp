@@ -1,5 +1,6 @@
 import { gql, GraphQLClient } from 'graphql-request';
 import { logger } from '@/lib/logger';
+import { redactUrl } from '@/config/indexer';
 
 interface DustGenerationStatusResponse {
   dustGenerationStatus: {
@@ -14,12 +15,20 @@ interface DustGenerationStatusResponse {
 
 export class Subgraph {
   private client: GraphQLClient;
+  /** Endpoint with any query string removed; used only for logging. */
   private uri: string;
 
-  constructor(uri: string) {
-    this.uri = uri;
-    this.client = new GraphQLClient(uri, { cache: 'no-store' });
-    logger.log('[Subgraph]', '🔧 Initialized GraphQL client', { uri });
+  /**
+   * @param uri - Indexer GraphQL endpoint
+   * @param projectId - Blockfrost project token, sent as the `project_id` header (omit for indexers that need none)
+   */
+  constructor(uri: string, projectId?: string) {
+    this.uri = redactUrl(uri);
+    this.client = new GraphQLClient(uri, {
+      cache: 'no-store',
+      ...(projectId ? { headers: { project_id: projectId } } : {}),
+    });
+    logger.log('[Subgraph]', '🔧 Initialized GraphQL client', { uri: this.uri });
   }
 
   /**

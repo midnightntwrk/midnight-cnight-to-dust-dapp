@@ -14,20 +14,9 @@ vi.mock('@/lib/logger', () => ({
   },
 }));
 
-// Mock RuntimeConfigContext
-const mockGetIndexerEndpoint = vi.fn(() => 'https://indexer.preview.midnight.network/api/v3/graphql');
-
-vi.mock('@/contexts/RuntimeConfigContext', () => ({
-  useRuntimeConfig: () => ({
-    getIndexerEndpoint: mockGetIndexerEndpoint,
-    isLoading: false,
-  }),
-}));
-
 describe('useGenerationStatus', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
-    mockGetIndexerEndpoint.mockReturnValue('https://indexer.preview.midnight.network/api/v3/graphql');
   });
 
   afterEach(() => {
@@ -44,18 +33,17 @@ describe('useGenerationStatus', () => {
 
   it('should fetch data when rewardAddress is provided', async () => {
     const mockData = {
-      data: {
-        dustGenerationStatus: [
-          {
-            cardanoRewardAddress: 'stake_test1abc',
-            dustAddress: 'mn_dust_addr_test1xyz',
-            registered: true,
-            nightBalance: '1000',
-            generationRate: '500000000000000',
-            currentCapacity: '2000000000000000',
-          },
-        ],
-      },
+      success: true,
+      data: [
+        {
+          cardanoRewardAddress: 'stake_test1abc',
+          dustAddress: 'mn_dust_addr_test1xyz',
+          registered: true,
+          nightBalance: '1000',
+          generationRate: '500000000000000',
+          currentCapacity: '2000000000000000',
+        },
+      ],
     };
 
     vi.mocked(fetch).mockResolvedValueOnce(
@@ -75,10 +63,8 @@ describe('useGenerationStatus', () => {
     expect(result.current.data!.cardanoRewardAddress).toBe('stake_test1abc');
   });
 
-  it('should make POST request with correct GraphQL query', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: { dustGenerationStatus: [] } }), { status: 200 })
-    );
+  it('should GET the same-origin server route, never the indexer directly', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify({ success: true, data: [] }), { status: 200 }));
 
     renderHook(() => useGenerationStatus('stake_test1abc'));
 
@@ -87,12 +73,34 @@ describe('useGenerationStatus', () => {
     });
 
     const [url, options] = vi.mocked(fetch).mock.calls[0];
-    expect(url).toBe('https://indexer.preview.midnight.network/api/v3/graphql');
-    expect(options?.method).toBe('POST');
+    expect(url).toBe('/api/dust/generation-status/stake_test1abc');
+    expect(options?.method).toBe('GET');
+    expect(options?.body).toBeUndefined();
+  });
 
-    const body = JSON.parse(options?.body as string);
-    expect(body.query).toContain('dustGenerationStatus');
-    expect(body.variables.cardanoRewardAddresses).toEqual(['stake_test1abc']);
+  it('should URL-encode the reward address', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify({ success: true, data: [] }), { status: 200 }));
+
+    renderHook(() => useGenerationStatus('stake_test1/../x'));
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalled();
+    });
+
+    expect(vi.mocked(fetch).mock.calls[0][0]).toBe('/api/dust/generation-status/stake_test1%2F..%2Fx');
+  });
+
+  it('should return null data when the route returns an empty list', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify({ success: true, data: [] }), { status: 200 }));
+
+    const { result } = renderHook(() => useGenerationStatus('stake_test1abc'));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.data).toBeNull();
+    expect(result.current.error).toBeNull();
   });
 
   it('should set error on HTTP error', async () => {
@@ -143,7 +151,7 @@ describe('useGenerationStatus', () => {
 
   it('should refetch when refetch is called', async () => {
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ data: { dustGenerationStatus: [] } }), { status: 200 })
+      new Response(JSON.stringify({ success: true, data: [] }), { status: 200 })
     );
 
     const { result } = renderHook(() => useGenerationStatus('stake_test1abc'));
@@ -171,7 +179,7 @@ describe('useGenerationStatus', () => {
         setTimeout(
           () =>
             resolve(
-              new Response(JSON.stringify({ data: { dustGenerationStatus: [] } }), { status: 200 })
+              new Response(JSON.stringify({ success: true, data: [] }), { status: 200 })
             ),
           1000
         )
@@ -193,18 +201,17 @@ describe('useGenerationStatus', () => {
     vi.mocked(fetch).mockResolvedValueOnce(
       new Response(
         JSON.stringify({
-          data: {
-            dustGenerationStatus: [
-              {
-                cardanoRewardAddress: 'stake_test1abc',
-                dustAddress: null,
-                registered: true,
-                nightBalance: '0',
-                generationRate: '0',
-                currentCapacity: '0',
-              },
-            ],
-          },
+          success: true,
+          data: [
+            {
+              cardanoRewardAddress: 'stake_test1abc',
+              dustAddress: null,
+              registered: true,
+              nightBalance: '0',
+              generationRate: '0',
+              currentCapacity: '0',
+            },
+          ],
         }),
         { status: 200 }
       )

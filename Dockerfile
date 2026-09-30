@@ -19,6 +19,9 @@ WORKDIR /app
 # Build with default values - these are used as fallbacks
 # Runtime configuration is served via /api/runtime-config endpoint
 # Server-side code reads from process.env at runtime
+# INDEXER_ENDPOINT_* are server-only and are not served to the browser. Pass the indexer's
+# Blockfrost token at runtime as MIDNIGHT_INDEXER_KEY_<NETWORK>; never bake it into the image
+# or put it in the endpoint URL.
 ENV CARDANO_NET=Preview \
     NEXT_PUBLIC_BLOCKFROST_URL_PREVIEW=https://cardano-preview.blockfrost.io/api/v0 \
     NEXT_PUBLIC_BLOCKFROST_URL_PREPROD=https://cardano-preprod.blockfrost.io/api/v0 \
@@ -34,7 +37,7 @@ ENV CARDANO_NET=Preview \
     NEXT_PUBLIC_MAINNET_CNIGHT_CURRENCY_ENCODEDNAME=4e49474854 \
     INDEXER_ENDPOINT_PREVIEW=https://indexer.preview.midnight.network/api/v3/graphql \
     INDEXER_ENDPOINT_PREPROD=https://indexer.preprod.midnight.network/api/v3/graphql \
-    INDEXER_ENDPOINT_MAINNET=https://indexer.mainnet.midnight.network/api/v4/graphql \
+    INDEXER_ENDPOINT_MAINNET=https://midnight-mainnet.blockfrost.io/api/v0 \
     NEXT_PUBLIC_REACT_SERVER_API_URL= \
     NEXT_PUBLIC_REACT_SERVER_URL= \
     NEXT_PUBLIC_SIMULATION_MODE=false
