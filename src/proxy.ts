@@ -25,17 +25,9 @@ export default function proxy(request: NextRequest) {
     ? "script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' 'unsafe-eval'"
     : `script-src 'self' 'wasm-unsafe-eval' 'nonce-${nonce}' 'sha256-${GTM_INLINE_SCRIPT_HASH}'`;
 
-  const network = process.env.CARDANO_NET?.toLowerCase() || 'preview';
-  const indexerEndpointMap: Record<string, string> = {
-    mainnet: 'https://indexer.mainnet.midnight.network',
-    preview: 'https://indexer.preview.midnight.network',
-    preprod: 'https://indexer.preprod.midnight.network',
-  };
-  const indexerEndpoint = indexerEndpointMap[network] || indexerEndpointMap.preview;
-
-  const connectSrc = isDev
-    ? `connect-src 'self' ws://localhost:* http://localhost:* ${indexerEndpoint}`
-    : `connect-src 'self' ${indexerEndpoint}`;
+  // The browser only talks to this origin: indexer and Blockfrost calls go through
+  // the /api routes, which add their project tokens server-side.
+  const connectSrc = isDev ? "connect-src 'self' ws://localhost:* http://localhost:*" : "connect-src 'self'";
 
   const cspHeader = [
     "default-src 'self'",

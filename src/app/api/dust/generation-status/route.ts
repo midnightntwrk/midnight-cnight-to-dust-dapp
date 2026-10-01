@@ -1,7 +1,7 @@
 import { Subgraph } from '@/lib/subgraph/query';
 import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
-import { getIndexerEndpoint } from '@/config/runtime-config';
+import { getIndexerEndpoint, getIndexerProjectId } from '@/config/indexer';
 import { validateOrigin, addCorsHeaders, addSecurityHeaders } from '@/lib/cors';
 import { checkRateLimit, addRateLimitHeaders, rateLimitExceededResponse } from '@/lib/rate-limit';
 
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const graph = new Subgraph(indexerEndpoint);
+    const graph = new Subgraph(indexerEndpoint, getIndexerProjectId());
     const generationStatus = await graph.getDustGenerationStatus(['0x00']);
 
     return NextResponse.json(

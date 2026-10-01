@@ -1,4 +1,3 @@
-import { useRuntimeConfig } from '@/contexts/RuntimeConfigContext';
 import { GenerationStatusData } from '@/contexts/WalletContext';
 import { logger } from '@/lib/logger';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -10,32 +9,24 @@ interface UseGenerationStatusReturn {
   refetch: () => void;
 }
 
-const DUST_GENERATION_STATUS_QUERY = `
-  query GetDustGenerationStatus($cardanoRewardAddresses: [String!]!) {
-    dustGenerationStatus(cardanoRewardAddresses: $cardanoRewardAddresses) {
-      cardanoRewardAddress
-      dustAddress
-      registered
-      nightBalance
-      generationRate
-      currentCapacity
-    }
-  }
-`;
-
+/**
+ * Fetches DUST generation status for a Cardano reward address.
+ *
+ * Goes through the server route /api/dust/generation-status/[key], which queries the
+ * indexer and adds its Blockfrost project token server-side. The browser never calls
+ * the indexer directly, so the token never reaches the client and the CSP needs only
+ * connect-src 'self'.
+ */
 export function useGenerationStatus(rewardAddress: string | null): UseGenerationStatusReturn {
-  const { getIndexerEndpoint, isLoading: isConfigLoading } = useRuntimeConfig();
   const [data, setData] = useState<GenerationStatusData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0); // bump to refetch
 
-  const indexerEndpoint = getIndexerEndpoint();
-
-  const url = useMemo(() => {
-    if (!rewardAddress || isConfigLoading || !indexerEndpoint) return null;
-    return indexerEndpoint;
-  }, [rewardAddress, isConfigLoading, indexerEndpoint]);
+  const url = useMemo(
+    () => (rewardAddress ? `/api/dust/generation-status/${encodeURIComponent(rewardAddress)}` : null),
+    [rewardAddress]
+  );
 
   const refetch = useCallback(() => setNonce((n) => n + 1), []);
 
@@ -57,17 +48,11 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
         logger.debug('[Indexer:GenerationStatus]', 'Fetching status', { rewardAddress });
 
         const response = await fetch(url, {
-          method: 'POST',
+          method: 'GET',
           signal: controller.signal,
           headers: {
-            'Content-Type': 'application/json',
+            Accept: 'application/json',
           },
-          body: JSON.stringify({
-            query: DUST_GENERATION_STATUS_QUERY,
-            variables: {
-              cardanoRewardAddresses: [rewardAddress],
-            },
-          }),
         });
 
         if (!response.ok) {
@@ -89,9 +74,7 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
 
         const result = await response.json();
         logger.info('[Indexer:GenerationStatus]', 'Raw response:', JSON.stringify(result));
-        const statusData = Array.isArray(result?.data?.dustGenerationStatus)
-          ? result.data.dustGenerationStatus[0]
-          : null;
+        const statusData = Array.isArray(result?.data) ? (result.data[0] ?? null) : null;
         logger.info('[Indexer:GenerationStatus]', 'Parsed statusData:', statusData);
         setData(statusData);
       } catch (err) {
