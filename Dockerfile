@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # Stage 1: Dependencies
-FROM node:24.1.0-alpine3.20 AS deps
+FROM node:24.22.0-alpine3.24 AS deps
 WORKDIR /app
 
 # Copy yarn configuration and release
@@ -13,7 +13,7 @@ RUN --mount=type=cache,target=/root/.yarn \
     yarn install --immutable
 
 # Stage 2: Builder
-FROM node:24.1.0-alpine3.20 AS builder
+FROM node:24.22.0-alpine3.24 AS builder
 WORKDIR /app
 
 # Build with default values - these are used as fallbacks
@@ -51,7 +51,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN yarn build
 
 # Stage 3: Runner
-FROM node:24.1.0-alpine3.20 AS runner
+FROM node:24.22.0-alpine3.24 AS runner
 WORKDIR /app
 
 # Install security updates and remove unnecessary packages
@@ -93,6 +93,6 @@ EXPOSE 3000
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD node -e "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+    CMD node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 CMD ["node", "server.js"]
