@@ -31,6 +31,7 @@ declare global {
       nufi?: CardanoWallet;
       gero?: CardanoWallet;
       ccvault?: CardanoWallet;
+      '1am'?: CardanoWallet;
     };
   }
 }

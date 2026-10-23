@@ -19,7 +19,7 @@ export default function Faqs() {
       key: '2',
       title: 'What wallets are supported?',
       content:
-        'On the Cardano side, a browser-based, CIP-30 compatible Cardano wallet is required in order to connect with this app and sign the registration transaction. Supported wallets include Lace wallet (Cardano), Nami, Eternl, Lace, Flint, Typhon, NuFi, GeroWallet, and CCVault. On the Midnight side, you may optionally also connect the recipient address using a Midnight-compatible wallet, like Lace wallet (Midnight).',
+        'On the Cardano side, a browser-based, CIP-30 compatible Cardano wallet is required in order to connect with this app and sign the registration transaction. Supported wallets include Lace wallet (Cardano), Nami, Eternl, Lace, Flint, Typhon, NuFi, GeroWallet, CCVault, and 1AM. On the Midnight side, you may optionally also connect the recipient address using a Midnight-compatible wallet, like Lace wallet (Midnight).',
     },
     {
       key: '3',

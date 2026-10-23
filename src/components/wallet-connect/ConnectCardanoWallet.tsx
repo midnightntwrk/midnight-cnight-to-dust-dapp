@@ -25,6 +25,7 @@ const ConnectCardanoWallet: React.FC = () => {
     nufi: { name: 'NuFi', icon: '💎' },
     gero: { name: 'GeroWallet', icon: '⚡' },
     ccvault: { name: 'CCVault', icon: '🛡️' },
+    '1am': { name: '1AM', icon: '🕐' },
   };
 
   const handleWalletSelect = async (wallet: SupportedWallet | SupportedMidnightWallet) => {
