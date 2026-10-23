@@ -11,7 +11,7 @@
     "@typescript-eslint/typescript-estree": "8.60.0",
     "@typescript-eslint/utils": "8.60.0",
     "libsodium-wrappers-sumo": "0.8.4",
-    "tar": "7.5.19",
+    "tar": "7.5.21",
     "@isaacs/brace-expansion": "5.0.1",
     "@tootallnate/once": "^3.0.1",
     "lodash": "4.18.1",
@@ -70,8 +70,8 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "@vitejs/plugin-react": "^6.0.2",
-    "@vitest/coverage-v8": "^4.1.8",
-    "@vitest/ui": "^4.1.8",
+    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/ui": "^4.1.11",
     "eslint": "^10",
     "eslint-config-next": "^16.2.7",
     "eslint-plugin-react": "^7.37.5",
@@ -80,7 +80,7 @@
     "prettier": "^3.8.3",
     "tailwindcss": "^4.3.0",
     "typescript": "^6",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.11"
   },
   "packageManager": "yarn@4.12.0"
 }
