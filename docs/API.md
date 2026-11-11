@@ -195,10 +195,13 @@ query GetDustGenerationStatus($cardanoStakeKeys: [HexEncoded!]!) {
 
 ### Configuration
 
-Requires environment variable:
+Server-side environment variables, selected by `CARDANO_NET`:
 
-- `INDEXER_ENDPOINT`: GraphQL endpoint URL (e.g., `http://localhost:8088/api/v3/graphql`)
+- `INDEXER_ENDPOINT_MAINNET` / `INDEXER_ENDPOINT_PREPROD` / `INDEXER_ENDPOINT_PREVIEW`: indexer GraphQL endpoint (mainnet defaults to Blockfrost, `https://midnight-mainnet.blockfrost.io/api/v0`)
+- `MIDNIGHT_INDEXER_KEY_MAINNET` / `MIDNIGHT_INDEXER_KEY_PREPROD` / `MIDNIGHT_INDEXER_KEY_PREVIEW`: Blockfrost project token for the indexer, sent as the `project_id` header. Leave unset for an indexer that needs no token.
 - `SIMULATION_MODE`: Optional boolean to enable mock responses
+
+None of these are sent to the browser. Never put the token in the endpoint URL (`?project_id=`) or in a `NEXT_PUBLIC_` variable.
 
 ### CORS Support
 
@@ -212,7 +215,7 @@ Access-Control-Allow-Headers: Content-Type
 
 ### Current Status
 
-**Not Active**: This route is implemented but currently returns data from simulation mode or will query the indexer when available. The frontend uses `useGenerationStatus` hook with a hardcoded stake key pending indexer deployment.
+**Active**: the frontend's `useGenerationStatus` hook calls this route. The browser never queries the indexer directly, which keeps the indexer token server-side and lets the CSP use `connect-src 'self'`.
 
 ## Route 3: DUST Generation Status (Multiple Keys)
 
@@ -278,7 +281,7 @@ const generationStatus = await graph.getDustGenerationStatus(['0x00']);
 Provides a typed GraphQL client for querying the Midnight Indexer.
 
 ```typescript
-const subgraph = new Subgraph(indexerEndpoint);
+const subgraph = new Subgraph(getIndexerEndpoint(), getIndexerProjectId());
 const status = await subgraph.getDustGenerationStatus(stakeKeys);
 ```
 
@@ -322,7 +325,8 @@ query GetDustGenerationStatus($cardanoStakeKeys: [HexEncoded!]!) {
 
 The client is initialized with:
 
-- `uri`: Indexer GraphQL endpoint
+- `uri`: Indexer GraphQL endpoint (logged with any query string removed)
+- `projectId` (optional): Blockfrost project token, sent as the `project_id` header
 - `cache: "no-store"`: Disables caching for real-time data
 
 ## Migration Strategy
@@ -383,7 +387,7 @@ All API routes follow consistent error handling:
 
 ## Security Notes
 
-1. **API Key Protection**: Blockfrost key never exposed to client
+1. **API Key Protection**: Blockfrost keys (Cardano and Midnight indexer) are never exposed to the client; `/api/runtime-config` does not include indexer settings
 2. **Server-Side Only**: All routes run server-side (Next.js API routes)
 3. **CORS Configuration**: Explicit CORS headers where needed
 4. **Environment Validation**: Checks for required configuration before processing
@@ -411,9 +415,10 @@ This allows:
 Required configuration:
 
 ```bash
-NEXT_PUBLIC_CARDANO_NET=Preview
+CARDANO_NET=Preview
 BLOCKFROST_KEY_PREVIEW=your_key
-INDEXER_ENDPOINT=http://localhost:8088/api/v3/graphql
+INDEXER_ENDPOINT_PREVIEW=http://localhost:8088/api/v3/graphql
+# MIDNIGHT_INDEXER_KEY_PREVIEW=your_midnight_key   # only for a Blockfrost indexer
 ```
 
 Test endpoints:

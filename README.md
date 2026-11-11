@@ -69,6 +69,11 @@ BLOCKFROST_KEY_MAINNET=""
 BLOCKFROST_KEY_PREVIEW="your_preview_key_here"
 BLOCKFROST_KEY_PREPROD=""
 
+# Midnight indexer (server-side only). Mainnet defaults to Blockfrost and needs a
+# Midnight Mainnet project token; never put the token in the endpoint URL.
+# INDEXER_ENDPOINT_MAINNET="https://midnight-mainnet.blockfrost.io/api/v0"
+MIDNIGHT_INDEXER_KEY_MAINNET=""
+
 # cNIGHT Token Configuration
 NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_POLICY_ID="d2dbff622e509dda256fedbd31ef6e9fd98ed49ad91d5c0e07f68af1"
 NEXT_PUBLIC_PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME=""

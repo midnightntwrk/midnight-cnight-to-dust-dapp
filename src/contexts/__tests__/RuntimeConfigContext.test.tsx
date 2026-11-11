@@ -20,9 +20,6 @@ const baseConfig: RuntimeConfig = {
   PREVIEW_CNIGHT_CURRENCY_ENCODEDNAME: 'preview_encoded',
   PREPROD_CNIGHT_CURRENCY_ENCODEDNAME: 'preprod_encoded',
   MAINNET_CNIGHT_CURRENCY_ENCODEDNAME: 'mainnet_encoded',
-  INDEXER_ENDPOINT_PREVIEW: 'https://indexer.preview.midnight.network/api/v3/graphql',
-  INDEXER_ENDPOINT_PREPROD: 'https://indexer.preprod.midnight.network/api/v3/graphql',
-  INDEXER_ENDPOINT_MAINNET: 'https://indexer.mainnet.midnight.network/api/v4/graphql',
   REACT_SERVER_API_URL: '',
   REACT_SERVER_URL: '',
   SIMULATION_MODE: 'false',
@@ -158,20 +155,6 @@ describe('RuntimeConfigContext', () => {
       const wrapper = makeWrapper({ CARDANO_NET: 'Preprod' });
       const { result } = renderHook(() => useRuntimeConfig(), { wrapper });
       expect(result.current.getCnightPolicyId()).toBe('preprod_policy_id');
-    });
-  });
-
-  describe('getIndexerEndpoint', () => {
-    it('should return Preview indexer endpoint', () => {
-      const wrapper = makeWrapper({ CARDANO_NET: 'Preview' });
-      const { result } = renderHook(() => useRuntimeConfig(), { wrapper });
-      expect(result.current.getIndexerEndpoint()).toBe('https://indexer.preview.midnight.network/api/v3/graphql');
-    });
-
-    it('should return Mainnet indexer endpoint', () => {
-      const wrapper = makeWrapper({ CARDANO_NET: 'Mainnet' });
-      const { result } = renderHook(() => useRuntimeConfig(), { wrapper });
-      expect(result.current.getIndexerEndpoint()).toBe('https://indexer.mainnet.midnight.network/api/v4/graphql');
     });
   });
 

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # Stage 1: Dependencies
-FROM node:24.1.0-alpine3.20 AS deps
+FROM node:24.22.1-alpine3.24 AS deps
 WORKDIR /app
 
 # Copy yarn configuration and release
@@ -13,12 +13,15 @@ RUN --mount=type=cache,target=/root/.yarn \
     yarn install --immutable
 
 # Stage 2: Builder
-FROM node:24.1.0-alpine3.20 AS builder
+FROM node:24.22.1-alpine3.24 AS builder
 WORKDIR /app
 
 # Build with default values - these are used as fallbacks
 # Runtime configuration is served via /api/runtime-config endpoint
 # Server-side code reads from process.env at runtime
+# INDEXER_ENDPOINT_* are server-only and are not served to the browser. Pass the indexer's
+# Blockfrost token at runtime as MIDNIGHT_INDEXER_KEY_<NETWORK>; never bake it into the image
+# or put it in the endpoint URL.
 ENV CARDANO_NET=Preview \
     NEXT_PUBLIC_BLOCKFROST_URL_PREVIEW=https://cardano-preview.blockfrost.io/api/v0 \
     NEXT_PUBLIC_BLOCKFROST_URL_PREPROD=https://cardano-preprod.blockfrost.io/api/v0 \
@@ -34,7 +37,7 @@ ENV CARDANO_NET=Preview \
     NEXT_PUBLIC_MAINNET_CNIGHT_CURRENCY_ENCODEDNAME=4e49474854 \
     INDEXER_ENDPOINT_PREVIEW=https://indexer.preview.midnight.network/api/v3/graphql \
     INDEXER_ENDPOINT_PREPROD=https://indexer.preprod.midnight.network/api/v3/graphql \
-    INDEXER_ENDPOINT_MAINNET=https://indexer.mainnet.midnight.network/api/v4/graphql \
+    INDEXER_ENDPOINT_MAINNET=https://midnight-mainnet.blockfrost.io/api/v0 \
     NEXT_PUBLIC_REACT_SERVER_API_URL= \
     NEXT_PUBLIC_REACT_SERVER_URL= \
     NEXT_PUBLIC_SIMULATION_MODE=false
@@ -48,7 +51,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN yarn build
 
 # Stage 3: Runner
-FROM node:24.1.0-alpine3.20 AS runner
+FROM node:24.22.1-alpine3.24 AS runner
 WORKDIR /app
 
 # Install security updates and remove unnecessary packages
@@ -90,6 +93,6 @@ EXPOSE 3000
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD node -e "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+    CMD node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 CMD ["node", "server.js"]
