@@ -15,7 +15,7 @@ vi.mock('@/config/indexer', () => ({
 }));
 
 // Mock cors
-const mockValidateOrigin = vi.fn((): string | null => 'http://localhost:3000');
+const mockValidateOrigin = vi.fn((..._args: unknown[]): string | null => 'http://localhost:3000');
 const mockAddCorsHeaders = vi.fn();
 const mockAddSecurityHeaders = vi.fn();
 vi.mock('@/lib/cors', () => ({
@@ -25,7 +25,7 @@ vi.mock('@/lib/cors', () => ({
 }));
 
 // Mock rate-limit
-const mockCheckRateLimit = vi.fn(() => ({ allowed: true, remaining: 99, resetTime: Date.now() + 60000 }));
+const mockCheckRateLimit = vi.fn((..._args: unknown[]) => ({ allowed: true, remaining: 99, resetTime: Date.now() + 60000 }));
 const mockAddRateLimitHeaders = vi.fn();
 const mockRateLimitExceededResponse = vi.fn();
 vi.mock('@/lib/rate-limit', () => ({
