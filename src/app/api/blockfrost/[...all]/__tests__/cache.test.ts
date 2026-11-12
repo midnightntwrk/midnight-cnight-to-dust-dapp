@@ -242,21 +242,21 @@ describe('Blockfrost Cache Implementation', () => {
     });
 
     it('should not cache POST requests', () => {
-      const method = 'POST';
+      const method: string = 'POST';
       const shouldCache = method === 'GET';
 
       expect(shouldCache).toBe(false);
     });
 
     it('should not cache PUT requests', () => {
-      const method = 'PUT';
+      const method: string = 'PUT';
       const shouldCache = method === 'GET';
 
       expect(shouldCache).toBe(false);
     });
 
     it('should not cache DELETE requests', () => {
-      const method = 'DELETE';
+      const method: string = 'DELETE';
       const shouldCache = method === 'GET';
 
       expect(shouldCache).toBe(false);
