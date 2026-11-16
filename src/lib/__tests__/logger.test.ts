@@ -28,7 +28,7 @@ describe('Logger', () => {
   });
 
   it('should always output error messages', async () => {
-    process.env.NODE_ENV = 'production';
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
     const { logger } = await import('../logger');
 
     logger.error('test error');
@@ -36,7 +36,7 @@ describe('Logger', () => {
   });
 
   it('should sanitize sensitive fields in logged objects', async () => {
-    process.env.NODE_ENV = 'development';
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'development';
     const { logger } = await import('../logger');
 
     logger.error('[Test]', { password: 'secret123', name: 'test' });
@@ -48,7 +48,7 @@ describe('Logger', () => {
   });
 
   it('should redact api_key, token, secret, private_key, authorization, credential fields', async () => {
-    process.env.NODE_ENV = 'development';
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'development';
     const { logger } = await import('../logger');
 
     logger.error('[Test]', {
@@ -71,7 +71,7 @@ describe('Logger', () => {
   });
 
   it('should partially mask address fields', async () => {
-    process.env.NODE_ENV = 'development';
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'development';
     const { logger } = await import('../logger');
 
     const longAddress = 'addr_test1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwq2ytjqp';
@@ -84,7 +84,7 @@ describe('Logger', () => {
   });
 
   it('should suppress debug messages when LOG_LEVEL is warn', async () => {
-    process.env.NODE_ENV = 'production';
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
     process.env.LOG_LEVEL = 'warn';
     const { logger } = await import('../logger');
 

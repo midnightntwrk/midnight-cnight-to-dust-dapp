@@ -57,8 +57,8 @@ const mockDisconnectMidnight = vi.fn();
 const mockWalletContext = {
   cardano: {
     isConnected: true,
-    address: 'addr_test1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwq2ytjqp',
-    balanceNight: '500000000', // 500 NIGHT in stars
+    address: 'addr_test1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwq2ytjqp' as string | null,
+    balanceNight: '500000000' as string | null, // 500 NIGHT in stars
     stakeKey: null,
     rewardAddress: null,
     balanceADA: null,
