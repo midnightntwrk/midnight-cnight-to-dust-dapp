@@ -7505,12 +7505,12 @@ __metadata:
   linkType: hard
 
 "effect@npm:^3.10.4, effect@npm:^3.11.7, effect@npm:^3.12.7":
-  version: 3.21.1
-  resolution: "effect@npm:3.21.1"
+  version: 3.22.4
+  resolution: "effect@npm:3.22.4"
   dependencies:
     "@standard-schema/spec": "npm:^1.0.0"
     fast-check: "npm:^3.23.1"
-  checksum: 10c0/aea18a9978e8a453cb54941d9932d554566394cb490663188174f42b0060f960c75e1d814fc757262fbafd7342ef12e3c8c011fa1905cb78f1fcf6399366a138
+  checksum: 10c0/2310522d2802a8c0be1448b912b31c5770e31c63b60dd7866a710a39bd63029322875c73b0afb6007ddb538ce6e989a784e31cf56693bdc2100fb2f8f0ce1f92
   languageName: node
   linkType: hard
 
