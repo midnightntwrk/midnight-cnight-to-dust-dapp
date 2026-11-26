@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # Stage 1: Dependencies
-FROM node:24.22.1-alpine3.24 AS deps
+FROM node:26.13.0-alpine3.24 AS deps
 WORKDIR /app
 
 # Copy yarn configuration and release
@@ -13,7 +13,7 @@ RUN --mount=type=cache,target=/root/.yarn \
     yarn install --immutable
 
 # Stage 2: Builder
-FROM node:24.22.1-alpine3.24 AS builder
+FROM node:26.13.0-alpine3.24 AS builder
 WORKDIR /app
 
 # Build with default values - these are used as fallbacks
@@ -51,7 +51,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN yarn build
 
 # Stage 3: Runner
-FROM node:24.22.1-alpine3.24 AS runner
+FROM node:26.13.0-alpine3.24 AS runner
 WORKDIR /app
 
 # Install security updates and remove unnecessary packages
@@ -76,8 +76,7 @@ COPY --from=builder /app/package.json ./package.json
 
 # Copy only the specific packages with WASM files needed at runtime
 # Midnight network packages
-COPY --from=deps /app/node_modules/@midnight-ntwrk/ledger-v8 ./node_modules/@midnight-ntwrk/ledger-v8
-COPY --from=deps /app/node_modules/@midnight-ntwrk/zswap ./node_modules/@midnight-ntwrk/zswap
+COPY --from=deps /app/node_modules/@midnightntwrk/ledger-v9 ./node_modules/@midnightntwrk/ledger-v9
 
 # Cardano packages with WASM
 COPY --from=deps /app/node_modules/@anastasia-labs ./node_modules/@anastasia-labs
