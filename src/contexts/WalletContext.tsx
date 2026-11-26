@@ -56,7 +56,16 @@ async function initializeLucidWithBlockfrost(network: CardanoNetwork, apiServerU
 const NETWORK_MAINNET_ID = 1;
 const NETWORK_TESTNET_ID = 0;
 
-export type SupportedWallet = 'nami' | 'eternl' | 'lace' | 'flint' | 'typhoncip30' | 'nufi' | 'gero' | 'ccvault';
+export type SupportedWallet =
+  | 'nami'
+  | 'eternl'
+  | 'lace'
+  | 'flint'
+  | 'typhoncip30'
+  | 'nufi'
+  | 'gero'
+  | 'ccvault'
+  | '1am';
 export type SupportedMidnightWallet = {
   uuid: string;
   name: string;
@@ -223,6 +232,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       'nufi',
       'gero',
       'ccvault',
+      '1am',
     ];
 
     supportedWallets.forEach((wallet) => {
