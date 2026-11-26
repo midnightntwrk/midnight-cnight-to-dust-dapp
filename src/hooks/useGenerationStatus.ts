@@ -31,12 +31,7 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
   const refetch = useCallback(() => setNonce((n) => n + 1), []);
 
   useEffect(() => {
-    if (!url) {
-      setData(null);
-      setError(null);
-      setIsLoading(false);
-      return;
-    }
+    if (!url) return;
 
     const controller = new AbortController();
 
@@ -89,6 +84,10 @@ export function useGenerationStatus(rewardAddress: string | null): UseGeneration
 
     return () => controller.abort();
   }, [url, nonce, rewardAddress]);
+
+  // No address: report an empty state instead of resetting state inside the effect
+  // (react-hooks/set-state-in-effect).
+  if (!url) return { data: null, isLoading: false, error: null, refetch };
 
   return { data, isLoading, error, refetch };
 }
