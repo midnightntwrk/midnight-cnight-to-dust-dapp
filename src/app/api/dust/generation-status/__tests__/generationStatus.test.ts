@@ -6,14 +6,16 @@ vi.mock('@/lib/logger', () => ({
   logger: { log: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
 
-// Mock runtime config
+// Mock indexer config
 const mockGetIndexerEndpoint = vi.fn(() => 'https://indexer.preview.midnight.network/api/v3/graphql');
-vi.mock('@/config/runtime-config', () => ({
+const mockGetIndexerProjectId = vi.fn(() => '');
+vi.mock('@/config/indexer', () => ({
   getIndexerEndpoint: () => mockGetIndexerEndpoint(),
+  getIndexerProjectId: () => mockGetIndexerProjectId(),
 }));
 
 // Mock cors
-const mockValidateOrigin = vi.fn((): string | null => 'http://localhost:3000');
+const mockValidateOrigin = vi.fn((..._args: unknown[]): string | null => 'http://localhost:3000');
 const mockAddCorsHeaders = vi.fn();
 const mockAddSecurityHeaders = vi.fn();
 vi.mock('@/lib/cors', () => ({
@@ -23,7 +25,7 @@ vi.mock('@/lib/cors', () => ({
 }));
 
 // Mock rate-limit
-const mockCheckRateLimit = vi.fn(() => ({ allowed: true, remaining: 99, resetTime: Date.now() + 60000 }));
+const mockCheckRateLimit = vi.fn((..._args: unknown[]) => ({ allowed: true, remaining: 99, resetTime: Date.now() + 60000 }));
 const mockAddRateLimitHeaders = vi.fn();
 const mockRateLimitExceededResponse = vi.fn();
 vi.mock('@/lib/rate-limit', () => ({
@@ -34,8 +36,12 @@ vi.mock('@/lib/rate-limit', () => ({
 
 // Mock Subgraph
 const mockGetDustGenerationStatus = vi.fn();
+const mockSubgraphConstructor = vi.fn();
 vi.mock('@/lib/subgraph/query', () => ({
   Subgraph: class {
+    constructor(...args: unknown[]) {
+      mockSubgraphConstructor(...args);
+    }
     getDustGenerationStatus = mockGetDustGenerationStatus;
   },
 }));
@@ -98,6 +104,16 @@ describe('Generation Status API (/api/dust/generation-status)', () => {
       const body = await response.json();
       expect(response.status).toBe(200);
       expect(body.data.generationStatus).toBeDefined();
+    });
+
+    it('should pass the indexer project token to Subgraph server-side', async () => {
+      mockGetIndexerEndpoint.mockReturnValueOnce('https://midnight-mainnet.blockfrost.io/api/v0');
+      mockGetIndexerProjectId.mockReturnValueOnce('mainnetSecret');
+      mockGetDustGenerationStatus.mockResolvedValueOnce([]);
+
+      const response = await GET(makeRequest());
+      expect(mockSubgraphConstructor).toHaveBeenCalledWith('https://midnight-mainnet.blockfrost.io/api/v0', 'mainnetSecret');
+      expect(await response.text()).not.toContain('mainnetSecret');
     });
 
     it('should return 500 on subgraph error', async () => {

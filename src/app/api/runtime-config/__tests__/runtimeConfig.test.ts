@@ -7,7 +7,6 @@ vi.mock('@/config/runtime-config', () => ({
     BLOCKFROST_URL_PREVIEW: 'https://cardano-preview.blockfrost.io/api/v0',
     BLOCKFROST_URL_PREPROD: 'https://cardano-preprod.blockfrost.io/api/v0',
     BLOCKFROST_URL_MAINNET: 'https://cardano-mainnet.blockfrost.io/api/v0',
-    INDEXER_ENDPOINT_PREVIEW: 'https://indexer.preview.midnight.network/api/v3/graphql',
   })),
 }));
 
@@ -34,7 +33,6 @@ describe('Runtime Config API (/api/runtime-config)', () => {
     const body = await response.json();
     expect(body).toHaveProperty('CARDANO_NET');
     expect(body).toHaveProperty('BLOCKFROST_URL_PREVIEW');
-    expect(body).toHaveProperty('INDEXER_ENDPOINT_PREVIEW');
   });
 
   it('should return valid JSON response', async () => {

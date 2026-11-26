@@ -26,7 +26,7 @@ vi.mock('@/lib/contractUtils', async () => {
     try {
       const datum = Data.from(inlineDatum);
       if (!(datum instanceof Constr) || datum.index !== 0 || datum.fields.length !== 2) return null;
-      const [inner, dustPKH] = datum.fields as [Constr<string>, string];
+      const [inner, dustPKH] = datum.fields as [InstanceType<typeof Constr<string>>, string];
       if (!(inner instanceof Constr) || inner.index !== 0 || inner.fields.length !== 1) return null;
       const stakeKeyHash = inner.fields[0] as string;
       if (!stakeKeyHash || !dustPKH) return null;

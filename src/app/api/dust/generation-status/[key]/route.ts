@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { Subgraph } from '@/lib/subgraph/query';
-import { getIndexerEndpoint } from '@/config/runtime-config';
+import { getIndexerEndpoint, getIndexerProjectId } from '@/config/indexer';
 import { validateOrigin, addCorsHeaders, addSecurityHeaders } from '@/lib/cors';
 import { checkRateLimit, addRateLimitHeaders, rateLimitExceededResponse } from '@/lib/rate-limit';
 
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Initialize Subgraph client
-    const subgraph = new Subgraph(INDEXER_ENDPOINT);
+    const subgraph = new Subgraph(INDEXER_ENDPOINT, getIndexerProjectId());
 
     // Fetch generation status by reward address
     const generationStatus = await subgraph.getDustGenerationStatus([rewardAddress]);

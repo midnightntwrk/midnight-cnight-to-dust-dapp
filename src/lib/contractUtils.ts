@@ -1,5 +1,5 @@
 import * as Contracts from '@/config/contract_blueprint';
-import { getIndexerEndpoint, getRuntimeConfig } from '@/config/runtime-config';
+import { getRuntimeConfig } from '@/config/runtime-config';
 import { addressFromValidator, Script as BlazeScript, CredentialType, PolicyId, RewardAddress } from '@blaze-cardano/core';
 import { serialize } from '@blaze-cardano/data';
 import { Constr, Data, Script as LucidScript } from '@lucid-evolution/lucid';
@@ -157,10 +157,6 @@ export function logContractAddresses(): void {
   logger.log('[Startup]', '🌙 cNIGHT TOKEN:');
   logger.log('[Startup]', `   Policy ID: ${cnightPolicyId}`);
   logger.log('[Startup]', `   Encoded Name: ${cnightEncodedName}`);
-
-  // Indexer Configuration
-  logger.log('[Startup]', '📊 INDEXER:');
-  logger.log('[Startup]', `   Endpoint: ${getIndexerEndpoint() || '(not configured)'}`);
 
   try {
     // DUST Generator (Mapping) Contract
